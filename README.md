@@ -2,8 +2,6 @@
 
 Build ATS-friendly resumes using AI.
 
----
-
 # English
 
 ## About
@@ -53,8 +51,6 @@ Please read CONTRIBUTING.md before submitting a Pull Request.
 ## License
 
 This project is licensed under the MIT License.
-
----
 
 # Português
 
