@@ -1,10 +1,15 @@
-import { Button } from "./components/ui/button";
+import { ThemeProvider } from "./providers/theme-provider";
+import { AppRoutes } from "./routes/AppRoutes";
+
 
 function App() {
   return (
-    <section>
-      <h1 className="text-4xl text-green-400">ATS  <Button>TEST SHADCNUI</Button> </h1>
-    </section>
+    <ThemeProvider
+      defaultTheme="dark"
+      storageKey="vite-ui-theme"
+    >
+        <AppRoutes />
+    </ThemeProvider>
   );
 }
 
