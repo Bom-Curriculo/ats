@@ -11,16 +11,16 @@
  * use App\Helpers\ResponseData;
  * 
  * // For success response
- * return ResponseData::success($data, $code, $message);
- * eg.: return ResponseData::success(['user_name' => 'John Doe'], 200, 'Request successful');
+ * return ResponseData::success(string $message, array|object $data, int $code);
+ * eg.: return ResponseData::success('Request successful', ['user_name' => 'John Doe'], 200);
  * 
  * // For error response
- * return ResponseData::error($data, $code, $message);
- * eg.: return ResponseData::error(['error' => 'Invalid request'], 400, 'Bad request');
+ * return ResponseData::error(string $message, array|object $data, int $code);
+ * eg.: return ResponseData::error('Bad request', ['error' => 'Invalid request'], 400);
  * 
  * 
  * Error responses will be logged automatically if the code is 500 or higher.
- * eg.: return ResponseData::error(['error' => 'SMTP Error'], 500, 'Internal server error');
+ * eg.: return ResponseData::error('Internal server error', ['error' => 'SMTP Error'], 500);
  * 
  * @author Gustavo Martim
  * 
@@ -29,6 +29,8 @@
 namespace App\Helpers;
 
 use Illuminate\Http\JsonResponse;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
 
@@ -41,9 +43,9 @@ final class ResponseData {
     protected static $defaultErrorMessage   = 'Request failed, internal server error';
 
     protected static function handle(
-        $data = [], 
-        $code = null, 
-        $message = null
+        string $message = null,
+        array $data = [], 
+        int$code = null
     ) : JsonResponse|Response
     {
         $code = $code ?? self::$defaultSuccessCode;
@@ -105,9 +107,9 @@ final class ResponseData {
     }
 
     public static function success(
-        $data, 
-        $code, 
-        $message
+        string $message = null,
+        array|Collection|LengthAwarePaginator $data, 
+        int $code
     ) : JsonResponse|Response 
     {
         return self::handle(
@@ -118,9 +120,9 @@ final class ResponseData {
     }
 
     public static function error(
-        $data, 
-        $code, 
-        $message
+        string $message = null,
+        array|Collection|LengthAwarePaginator $data, 
+        int $code
     ) : JsonResponse|Response 
     {
 
