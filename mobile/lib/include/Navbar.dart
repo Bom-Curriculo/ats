@@ -1,3 +1,4 @@
+import 'package:bomcurriculo/view/Home.dart';
 import 'package:bomcurriculo/widget/ButtonIcon.dart';
 import 'package:flutter/material.dart';
 
@@ -18,9 +19,19 @@ class _Navbar extends State<Navbar> {
           children: [
             SizedBox(width: 10.0),
             Expanded(
-                child: Text(
-                  'Bom Currículo',
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16.0),
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const Home(),
+                      ),
+                    );
+                  },
+                  child: Text(
+                    'Bom Currículo',
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16.0),
+                  ),
                 )
             ),
             ButtonIcon(icon: Icons.menu),
