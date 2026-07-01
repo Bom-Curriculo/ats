@@ -1,14 +1,35 @@
-## Título da contribuição
+## Descrição
 
+<!-- O que esse PR faz e por quê -->
 
-**Você usou IA para vibe-codar?**
-Resposta.
-**Você usou IA como fonte de pesquisa?**
-Resposta.
-**Você REVISOU seu código antes de pedir por uma review?**
-Resposta.
-**Você testou localmente?**
-Resposta.
+## Uso de IA
 
-### O que foi feito:
-Descrição do que foi feito. Você pode adicionar alguma print se necessário.
+- [ ] Vibe-code
+- [ ] Pesquisa
+
+## Tipo de mudança
+
+- [ ] Bug fix
+- [ ] Nova feature
+- [ ] Breaking change
+- [ ] Documentação
+- [ ] Chore / infra
+
+## Área afetada
+
+- [ ] frontend
+- [ ] backend
+- [ ] mobile
+- [ ] bot
+- [ ] CI/CD
+
+## Checklist
+
+- [ ] Testei localmente
+- [ ] Adicionei/atualizei testes quando necessário
+- [ ] `npm run lint` / `vendor/bin/pint` / `flutter analyze` passando
+- [ ] Atualizei a documentação quando necessário
+
+## Como testar
+
+<!-- Passo a passo pra quem for revisar -->
