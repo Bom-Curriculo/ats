@@ -45,7 +45,6 @@ COPY . .
 
 RUN composer install
 
-
 RUN chmod -R 755 storage bootstrap/cache
 RUN chown www-data:www-data -R bootstrap storage
 
