@@ -3,7 +3,13 @@ import 'package:bomcurriculo/widget/ButtonIcon.dart';
 import 'package:flutter/material.dart';
 
 class Navbar extends StatefulWidget {
-  const Navbar({super.key});
+  const Navbar({
+    super.key,
+    this.onMenuChanged
+  });
+
+  final VoidCallback? onMenuChanged;
+
   @override
   _Navbar createState() => _Navbar();
 }
@@ -14,10 +20,10 @@ class _Navbar extends State<Navbar> {
     return Container(
         width: double.infinity,
         height: 50.0,
-        color: Colors.black12,
+        color: Color(0xFFEEEEEE),
         child: Row(
           children: [
-            SizedBox(width: 10.0),
+            SizedBox(width: 11.0),
             Expanded(
                 child: GestureDetector(
                   onTap: () {
@@ -30,12 +36,15 @@ class _Navbar extends State<Navbar> {
                   },
                   child: Text(
                     'Bom Currículo',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16.0),
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18.0),
                   ),
                 )
             ),
-            ButtonIcon(icon: Icons.menu),
-            SizedBox(width: 10.0),
+            (widget.onMenuChanged!=null)?GestureDetector(
+              onTap: widget.onMenuChanged,
+              child: ButtonIcon(icon: Icons.menu)
+            ):SizedBox(),
+            SizedBox(width: 5.0),
           ],
         )
     );
