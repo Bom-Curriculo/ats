@@ -21,12 +21,12 @@ class _Button extends State<Button> {
         borderRadius: BorderRadius.circular(4.0),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 25.0),
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 25.0),
         child: Center(
           child: Text(
               widget.title,
               style: TextStyle(
-                  color: Colors.white,
+                color: Colors.white,
                 fontSize: 16.0
               ),
           ),

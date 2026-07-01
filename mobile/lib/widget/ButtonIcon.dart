@@ -15,7 +15,14 @@ class _ButtonIcon extends State<ButtonIcon> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: Icon(widget.icon),
+      decoration: BoxDecoration(
+        color: Color(0xFFDDDDDD),
+        borderRadius: BorderRadius.circular(4.0)
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Icon(widget.icon),
+      ),
     );
   }
 }

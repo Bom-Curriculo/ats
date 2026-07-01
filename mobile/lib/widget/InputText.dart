@@ -26,11 +26,24 @@ class _InputText extends State<InputText> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(widget.title, style: TextStyle(fontSize: 16.0)),
-          TextField(
-            obscureText: widget.isPassword,
-            decoration: InputDecoration(
-              labelText: '',
-              //border: OutlineInputBorder()
+          SizedBox(height: 5.0),
+          Container(
+            decoration: BoxDecoration(
+              color: Color(0xFFEEEEEE),
+              borderRadius: BorderRadius.circular(4.0)
+            ),
+            child: TextField(
+              obscureText: widget.isPassword,
+              decoration: InputDecoration(
+                isDense: true,
+                //labelText: '',
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12.0,
+                  vertical: 12.0
+                )
+                //border: OutlineInputBorder()
+              ),
             ),
           ),
           SizedBox(height: 15.0)

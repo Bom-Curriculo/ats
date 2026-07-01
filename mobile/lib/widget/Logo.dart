@@ -15,11 +15,18 @@ class _Logo extends State<Logo> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Container(
-          width: 200.0,
-          height: 100.0,
-          color: Colors.black12,
-          child: Center(child: Text('Logo')),
+        SizedBox(
+          //width: 200.0,
+          //height: 100.0,
+          //color: Colors.black12,
+          child: Center(child: Text(
+              'Bom Currículo',
+              style: TextStyle(
+                  fontSize: 28.0,
+                  fontWeight: FontWeight.w900
+              )
+            )
+          ),
         ),
         SizedBox(height: 45.0)
       ],
