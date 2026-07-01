@@ -1,4 +1,8 @@
-# ATS Resume Builder - UNDER CONSTRUCTION - EM CONSTRUÇÃO
+# Bom Currículo - ATS Resume Builder
+
+https://bomcurriculo.tech
+
+## UNDER CONSTRUCTION - EM CONSTRUÇÃO
 
 Build ATS-friendly resumes using AI.
 
@@ -16,20 +20,17 @@ The system can use multiple optional sources of information, including:
 - Portfolio
 - Personal information
 - Target job description
-- Custom instructions
 
 The user does not need to provide every source. The only requirement is enough information to generate a resume.
 
 ## Features
 
-- ATS-friendly resume generation
-- Resume optimization
 - LinkedIn profile analysis
 - GitHub profile analysis
 - Portfolio analysis
 - Job description matching
-- Multiple resume templates
-- AI-powered suggestions
+- ATS-friendly resume generation
+- Resume optimization
 
 ## Roadmap
 
@@ -66,20 +67,28 @@ O sistema pode utilizar diversas fontes opcionais de informação:
 - Portfólio
 - Informações pessoais
 - Vaga desejada
-- Instruções personalizadas
 
 O usuário não precisa fornecer todas essas informações. Basta enviar dados suficientes para gerar um currículo.
 
 ## Funcionalidades
 
-- Geração de currículo ATS
-- Otimização de currículo
 - Análise do LinkedIn
 - Análise do GitHub
 - Análise de portfólio
 - Compatibilidade com vagas
-- Diversos modelos
-- Sugestões usando IA
+- Geração de currículo ATS
+- Otimização de currículo
+
+## Roadmap
+
+- [ ] Geração de currículo
+- [ ] Leitor de PDF do LinkedIn
+- [ ] Integração com GitHub
+- [ ] Análise de portfólio
+- [ ] Correspondência de vagas
+- [ ] Múltiplos modelos
+- [ ] Exportação para PDF
+- [ ] Exportação para DOCX
 
 ## Como contribuir
 

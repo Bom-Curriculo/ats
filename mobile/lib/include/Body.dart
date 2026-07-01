@@ -3,7 +3,13 @@ import 'package:bomcurriculo/include/Navbar.dart';
 import 'package:flutter/material.dart';
 
 class Body extends StatefulWidget {
-  const Body({super.key});
+  const Body({
+    super.key,
+    required this.child
+  });
+
+  final Widget child;
+
   @override
   _Body createState() => _Body();
 }
@@ -15,20 +21,17 @@ class _Body extends State<Body> {
 
     final media = MediaQuery.of(context);
 
-    return SafeArea(
-      child: Stack(
-        children: [
+    return Scaffold(
+        body: SafeArea(
+        child: Column(
+          children: [
 
-          Navbar(),
+            Navbar(),
 
-          Container(
-            child: Center(
-                child: Text('Hello world')
-            ),
-          ),
-
-        ],
-      ),
+            widget.child
+          ],
+        ),
+      )
     );
   }
 }

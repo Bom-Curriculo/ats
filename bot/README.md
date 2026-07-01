@@ -181,3 +181,18 @@ curl -sS http://127.0.0.1:8000/api/v1/analisar \
 usei de base:
 - [srbhr/Resume-Matcher](https://github.com/srbhr/Resume-Matcher)
 - [JaimeYeung/Resume-Tailor-AI](https://github.com/JaimeYeung/Resume-Tailor-AI)
+# Bot
+
+Base inicial em Python para o bot do projeto ATS.
+
+## Como rodar
+
+```bash
+python main.py
+```
+
+Saida esperada:
+
+```text
+Hello from bot!
+```
