@@ -1,0 +1,58 @@
+services:
+
+  ats-api:
+    container_name: ats-api
+    build: 
+      context: .
+      dockerfile: dockerfile
+
+    env_file:
+      - .env
+
+    ports:
+      - 9000:9000
+
+    networks:
+      - ats-networks
+
+    depends_on:
+      - ats-db
+
+  ats-db:
+    container_name: ats-database
+    image: mysql:latest
+
+    # Docker Compose reads the value from .env. 
+    # I'm going to use these variables for the 
+    # database. I'm not sure if this is the best option.
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}-123
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+
+    ports:
+      - "3307:${DB_PORT}"
+
+    networks:
+      - ats-networks
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx-http
+
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+
+    depends_on:
+      - ats-api
+
+    networks:
+      - ats-networks
+
+    ports:
+      - "8000:8000"
+
+networks:
+  ats-networks:
+    driver: bridge

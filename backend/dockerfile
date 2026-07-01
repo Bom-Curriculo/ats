@@ -45,11 +45,11 @@ COPY . .
 
 RUN composer install
 
+RUN chmod -R 755 storage bootstrap/cache
+RUN chown www-data:www-data -R bootstrap storage
+
 EXPOSE 9000
 
-
 # isso deve ser alterado para usar o fastCGI
-# CMD ["php-fpm"]
+CMD ["php-fpm"]
 
-# para testes inicial estou utilizando o servidor http embutido
-CMD ["php", "-S", "0.0.0.0:9000", "-t", "public"]
