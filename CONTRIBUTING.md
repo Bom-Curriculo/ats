@@ -6,6 +6,7 @@ Thank you for contributing!
 
 ## How to contribute
 
+- Fork this repository.
 - Create a new branch.
 - Make your changes.
 - Commit them: `git add . && git commit -m "My changes" && git push origin development`
@@ -59,6 +60,7 @@ Obrigado por contribuir!
 
 ## Como contribuir
 
+- Faça um Fork.
 - Crie uma nova branch.
 - Faça suas alterações.
 - Faça o commit: `git add . && git commit -m "My changes" && git push origin development`
