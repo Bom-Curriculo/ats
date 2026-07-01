@@ -1,0 +1,56 @@
+name: Security Audit
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+  schedule:
+    # Toda segunda às 06:30 UTC
+    - cron: "30 6 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  frontend-audit:
+    name: npm audit (frontend)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.x"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        working-directory: frontend
+      - run: npm audit --audit-level=high
+        working-directory: frontend
+
+  backend-npm-audit:
+    name: npm audit (backend assets)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.x"
+      - run: npm install
+        working-directory: backend
+      - run: npm audit --audit-level=high
+        working-directory: backend
+
+  backend-composer-audit:
+    name: composer audit (backend)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          coverage: none
+      - run: composer install --no-interaction --prefer-dist --optimize-autoloader
+        working-directory: backend
+      - run: composer audit
+        working-directory: backend
