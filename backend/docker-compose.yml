@@ -1,6 +1,6 @@
 services:
 
-  api:
+  ats-api:
     container_name: ats-api
     build: 
       context: .
@@ -11,6 +11,9 @@ services:
 
     ports:
       - 9000:9000
+
+    networks:
+      - ats-networks
 
     depends_on:
       - ats-db
@@ -30,3 +33,26 @@ services:
 
     ports:
       - "3307:${DB_PORT}"
+
+    networks:
+      - ats-networks
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx-http
+
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+
+    depends_on:
+      - ats-api
+
+    networks:
+      - ats-networks
+
+    ports:
+      - "8000:8000"
+
+networks:
+  ats-networks:
+    driver: bridge
