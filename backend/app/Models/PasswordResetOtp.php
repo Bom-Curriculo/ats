@@ -11,5 +11,5 @@ class PasswordResetOtp extends Model
     public $casts = [
         'expires_at' => 'datetime', 
         'used_at' => 'datetime'
-    ]
+    ];
 }

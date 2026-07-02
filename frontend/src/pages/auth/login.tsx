@@ -82,7 +82,7 @@ export function Login() {
 
         <div className="flex w-1/2 items-center justify-center bg-white p-16">
           <div className="w-full max-w-md">
-            <h2 className="mb-2 text-4xl font-bold text-[#03206E]">
+            <h2 className="mb-2 text-4xl font-bold text-slate-900">
               Acesse sua conta
             </h2>
 
@@ -92,16 +92,12 @@ export function Login() {
 
             <form onSubmit={handleSubmit(handleSignIn)} className="space-y-6">
               <div>
-
-                <label className="mb-2 block font-medium text-[#03206E] ">
-
+                <label className="mb-2 block font-medium text-slate-900">
                   Endereço de e-mail
                 </label>
 
                 <Input
-
-                  className="h-14 rounded-none border-[#03206E]"
-
+                  className="h-14 rounded-none border-slate-900 text-slate-900"
                   placeholder="nome@exemplo.com.br"
                   {...register("email")}
                 />
@@ -114,14 +110,11 @@ export function Login() {
               </div>
 
               <div>
-
-                <label className="mb-2 block font-medium text-[#03206E]">
-                  Senha
-                </label>
+                <label className="mb-2 block font-medium text-slate-900">Senha</label>
 
                 <Input
                   type="password"
-                  className="h-14 rounded-none border-[#03206E]"
+                  className="h-14 rounded-none border-slate-900 text-slate-900"
                   placeholder="••••••••"
                   {...register("password")}
                 />
@@ -136,16 +129,14 @@ export function Login() {
               <Button
                 type="submit"
                 disabled={mutation.isPending}
-
-                className="h-14 w-full bg-[#03206E] text-white text-lg rounded-none"
-
+                className="h-14 w-full bg-[#03206E] hover:bg-[#03206E]/80 text-lg rounded-none"
               >
                 {mutation.isPending ? "Entrando..." : "Acessar Plataforma"}
               </Button>
 
               <p className="pt-6 text-center text-slate-600">
                 Novo usuário?{" "}
-                <Link to="/register" className="text-blue-600 hover:underline">
+                <Link to="/register" className="text-slate-900 hover:underline">
                   Criar conta profissional
                 </Link>
               </p>

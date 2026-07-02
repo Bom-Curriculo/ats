@@ -98,7 +98,7 @@ export default function Register() {
           </div>
         </div>
 
-        <div className="w-full rounded-2xl border border-slate-200 bg-white p-10 shadow-sm lg:p-12">
+        <div className="w-full rounded-2xl border border-slate-900 bg-white p-10 shadow-sm lg:p-12">
           <h2 className="mb-2 text-3xl font-bold text-[#03206E]">
             Criar sua conta
           </h2>
@@ -120,7 +120,7 @@ export default function Register() {
               </label>
 
               <Input
-                className="h-14 rounded-none border-slate-200 bg-slate-50 focus-visible:ring-blue-600"
+                className="h-14 rounded-none border-slate-900 bg-slate-50 focus-visible:ring-blue-600 text-[#03206E]"
                 placeholder="Ex: João Silva"
                 {...register("name")}
               />
@@ -138,7 +138,7 @@ export default function Register() {
               </label>
 
               <Input
-                className="h-14 rounded-none border-slate-200 bg-slate-50 focus-visible:ring-blue-600"
+                className="h-14 rounded-none border-slate-900 bg-slate-50 focus-visible:ring-blue-600 text-[#03206E]"
                 placeholder="seu@email.com"
                 {...register("email")}
               />
@@ -158,14 +158,14 @@ export default function Register() {
               <div className="relative">
                 <Input
                   type={showPassword ? "text" : "password"}
-                  className="h-14 rounded-none border-slate-200 bg-slate-50 pr-12 focus-visible:ring-blue-600"
+                  className="h-14 rounded-none border-slate-900 bg-slate-50 pr-12 focus-visible:ring-blue-600 text-[#03206E]"
                   placeholder="Mínimo 8 caracteres"
                   {...register("password")}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-4 top-1/2 -translate-y-1/2  hover:text-slate-600 text-[#03206E]"
                   tabIndex={-1}
                 >
                   {showPassword ? (
@@ -191,7 +191,7 @@ export default function Register() {
               <div className="relative">
                 <Input
                   type={showConfirmPassword ? "text" : "password"}
-                  className="h-14 rounded-none border-slate-200 bg-slate-50 pr-12 focus-visible:ring-blue-600"
+                  className="h-14 rounded-none border-slate-900 bg-slate-50 pr-12 focus-visible:ring-blue-600 text-slate-900"
                   placeholder="Repita sua senha"
                   {...register("password_confirm")}
                 />
@@ -238,7 +238,6 @@ export default function Register() {
             <Button
               type="submit"
               disabled={mutation.isPending}
-
               className="h-14 w-full rounded-none bg-[#03206E] text-lg font-semibold hover:bg-[#03206E]/90 text-white"
             >
               {mutation.isPending ? "Entrando..." : "Finalizar Cadastro"}
