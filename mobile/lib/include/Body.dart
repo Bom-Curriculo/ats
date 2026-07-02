@@ -1,4 +1,3 @@
-
 import 'package:bomcurriculo/include/Navbar.dart';
 import 'package:bomcurriculo/view/Home.dart';
 import 'package:bomcurriculo/view/SendData.dart';

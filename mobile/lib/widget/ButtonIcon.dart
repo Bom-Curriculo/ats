@@ -16,9 +16,6 @@ class ButtonIcon extends StatefulWidget {
 }
 
 class _ButtonIcon extends State<ButtonIcon> {
-
-  //Color(0xFFDDDDDD)
-
   @override
   Widget build(BuildContext context) {
     return Container(

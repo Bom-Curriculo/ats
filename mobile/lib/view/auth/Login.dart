@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:bomcurriculo/include/BodyAuth.dart';
 import 'package:bomcurriculo/view/Home.dart';
 import 'package:bomcurriculo/view/auth/ForgotPassword.dart';
