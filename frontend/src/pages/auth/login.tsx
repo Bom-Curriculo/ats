@@ -35,71 +35,115 @@ export function Login() {
     mutation.mutate(data);
   }
   return (
-    <>
-      <section>
-        <h1>TELA LOGIN.TSX</h1>
-        <form onSubmit={handleSubmit(handleSignIn)} className="space-y-5">
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">
-              Email
-            </label>
+    <section className="flex min-h-screen items-center justify-center bg-slate-100 p-6">
+      <div className="flex w-full  max-w-7xl overflow-hidden  bg-white shadow-2xl">
+        <div className="flex w-1/2 flex-col bg-[#03206E] p-12 text-white">
+          <div className="mb-10 flex items-center gap-4">
+            <div className="h-20 w-0.5 bg-white/60" />
 
-            <Input
-              className="h-12 rounded-xl border-slate-200 bg-slate-50 transition focus-visible:ring-2 "
-              placeholder="empresa@email.com"
-              {...register("email")}
+            <img
+              src="/logo.png"
+              alt="BomCurriculo"
+              className="h-45 w-auto"
             />
 
-            {errors.email && (
-              <p className="mt-1 text-sm text-red-500">
-                {errors.email.message}
+            <div>
+              <h1 className="text-5xl font-bold">
+                Bom
+                <span className="text-blue-400">Currículo</span>
+              </h1>
+
+              <p className="mt-2 text-xl text-white/80">
+                ATS INTELIGENTE. RESULTADOS REAIS.
               </p>
-            )}
+            </div>
           </div>
 
-          <div>
-            <div className="mb-2 flex items-center justify-between">
-              <label className="text-sm font-medium text-slate-700">
-                Senha
-              </label>
-            </div>
-
-            <Input
-              type="password"
-              className="h-12 rounded-xl border-slate-200 bg-slate-50 transition focus-visible:ring-2 "
-              placeholder="••••••••"
-              {...register("password")}
+          <div className="mb-8 overflow-hidden rounded-lg">
+            <img
+              src="/image-background-login.png"
+              alt="Preview"
+              className="w-full object-cover"
             />
-
-            {errors.password && (
-              <p className="mt-1 text-sm text-red-500">
-                {errors.password.message}
-              </p>
-            )}
           </div>
 
-          {mutation.isError && (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-500">
-              {(mutation.error as Error).message}
+          <div className="flex gap-4">
+            <div className="flex-1 rounded-none border border-white/10 bg-white/5 p-6 ">
+              <h2 className="text-4xl font-bold">1k+</h2>
+              <p className="text-white/70">APROVAÇÕES ATS</p>
             </div>
-          )}
 
-          <Button
-            type="submit"
-            disabled={mutation.isPending}
-            className="h-12 w-full rounded-xl bg-linear-to-r cursor-pointer text-base font-semibold shadow-lg transition hover:opacity-90"
-          >
-            {mutation.isPending ? "Entrando..." : "Entrar"}
-          </Button>
+            <div className="flex-1 rounded-none border border-white/10 bg-white/5 p-6">
+              <h2 className="text-4xl font-bold">98%</h2>
+              <p className="text-white/70">TAXA DE SUCESSO</p>
+            </div>
+          </div>
+        </div>
 
-          <p className="text-center text-sm text-slate-600">
-            Não possui conta?{" "}
-            <Link to="/register" className="font-semibold  hover:underline">
-              Cadastre-se
-            </Link>
-          </p>
-        </form>
-      </section>
-    </>
+        <div className="flex w-1/2 items-center justify-center bg-white p-16">
+          <div className="w-full max-w-md">
+            <h2 className="mb-2 text-4xl font-bold text-slate-900">
+              Acesse sua conta
+            </h2>
+
+            <p className="mb-10 text-slate-500">
+              Insira suas credenciais corporativas.
+            </p>
+
+            <form onSubmit={handleSubmit(handleSignIn)} className="space-y-6">
+              <div>
+                <label className="mb-2 block font-medium">
+                  Endereço de e-mail
+                </label>
+
+                <Input
+                  className="h-14 rounded-none"
+                  placeholder="nome@exemplo.com.br"
+                  {...register("email")}
+                />
+
+                {errors.email && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.email.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="mb-2 block font-medium">Senha</label>
+
+                <Input
+                  type="password"
+                  className="h-14 rounded-none"
+                  placeholder="••••••••"
+                  {...register("password")}
+                />
+
+                {errors.password && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.password.message}
+                  </p>
+                )}
+              </div>
+
+              <Button
+                type="submit"
+                disabled={mutation.isPending}
+                className="h-14 w-full bg-[#03206E] text-lg rounded-none"
+              >
+                {mutation.isPending ? "Entrando..." : "Acessar Plataforma"}
+              </Button>
+
+              <p className="pt-6 text-center text-slate-600">
+                Novo usuário?{" "}
+                <Link to="/register" className="text-blue-600 hover:underline">
+                  Criar conta profissional
+                </Link>
+              </p>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
