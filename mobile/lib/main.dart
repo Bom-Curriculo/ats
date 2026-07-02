@@ -1,8 +1,10 @@
 import 'package:bomcurriculo/view/Home.dart';
+import 'package:bomcurriculo/view/SendData.dart';
 import 'package:bomcurriculo/view/auth/Login.dart';
-import 'package:bomcurriculo/view/auth/Password.dart';
-import 'package:bomcurriculo/view/auth/Recovery.dart';
-import 'package:bomcurriculo/view/auth/Signup.dart';
+import 'package:bomcurriculo/view/auth/ResetPassword.dart';
+import 'package:bomcurriculo/view/auth/ForgotPassword.dart';
+import 'package:bomcurriculo/view/auth/Register.dart';
+import 'package:bomcurriculo/view/auth/VerifyOTP.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -22,10 +24,12 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const Home(),
-        '/login': (context) => const Login(),
-        '/signup': (context) => const Signup(),
-        '/recovery': (context) => const Recovery(),
-        '/password': (context) => const Password(),
+        '/auth/login': (context) => const Login(),
+        '/auth/register': (context) => const Register(),
+        '/auth/forgot-password': (context) => const ForgotPassword(),
+        '/auth/verify-otp': (context) => const VerifyOTP(),
+        '/auth/reset-password': (context) => const ResetPassword(),
+        '/send-data': (context) => const SendData()
       }
     );
   }
