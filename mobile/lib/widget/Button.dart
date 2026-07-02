@@ -15,7 +15,23 @@ class _Button extends State<Button> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: Text(widget.title),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.blue,
+        borderRadius: BorderRadius.circular(4.0),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 25.0),
+        child: Center(
+          child: Text(
+              widget.title,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16.0
+              ),
+          ),
+        ),
+      ),
     );
   }
 }
