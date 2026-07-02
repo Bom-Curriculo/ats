@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 class InputText extends StatefulWidget {
@@ -6,12 +5,16 @@ class InputText extends StatefulWidget {
     super.key,
     this.isPassword = false,
     this.title='',
-    this.label=''
+    this.label='',
+    this.httpsPrefix='',
+    this.controller
   });
 
   final bool isPassword;
   final String title;
   final String? label;
+  final String? httpsPrefix;
+  final TextEditingController? controller;
 
   @override
   _InputText createState() => _InputText();
@@ -33,8 +36,10 @@ class _InputText extends State<InputText> {
               borderRadius: BorderRadius.circular(4.0)
             ),
             child: TextField(
+              controller: widget.controller,
               obscureText: widget.isPassword,
               decoration: InputDecoration(
+                prefixText: widget.httpsPrefix,
                 isDense: true,
                 //labelText: '',
                 border: InputBorder.none,

@@ -1,11 +1,11 @@
-
 import 'package:bomcurriculo/include/Navbar.dart';
 import 'package:bomcurriculo/view/Home.dart';
+import 'package:bomcurriculo/view/SendData.dart';
 import 'package:bomcurriculo/view/auth/Login.dart';
-import 'package:bomcurriculo/view/auth/OTP.dart';
-import 'package:bomcurriculo/view/auth/Password.dart';
-import 'package:bomcurriculo/view/auth/Recovery.dart';
-import 'package:bomcurriculo/view/auth/Signup.dart';
+import 'package:bomcurriculo/view/auth/VerifyOTP.dart';
+import 'package:bomcurriculo/view/auth/ResetPassword.dart';
+import 'package:bomcurriculo/view/auth/ForgotPassword.dart';
+import 'package:bomcurriculo/view/auth/Register.dart';
 import 'package:flutter/material.dart';
 
 class Body extends StatefulWidget {
@@ -36,24 +36,28 @@ class _Body extends State<Body> {
         'widget': Home()
       },
       {
+        'title': 'Send data',
+        'widget': SendData()
+      },
+      {
         'title': 'Login',
         'widget': Login()
       },
       {
-        'title': 'Signup',
-        'widget': Signup()
+        'title': 'Register',
+        'widget': Register()
       },
       {
         'title': 'Recovery',
-        'widget': Recovery()
+        'widget': ForgotPassword()
       },
       {
         'title': 'OTP',
-        'widget': OTP()
+        'widget': VerifyOTP()
       },
       {
         'title': 'Password',
-        'widget': Password()
+        'widget': ResetPassword()
       },
       {
         'title': 'Sair',
@@ -103,7 +107,11 @@ class _Body extends State<Body> {
                     });
                   }
                 ),
-                widget.child
+                Expanded(
+                    child: SingleChildScrollView(
+                        child: widget.child
+                    )
+                )
               ],
             ),
 

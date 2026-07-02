@@ -1,4 +1,3 @@
-
 import 'package:bomcurriculo/include/BodyAuth.dart';
 import 'package:bomcurriculo/view/auth/Login.dart';
 import 'package:flutter/material.dart';
