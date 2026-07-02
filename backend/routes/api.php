@@ -1,7 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\User\UserController;
+use Illuminate\Support\Facades\Route;
 
 // Unauthenticated routes
 Route::group([
@@ -21,4 +22,6 @@ Route::group([
     'prefix'     => 'client'
 ], function () {
     Route::get('/user', [AuthController::class, 'user']);
+    Route::post('/validate-resume', [UserController::class, 'storeValidateResume']);
+    Route::get('/resume-files/{type?}', [UserController::class, 'getResumesFiles']);
 });
