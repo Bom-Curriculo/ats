@@ -2,19 +2,27 @@
 
 namespace App\Http\Controllers\Api\User;
 
-use App\Enums\SystemUploadPrivatePathEnum;
+use App\Enums\UserGenderEnum;
+use App\Enums\UserLanguageLevelEnum;
+use App\Enums\UserQualificationTypeEnum;
 use App\Helpers\ResponseData;
+use App\Http\Controllers\Api\User\Traits\UserProccessRelationsTrait;
+use App\Http\Controllers\Api\User\Traits\UserUploadsTrait;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Services\ResumeFilesProccess;
 
 class UserController extends Controller
 {
+
+    use UserProccessRelationsTrait, UserUploadsTrait;
+
     public function storeValidateResume(Request $request)
     {
 
@@ -40,30 +48,11 @@ class UserController extends Controller
             $skills = $request->input('skills', []);
 
             if(!empty($resumeCV)){
-                $pathResumeCv = 
-                    $resumeCV
-                        ->store(
-                            SystemUploadPrivatePathEnum::PATH_UPLOAD_RESUME_CV
-                            ->value
-                        );
-
-                if(!empty($user->resume_cv)){
-                    Storage::delete($user->resume_cv);
-                }
-
+                $pathResumeCv = $this->storeCvResume($request, $user);
             }
 
             if(!empty($resumeLinkedin)){
-                $pathResumeLinkedin = 
-                    $resumeLinkedin
-                        ->store(
-                            SystemUploadPrivatePathEnum::PATH_UPLOAD_RESUME_LINKEDIN
-                            ->value
-                        );
-                
-                if(!empty($user->resume_linkedin)){
-                    Storage::delete($user->resume_linkedin);
-                }
+                $pathResumeLinkedin = $this->storeLinkedinResume($request, $user);
             }
             
             $user->update([
@@ -73,12 +62,7 @@ class UserController extends Controller
                 'site_link' => $request->input('site_link', $user->site_link),
             ]);
 
-            if(!empty($skills)){
-                $mapSkills = array_map(function($skill){
-                    return ['name' => $skill];
-                }, $skills);
-                $user->skills()->createMany((array) $mapSkills);
-            }
+            $this->proccessSkillsUser($skills, $user);
 
             // Send proccess and handle it
             ResumeFilesProccess::handle();
@@ -102,6 +86,7 @@ class UserController extends Controller
         $typeFile = match ($type) {
             'cv' => $user->resume_cv,
             'linkedin' => $user->resume_linkedin,
+            'pcd' => $user->path_certificate_pcd,
             default => null,
         };
 
@@ -119,5 +104,153 @@ class UserController extends Controller
         ], 200);
 
     }
+
+    public function update(Request $request)
+    {
+        DB::beginTransaction();
+        try{
+            
+            $request->merge($this->prepareForValidation($request));
+
+            $request->validate([
+                'name' => ['string', 'min:2', 'max: 191'],
+                'password' => ['string', 'min:8'],
+                'resume_cv'       => ['file', 'mimes:pdf,doc,docx', 'min:5', 'max:10240'],
+                'resume_linkedin' => ['file', 'mimes:pdf,doc,docx', 'min:5', 'max:10240'],
+                'github_link'     => ['nullable', 'string'],
+                'site_link'       => ['nullable', 'string'],
+                'social_name' => ['nullable', 'string', 'min:2', 'max: 191'],
+                'phone' => ['nullable', 'string', 'min:11', 'max:15'],
+                'resume' => ['nullable', 'string'],
+                'resume_email' => ['nullable', 'email'],
+                'gender' => ['nullable', Rule::enum(UserGenderEnum::class)],
+                'is_pcd' => ['nullable', 'boolean'],
+                'path_certificate_pcd' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'min:5', 'max:10240'],
+                'city' => ['nullable', 'string'],
+                'state' => ['nullable', 'string'],
+                'country' => ['nullable', 'string'],
+                'linkedin_link' => ['nullable', 'string'],                
+                
+                'skills'          => ['array'],
+                'skills.*.name'   => ['string', 'required'],
+                'skills.*.years'   => ['string', 'nullable'],
+
+                'experiences' => ['array'],
+                'experiences.*.company' => ['required', 'string'],
+                'experiences.*.role' => ['required', 'string'],
+                'experiences.*.start' => ['required', 'date'],
+                'experiences.*.end' => ['nullable', 'date'],
+                'experiences.*.description' => ['nullable', 'string'],
+                'experiences.*.is_actual' => ['required_unless:end,null', 'boolean'],
+                'experiences.*.city' => ['nullable', 'string'],
+                'experiences.*.state' => ['nullable', 'string'],
+                'experiences.*.country' => ['nullable', 'string'],
+
+                'qualifications' => ['array'],
+                'qualifications.*.type' => ['required', Rule::enum(UserQualificationTypeEnum::class)],
+                'qualifications.*.institution' => ['required', 'string'],
+                'qualifications.*.title' => ['required', 'string'],
+                'qualifications.*.start' => ['required', 'date'],
+                'qualifications.*.end' => ['nullable', 'date'],                
+                'qualifications.*.is_coursing' => ['required_unless:end,null', 'boolean'],
+
+
+                'languages' => [ 'array'],
+                'languages.*.level' => ['required', Rule::enum(UserLanguageLevelEnum::class)],
+                'languages.*.language' => ['required', 'string'],
+            ]);
+
+            $user = User::where('id', $request->user()->id)
+                        ->with([
+                            'skills',
+                            'experiences',
+                            'qualifications',
+                            'languages'
+                        ])
+                        ->first();
+
+            $this->proccessSkillsUser($request->input('skills', []), $user);
+            $this->proccessExperiencesUser($request->input('experiences', []), $user);
+            $this->proccessQualificationsUser($request->input('qualifications', []), $user);
+            $this->proccessLanguageUser($request->input('languages', []), $user);
+
+            $pathResumeCv = $user->resume_cv;
+            $pathResumeLinkedin = $user->resume_linkedin;
+            $pathCertificatePCD = $user->path_certificate_pcd;
+
+            if(!empty($request->file('resume_cv'))){
+                $pathResumeCv = $this->storeCvResume($request, $user);
+            }
+
+            if(!empty($request->file('resume_linkedin'))){
+                $pathResumeLinkedin = $this->storeLinkedinResume($request, $user);
+            }
+
+             if(!empty($request->file('path_certificate_pcd'))){
+                $pathCertificatePCD = $this->storePcdCertificate($request, $user);
+            }
+
+            $request->merge([
+                'resume_cv' => $pathResumeCv,
+                'resume_linkedin' => $pathResumeLinkedin,
+                'path_certificate_pcd' => $pathCertificatePCD
+            ]);
+
+            $user->update($request->except([
+                'skills',
+                'experiences',
+                'qualifications',
+                'languages'
+            ]));
+
+            DB::commit();
+            return ResponseData::success('Success', [
+                'user' => $user->load(['skills', 'experiences', 'qualifications', 'languages']),
+            ]);
+
+        }catch(ValidationException $validator){
+
+            DB::rollBack();
+            return ResponseData::error('Validation failed.', [
+                'errors' => $validator->errors()
+            ],
+            422);
+
+        }catch(Exception $exception){
+
+            DB::rollBack();
+            return ResponseData::error('Server error', [
+                'error' => $exception->getMessage()
+            ],
+            500);
+
+        }
+    }
+
+    protected function prepareForValidation(Request $request)
+    {
+        $experiences = $request->input('experiences', []);
+        $qualifications = $request->input('qualifications', []);
+
+
+        foreach ($experiences as $key => $value) {
+            if (isset($value['is_actual'])) {
+                $experiences[$key]['is_actual'] = filter_var($value['is_actual'], FILTER_VALIDATE_BOOLEAN);
+            }
+        }
+
+        foreach ($qualifications as $key => $value) {
+            if (isset($value['is_coursing'])) {
+                $qualifications[$key]['is_coursing'] = filter_var($value['is_coursing'], FILTER_VALIDATE_BOOLEAN);
+            }
+        }
+
+        return ([
+            'experiences' => $experiences,
+            'qualifications' => $qualifications,
+            'is_pcd' => (bool) $request->is_pcd ?? false
+        ]);
+    }
+
 
 }
