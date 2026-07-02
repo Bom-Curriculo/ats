@@ -1,0 +1,55 @@
+FROM php:8.5-fpm AS builder
+
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    libzip-dev \
+    libicu-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN docker-php-ext-install pdo_mysql
+
+FROM php:8.5-fpm
+
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    libzip-dev \
+    libicu-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+
+COPY --from=builder /usr/local/lib/php/extensions /usr/local/lib/php/extensions
+COPY --from=builder /usr/local/etc/php/conf.d /usr/local/etc/php/conf.d
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+ENV timezone="America/Sao_Paulo"
+
+WORKDIR /var/www/html
+
+RUN set -ex \
+    && ln -sf /usr/share/zoneinfo/${timezone} /etc/localtime \
+    && echo "${timezone}" > /etc/timezone
+
+COPY . .
+
+RUN composer install
+
+EXPOSE 9000
+
+
+# isso deve ser alterado para usar o fastCGI
+# CMD ["php-fpm"]
+
+# para testes inicial estou utilizando o servidor http embutido
+CMD ["php", "-S", "0.0.0.0:9000", "-t", "public"]

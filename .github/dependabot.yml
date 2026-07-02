@@ -1,0 +1,57 @@
+version: 2
+updates:
+  # Frontend (npm)
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+    groups:
+      frontend-dependencies:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: "chore(frontend)"
+
+  # Backend - assets/vite (npm)
+  - package-ecosystem: "npm"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+    groups:
+      backend-npm-dependencies:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: "chore(backend)"
+
+  # Backend (composer / PHP)
+  - package-ecosystem: "composer"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+    groups:
+      backend-composer-dependencies:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: "chore(backend)"
+
+  # Mobile (pub / Dart-Flutter)
+  - package-ecosystem: "pub"
+    directory: "/mobile"
+    schedule:
+      interval: "weekly"
+    groups:
+      mobile-dependencies:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: "chore(mobile)"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore(ci)"
