@@ -8,3 +8,4 @@ Route::get('/', function(){
         'version' => '1.0.0'
     ]);
 });
+

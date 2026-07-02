@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Api\Auth;
 
 use App\Helpers\ResponseData;
 use App\Http\Controllers\Controller;
-use App\Models\Api\Auth\PasswordResetOtp;
+use App\Mail\UserResetPasswordMail;
+use App\Models\PasswordResetOtp;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -88,7 +90,7 @@ class AuthController extends Controller
                 'email' => 'required|email|exists:users,email',
             ]);
 
-            $user = \App\Models\User::where('email', $request->email)->first();
+            $user = User::where('email', $request->email)->first();
             
             PasswordResetOtp::query()
                 ->where('user_id', $user->id)
@@ -105,10 +107,10 @@ class AuthController extends Controller
                 'expires_at' => $expiresAt
             ]);
 
-            #TODO: Implement email sending logic here to send the OTP to the user's email address
+            Mail::to($user->email)
+                    ->send(new UserResetPasswordMail($user, $otp));
 
             return ResponseData::success('OTP sent successfully to the provided email', [
-                'otp' => $otp, // Temporary, in production you should not return the OTP in the response
                 'expires_at' => $expiresAt
             ]);
 
