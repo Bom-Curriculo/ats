@@ -1,10 +1,11 @@
-import 'package:bomcurriculo/view/Home.dart';
-import 'package:bomcurriculo/view/resume/ValidateResume.dart';
-import 'package:bomcurriculo/view/auth/Login.dart';
-import 'package:bomcurriculo/view/auth/ResetPassword.dart';
-import 'package:bomcurriculo/view/auth/ForgotPassword.dart';
-import 'package:bomcurriculo/view/auth/Register.dart';
-import 'package:bomcurriculo/view/auth/VerifyOTP.dart';
+import 'package:bomcurriculo/routes.dart';
+import 'package:bomcurriculo/ui/Home.dart';
+import 'package:bomcurriculo/ui/resume/ValidateResume.dart';
+import 'package:bomcurriculo/ui/auth/login/login_page.dart';
+import 'package:bomcurriculo/ui/auth/reset_password/reset_password.dart';
+import 'package:bomcurriculo/ui/auth/forgot_password/ForgotPassword.dart';
+import 'package:bomcurriculo/ui/auth/register/register.dart';
+import 'package:bomcurriculo/ui/auth/otp/verify_otp.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -15,24 +16,11 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key});
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
+      routerConfig: router,
       debugShowCheckedModeBanner: false,
       title: 'Bom Currículo',
-      theme: ThemeData(
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
-      ),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const Home(),
-        '/auth/login': (context) => const Login(),
-        '/auth/register': (context) => const Register(),
-        '/auth/forgot-password': (context) => const ForgotPassword(),
-        '/auth/verify-otp': (context) => const VerifyOTP(),
-        '/auth/reset-password': (context) => const ResetPassword(),
-        '/validate-resume': (context) => const ValidateResume()
-      }
+      theme: ThemeData(colorScheme: .fromSeed(seedColor: Colors.deepPurple)),
     );
   }
 }
-
-

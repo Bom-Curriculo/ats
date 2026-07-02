@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:bomcurriculo/include/Body.dart';
-import 'package:bomcurriculo/view/resume/GenerateResume.dart';
+import 'package:bomcurriculo/ui/resume/GenerateResume.dart';
 import 'package:bomcurriculo/widget/Button.dart';
 import 'package:bomcurriculo/widget/InputText.dart';
 import 'package:file_picker/file_picker.dart';
@@ -16,7 +16,6 @@ class ValidateResume extends StatefulWidget {
 }
 
 class _ValidateResume extends State<ValidateResume> {
-
   File? resumeFile;
   File? linkedinFile;
   String? resumeFileName;
@@ -31,7 +30,6 @@ class _ValidateResume extends State<ValidateResume> {
   }
 
   void addSkill() {
-
     final controller = TextEditingController();
 
     void normalizeSkills() {
@@ -85,9 +83,7 @@ class _ValidateResume extends State<ValidateResume> {
     // Validar currículo
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const GenerateResume(),
-      ),
+      MaterialPageRoute(builder: (context) => const GenerateResume()),
     );
   }
 
@@ -99,8 +95,8 @@ class _ValidateResume extends State<ValidateResume> {
         child: Column(
           children: [
             Text(
-                'Fill data correctly to generate your resume',
-                textAlign: TextAlign.center
+              'Fill data correctly to generate your resume',
+              textAlign: TextAlign.center,
             ),
             SizedBox(height: 30.0),
             InputFile(
@@ -139,15 +135,12 @@ class _ValidateResume extends State<ValidateResume> {
                 });
               },
             ),
-            InputText(title: 'GitHub URL',httpsPrefix: 'https://github.com/'),
-            InputText(title: 'Your site URL',httpsPrefix: 'https://'),
+            InputText(title: 'GitHub URL', httpsPrefix: 'https://github.com/'),
+            InputText(title: 'Your site URL', httpsPrefix: 'https://'),
 
             Column(
               children: List.generate(skills.length, (index) {
-                return InputText(
-                  title: 'Skill',
-                  controller: skills[index],
-                );
+                return InputText(title: 'Skill', controller: skills[index]);
               }),
             ),
 
@@ -155,8 +148,8 @@ class _ValidateResume extends State<ValidateResume> {
 
             GestureDetector(
               onTap: validateResume,
-              child: Button(title: 'Validate resume')
-            )
+              child: Button(title: 'Validate resume'),
+            ),
           ],
         ),
       ),

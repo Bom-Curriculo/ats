@@ -1,18 +1,14 @@
-
 import 'package:bomcurriculo/include/Navbar.dart';
-import 'package:bomcurriculo/view/Home.dart';
-import 'package:bomcurriculo/view/auth/Login.dart';
-import 'package:bomcurriculo/view/auth/VerifyOTP.dart';
-import 'package:bomcurriculo/view/auth/ResetPassword.dart';
-import 'package:bomcurriculo/view/auth/ForgotPassword.dart';
-import 'package:bomcurriculo/view/auth/Register.dart';
+import 'package:bomcurriculo/ui/Home.dart';
+import 'package:bomcurriculo/ui/auth/login/login_page.dart';
+import 'package:bomcurriculo/ui/auth/otp/verify_otp.dart';
+import 'package:bomcurriculo/ui/auth/reset_password/reset_password.dart';
+import 'package:bomcurriculo/ui/auth/forgot_password/ForgotPassword.dart';
+import 'package:bomcurriculo/ui/auth/register/register.dart';
 import 'package:flutter/material.dart';
 
 class BodyAuth extends StatefulWidget {
-  const BodyAuth({
-    super.key,
-    required this.child
-  });
+  const BodyAuth({super.key, required this.child});
 
   final Widget child;
 
@@ -21,33 +17,27 @@ class BodyAuth extends StatefulWidget {
 }
 
 class _BodyAuth extends State<BodyAuth> {
-
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       backgroundColor: Colors.white,
-        body: SafeArea(
+      appBar: const Navbar(),
+      body: SafeArea(
         child: Stack(
           children: [
-
             Column(
               children: [
-                Navbar(),
-                Padding(
-                  padding: const EdgeInsets.all(45.0),
-                  child: Expanded(
-                      child: SingleChildScrollView(
-                          child: widget.child
-                      )
-                  )
-                )
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(45.0),
+                    child: SingleChildScrollView(child: widget.child),
+                  ),
+                ),
               ],
             ),
-
           ],
         ),
-      )
+      ),
     );
   }
 }
