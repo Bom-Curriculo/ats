@@ -1,8 +1,16 @@
-from fastapi import FastAPI, HTTPException
+import logging
+import os
 
+from fastapi import FastAPI, HTTPException
+from prometheus_fastapi_instrumentator import Instrumentator
+
+from app.logging_config import configurar_logging
 from app.providers.base import ErroProvedorIA
 from app.schemas.analise import ResultadoAnalise, SolicitacaoAnalise
 from app.services.gerenciador_ia import executar_analise_com_fallback
+
+configurar_logging(os.getenv("LOG_LEVEL", "INFO"))
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Bot ATS Resume Builder",
@@ -10,9 +18,12 @@ app = FastAPI(
     version="0.9.0",
 )
 
+Instrumentator().instrument(app).expose(app, endpoint="/metrics")
+
 
 @app.get("/health")
 async def verificar_saude() -> dict[str, str]:
+    logger.info("health check ok")
 
     return {"status": "online"}
 

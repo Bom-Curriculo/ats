@@ -58,17 +58,90 @@ services:
     ports:
       - "5672:5672"    # AMQP (conexão dos serviços)
       - "15672:15672"  # Management UI (http://localhost:15672)
+      - "15692:15692"  # Métricas Prometheus
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-bomcurriculo}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-bomcurriculo}
       RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-/}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    command: >
+      sh -c "rabbitmq-plugins enable --offline rabbitmq_prometheus && rabbitmq-server"
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 15s
       timeout: 10s
       retries: 5
+    networks:
+      - bomcurriculo
+
+  loki:
+    image: grafana/loki:3.3.2
+    container_name: bomcurriculo-loki
+    restart: always
+    command: -config.file=/etc/loki/loki-config.yml
+    volumes:
+      - ./observability/loki/loki-config.yml:/etc/loki/loki-config.yml:ro
+      - loki_data:/loki
+    networks:
+      - bomcurriculo
+
+  promtail:
+    image: grafana/promtail:3.3.2
+    container_name: bomcurriculo-promtail
+    restart: always
+    command: -config.file=/etc/promtail/promtail-config.yml
+    volumes:
+      - ./observability/promtail/promtail-config.yml:/etc/promtail/promtail-config.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    depends_on:
+      - loki
+    networks:
+      - bomcurriculo
+
+  prometheus:
+    image: prom/prometheus:v3.1.0
+    container_name: bomcurriculo-prometheus
+    restart: always
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=60d
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - bomcurriculo
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: bomcurriculo-cadvisor
+    restart: always
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - bomcurriculo
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    container_name: bomcurriculo-grafana
+    restart: always
+    ports:
+      - "3000:3000"   # Grafana UI (http://localhost:3000)
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/etc/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - loki
+      - prometheus
     networks:
       - bomcurriculo
 
@@ -78,3 +151,6 @@ networks:
 
 volumes:
   rabbitmq_data:
+  loki_data:
+  prometheus_data:
+  grafana_data:
