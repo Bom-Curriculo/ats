@@ -36,20 +36,20 @@ use Illuminate\Support\Facades\Response;
 
 final class ResponseData {
 
-    protected static $defaultSuccessCode    = 200;
-    protected static $defaultSuccessMessage = 'Request successful';
+    protected const defaultSuccessCode    = 200;
+    protected const defaultSuccessMessage = 'Request successful';
 
-    protected static $defaultErrorCode      = 500;
-    protected static $defaultErrorMessage   = 'Request failed, internal server error';
+    protected const defaultErrorCode      = 500;
+    protected const defaultErrorMessage   = 'Request failed, internal server error';
 
     protected static function handle(
         string $message = null,
-        array $data = [], 
-        int$code = null
+        array|Collection|LengthAwarePaginator $data = [], 
+        int $code = null
     ) : JsonResponse|Response
     {
-        $code = $code ?? self::$defaultSuccessCode;
-        $message = $message ?? self::$defaultSuccessMessage;
+        $code = $code ?? self::defaultSuccessCode;
+        $message = $message ?? self::defaultSuccessMessage;
 
         if(self::isCollection($data)) {
             $data = $data->toArray();
@@ -82,11 +82,12 @@ final class ResponseData {
         return $data instanceof \Illuminate\Pagination\LengthAwarePaginator;
     }
 
-    protected static function handleLog($message, $code, $data) : void
+    protected static function handleLog($message, $data, $code) : void
     {
         switch($code) {
             case $code >= 500:
-                    self::handleErrorLog($message, $code, $data);
+                    self::handleErrorLog($message, $data, $code);
+
                 break;
 
             default:
@@ -107,31 +108,31 @@ final class ResponseData {
     }
 
     public static function success(
-        string $message = null,
-        array|Collection|LengthAwarePaginator $data, 
-        int $code
+        string $message = self::defaultSuccessMessage,
+        array|Collection|LengthAwarePaginator $data = [], 
+        int $code = self::defaultSuccessCode
     ) : JsonResponse|Response 
     {
         return self::handle(
-            $data, 
-            $code ?? self::$defaultSuccessCode, 
-            $message ?? self::$defaultSuccessMessage
+            $message,
+            $data,             
+            $code
         );
     }
 
     public static function error(
-        string $message = null,
-        array|Collection|LengthAwarePaginator $data, 
-        int $code
+        string $message = self::defaultErrorMessage,
+        array|Collection|LengthAwarePaginator $data = [], 
+        int $code = self::defaultErrorCode
     ) : JsonResponse|Response 
     {
 
-        self::handleLog($message, $code, $data);
+        self::handleLog($message, $data, $code);
 
         return self::handle(
-            $data, 
-            $code ?? self::$defaultErrorCode, 
-            $message ?? self::$defaultErrorMessage
+            $message,
+            $data,
+            $code
         );
     }
 
