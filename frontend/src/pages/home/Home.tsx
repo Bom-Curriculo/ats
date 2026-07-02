@@ -7,8 +7,6 @@ import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
-    <>
-      <body></body>
       <header className="bg-gray-50 px-8 py-4 dark:bg-[#03206E] border-b border-solid border-gray-300 dark:border-blue-800">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           <div className="flex items-center gap-2">
@@ -54,7 +52,6 @@ export default function Home() {
         </div>
       </header>
 
-      <footer>...</footer>
-    </>
+ 
   );
 }
