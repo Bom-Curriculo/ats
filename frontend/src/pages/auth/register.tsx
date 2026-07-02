@@ -238,6 +238,7 @@ export default function Register() {
             <Button
               type="submit"
               disabled={mutation.isPending}
+
               className="h-14 w-full rounded-none bg-[#03206E] text-lg font-semibold hover:bg-[#03206E]/90 text-white"
             >
               {mutation.isPending ? "Entrando..." : "Finalizar Cadastro"}

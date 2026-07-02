@@ -75,7 +75,7 @@ class UserController extends Controller
 
             if(!empty($skills)){
                 $mapSkills = array_map(function($skill){
-                    return ['skill_name' => $skill];
+                    return ['name' => $skill];
                 }, $skills);
                 $user->skills()->createMany((array) $mapSkills);
             }

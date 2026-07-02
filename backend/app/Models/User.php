@@ -3,7 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
+use App\Enums\UserGenderEnum;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,8 +12,27 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'password', 'resume_cv', 'resume_linkedin', 'github_link', 'site_link'])]
-#[Hidden(['password', 'remember_token'])]
+#[Fillable([
+    'name', 
+    'email', 
+    'password', 
+    'resume_cv', 
+    'resume_linkedin', 
+    'github_link', 
+    'site_link',
+    'social_name',
+    'phone',
+    'resume',
+    'resume_email',
+    'gender',
+    'is_pcd',
+    'path_certificate_pcd',
+    'city',
+    'state',
+    'country',
+    'linkedin_link'
+])]
+#[Hidden(['password', 'remember_token', 'resume_cv', 'resume_linkedin', 'path_certificate_pcd'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -29,6 +48,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'gender' => UserGenderEnum::class
         ];
     }
 
@@ -36,4 +56,20 @@ class User extends Authenticatable
     {
         return $this->hasMany(UserSkill::class);
     }
+
+    public function experiences() : HasMany
+    {
+        return $this->hasMany(UserExperience::class);
+    }
+
+    public function qualifications() : HasMany
+    {
+        return $this->hasMany(UserQualification::class);
+    }
+
+    public function languages() : HasMany
+    {
+        return $this->hasMany(UserLanguage::class);
+    }
+
 }

@@ -42,7 +42,7 @@ export function Login() {
             <div className="h-20 w-0.5 bg-white/60" />
 
             <img
-              src="/logo-dark.png"
+              src="/logo.png"
               alt="BomCurriculo"
               className="h-45 w-auto"
             />
@@ -92,12 +92,16 @@ export function Login() {
 
             <form onSubmit={handleSubmit(handleSignIn)} className="space-y-6">
               <div>
+
                 <label className="mb-2 block font-medium text-[#03206E] ">
+
                   Endereço de e-mail
                 </label>
 
                 <Input
+
                   className="h-14 rounded-none border-[#03206E]"
+
                   placeholder="nome@exemplo.com.br"
                   {...register("email")}
                 />
@@ -110,6 +114,7 @@ export function Login() {
               </div>
 
               <div>
+
                 <label className="mb-2 block font-medium text-[#03206E]">
                   Senha
                 </label>
@@ -131,7 +136,9 @@ export function Login() {
               <Button
                 type="submit"
                 disabled={mutation.isPending}
+
                 className="h-14 w-full bg-[#03206E] text-white text-lg rounded-none"
+
               >
                 {mutation.isPending ? "Entrando..." : "Acessar Plataforma"}
               </Button>
