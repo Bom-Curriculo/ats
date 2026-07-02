@@ -15,12 +15,10 @@ Route::group([
     Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
 });
 
-
 // Only authenticated users can access the group routes bellow
 Route::group([
     'middleware' => 'auth:sanctum',
     'prefix'     => 'client'
 ], function () {
     Route::get('/user', [AuthController::class, 'user']);
-
 });

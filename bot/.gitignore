@@ -1,1 +1,17 @@
 .env
+.env.*
+!.env.example
+
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+*.log
+logs/
+*.tmp
+*.bak
+*.save
+*.dump
+*.local.json

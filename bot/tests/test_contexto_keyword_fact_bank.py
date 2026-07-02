@@ -1,0 +1,87 @@
+
+import asyncio
+
+from app.providers.base import criar_prompt
+from app.providers.mock import MockProvider
+from app.schemas.analise import SolicitacaoAnalise
+from app.services.analisador_ats import analisar_curriculo, analisar_curriculo_com_ia, calcular_score_final
+
+
+def analisar(cv: str, vaga: str):
+    return analisar_curriculo(SolicitacaoAnalise(curriculo_texto=cv, vaga_texto=vaga))
+
+
+def test_keyword_report_pesa_hard_skill_e_lista_ausente():
+
+    resultado = analisar("COMPETÊNCIAS\nPython", "Vaga backend\nPython, Docker e contexto financeiro")
+    assert resultado.keyword_report is not None
+    python = next(x for x in resultado.keyword_report.hard_skills if x.termo == "Python")
+    docker = next(x for x in resultado.keywords_ausentes_ponderadas if x.termo == "Docker")
+    assert python.peso == 2.0 and docker.peso == 2.0
+    assert resultado.score_keyword_coverage is not None
+
+
+def test_hard_filter_ausente_gera_alerta_forte():
+    resultado = analisar("PROJETOS\nAPI em Python", "Obrigatório: graduação completa e Python")
+    assert resultado.keyword_report.alertas_hard_filters
+    assert any("hard filter" in x for x in resultado.alertas_score_final)
+
+
+def test_fact_bank_separa_fontes_e_nao_promove_curso():
+    resultado = analisar(
+        "EXPERIÊNCIA PROFISSIONAL\nPython\nPROJETOS\nFastAPI e Docker\nCURSOS\nSpring Boot\nCOMPETÊNCIAS\nGit",
+        "Python FastAPI Docker Spring Boot Git",
+    )
+
+    fb = resultado.fact_bank
+    assert fb.experiencias and fb.projetos and fb.cursos and fb.skills
+    assert "FastAPI" in fb.tecnologias_por_fonte["projeto"]
+    assert "Docker" in fb.tecnologias_por_fonte["projeto"]
+
+    assert "Spring Boot" in fb.tecnologias_por_fonte["curso/formação"]
+    spring = next(x for x in resultado.analise_por_requisito if x.item == "Spring Boot")
+    assert spring.nivel_evidencia == "evidencia_educacional"
+
+
+def resposta_inventada():
+    return {
+        "resumo_contextual": "Análise.",
+        "requisitos_contextuais": [{"item": "Kubernetes", "categoria": "ferramenta", "importancia": "obrigatorio", "status": "encontrado_com_evidencia", "evidencia": "Kubernetes em produção", "justificativa": "Consta.", "recomendacao": "Destaque."}],
+        "pontos_fortes": ["Kubernetes"], "lacunas": [], "possiveis_impeditivos": [],
+        "sugestoes_de_melhoria": ["Inclua Kubernetes na experiência."], "proximos_passos": [],
+        "alertas_contra_inventar": [], "confianca": 95, "score_sugerido_ia": 95,
+    }
+
+
+def test_ia_inventando_evidencia_e_rebaixada_sem_provider_real():
+    entrada = SolicitacaoAnalise(curriculo_texto="PROJETOS\nDocker", vaga_texto="Kubernetes")
+
+    resultado = asyncio.run(analisar_curriculo_com_ia(entrada, MockProvider(resposta_estruturada=resposta_inventada())))
+
+    req = resultado.requisitos_contextuais[0]
+    assert req.status == "faltando" and req.evidencia is None
+
+    assert resultado.analise_ia.pontos_fortes == []
+    assert any("Ponto forte sem evidência" in x for x in resultado.ajustes_validacao_ia)
+    assert any("Estude ou crie um projeto" in x for x in resultado.proximos_passos)
+
+
+def test_score_reduz_ia_com_muitas_correcoes_e_usa_keywords():
+    poucos, _ = calcular_score_final(40, 100, 95, 0, "junior", False, 60)
+
+    muitos, explicacao = calcular_score_final(40, 100, 95, 4, "junior", False, 60)
+
+    sem_keywords, _ = calcular_score_final(40, 100, 95, 4, "junior", False, None)
+    assert muitos < poucos and muitos != sem_keywords
+    assert "correções 4" in explicacao
+
+
+def test_contexto_do_prompt_e_compacto_rastreavel_e_sem_promover_skill():
+    entrada = SolicitacaoAnalise(curriculo_texto="COMPETÊNCIAS\nDocker", vaga_texto="Kubernetes")
+    local = analisar_curriculo(entrada)
+    prompt = criar_prompt(entrada, local)
+
+
+    assert '"fact_bank"' in prompt and "Skill solta nunca é prática" in prompt
+
+    assert "Docker com Kubernetes" in prompt
