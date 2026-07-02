@@ -1,5 +1,5 @@
 import 'package:bomcurriculo/view/Home.dart';
-import 'package:bomcurriculo/view/SendData.dart';
+import 'package:bomcurriculo/view/resume/ValidateResume.dart';
 import 'package:bomcurriculo/view/auth/Login.dart';
 import 'package:bomcurriculo/view/auth/ResetPassword.dart';
 import 'package:bomcurriculo/view/auth/ForgotPassword.dart';
@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
         '/auth/forgot-password': (context) => const ForgotPassword(),
         '/auth/verify-otp': (context) => const VerifyOTP(),
         '/auth/reset-password': (context) => const ResetPassword(),
-        '/send-data': (context) => const SendData()
+        '/validate-resume': (context) => const ValidateResume()
       }
     );
   }

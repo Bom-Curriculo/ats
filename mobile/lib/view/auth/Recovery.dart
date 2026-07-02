@@ -1,6 +1,6 @@
 
 import 'package:bomcurriculo/include/BodyAuth.dart';
-import 'package:bomcurriculo/view/auth/OTP.dart';
+import 'package:bomcurriculo/view/auth/VerifyOTP.dart';
 import 'package:flutter/material.dart';
 
 import '../../widget/Button.dart';
@@ -38,7 +38,7 @@ class _Recovery extends State<Recovery> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const OTP(),
+                        builder: (context) => const VerifyOTP(),
                       ),
                     );
                   },

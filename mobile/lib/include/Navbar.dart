@@ -42,7 +42,7 @@ class _Navbar extends State<Navbar> {
             ),
             (widget.onMenuChanged!=null)?GestureDetector(
               onTap: widget.onMenuChanged,
-              child: ButtonIcon(icon: Icons.menu)
+              child: ButtonIcon(icon: Icons.menu, color: Color(0xFFDDDDDD))
             ):SizedBox(),
             SizedBox(width: 5.0),
           ],

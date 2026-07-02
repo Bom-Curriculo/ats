@@ -1,12 +1,15 @@
 import 'package:bomcurriculo/include/Navbar.dart';
 import 'package:bomcurriculo/view/Home.dart';
-import 'package:bomcurriculo/view/SendData.dart';
+import 'package:bomcurriculo/view/resume/MyResumes.dart';
+import 'package:bomcurriculo/view/resume/ValidateResume.dart';
 import 'package:bomcurriculo/view/auth/Login.dart';
 import 'package:bomcurriculo/view/auth/VerifyOTP.dart';
 import 'package:bomcurriculo/view/auth/ResetPassword.dart';
 import 'package:bomcurriculo/view/auth/ForgotPassword.dart';
 import 'package:bomcurriculo/view/auth/Register.dart';
 import 'package:flutter/material.dart';
+
+import '../view/resume/GenerateResume.dart';
 
 class Body extends StatefulWidget {
   const Body({
@@ -36,8 +39,16 @@ class _Body extends State<Body> {
         'widget': Home()
       },
       {
-        'title': 'Send data',
-        'widget': SendData()
+        'title': 'My resumes',
+        'widget': MyResumes()
+      },
+      {
+        'title': 'Validate resume',
+        'widget': ValidateResume()
+      },
+      {
+        'title': 'Generate resume',
+        'widget': GenerateResume()
       },
       {
         'title': 'Login',
