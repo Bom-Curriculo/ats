@@ -36,7 +36,7 @@ export function Login() {
   }
   return (
     <section className="flex min-h-screen items-center justify-center bg-slate-100 p-6">
-      <div className="flex w-full  max-w-7xl overflow-hidden  bg-white shadow-2xl">
+      <div className="flex w-full min-h-200 max-w-7xl overflow-hidden  bg-white shadow-2xl">
         <div className="flex w-1/2 flex-col bg-[#03206E] p-12 text-white">
           <div className="mb-10 flex items-center gap-4">
             <div className="h-20 w-0.5 bg-white/60" />
@@ -82,7 +82,7 @@ export function Login() {
 
         <div className="flex w-1/2 items-center justify-center bg-white p-16">
           <div className="w-full max-w-md">
-            <h2 className="mb-2 text-4xl font-bold text-slate-900">
+            <h2 className="mb-2 text-4xl font-bold text-[#03206E]">
               Acesse sua conta
             </h2>
 
@@ -92,12 +92,16 @@ export function Login() {
 
             <form onSubmit={handleSubmit(handleSignIn)} className="space-y-6">
               <div>
-                <label className="mb-2 block font-medium">
+
+                <label className="mb-2 block font-medium text-[#03206E] ">
+
                   Endereço de e-mail
                 </label>
 
                 <Input
-                  className="h-14 rounded-none"
+
+                  className="h-14 rounded-none border-[#03206E]"
+
                   placeholder="nome@exemplo.com.br"
                   {...register("email")}
                 />
@@ -110,11 +114,14 @@ export function Login() {
               </div>
 
               <div>
-                <label className="mb-2 block font-medium">Senha</label>
+
+                <label className="mb-2 block font-medium text-[#03206E]">
+                  Senha
+                </label>
 
                 <Input
                   type="password"
-                  className="h-14 rounded-none"
+                  className="h-14 rounded-none border-[#03206E]"
                   placeholder="••••••••"
                   {...register("password")}
                 />
@@ -129,7 +136,9 @@ export function Login() {
               <Button
                 type="submit"
                 disabled={mutation.isPending}
-                className="h-14 w-full bg-[#03206E] text-lg rounded-none"
+
+                className="h-14 w-full bg-[#03206E] text-white text-lg rounded-none"
+
               >
                 {mutation.isPending ? "Entrando..." : "Acessar Plataforma"}
               </Button>

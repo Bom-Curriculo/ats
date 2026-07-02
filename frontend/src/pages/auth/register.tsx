@@ -99,7 +99,7 @@ export default function Register() {
         </div>
 
         <div className="w-full rounded-2xl border border-slate-200 bg-white p-10 shadow-sm lg:p-12">
-          <h2 className="mb-2 text-3xl font-bold text--[#03206E]">
+          <h2 className="mb-2 text-3xl font-bold text-[#03206E]">
             Criar sua conta
           </h2>
 
@@ -238,7 +238,8 @@ export default function Register() {
             <Button
               type="submit"
               disabled={mutation.isPending}
-              className="h-14 w-full rounded-none bg-[#03206E] text-lg font-semibold hover:bg-[#03206E]/90"
+
+              className="h-14 w-full rounded-none bg-[#03206E] text-lg font-semibold hover:bg-[#03206E]/90 text-white"
             >
               {mutation.isPending ? "Entrando..." : "Finalizar Cadastro"}
             </Button>
