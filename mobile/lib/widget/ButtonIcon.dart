@@ -5,7 +5,7 @@ class ButtonIcon extends StatefulWidget {
   const ButtonIcon({
     super.key,
     required this.icon,
-    this.color = const Color(0xFFDDDDDD),
+    this.color = const Color(0xFFEEEEEE),
     this.iconColor = const Color(0xFF555555)
   });
   final IconData icon;

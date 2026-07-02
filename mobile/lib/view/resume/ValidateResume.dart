@@ -1,21 +1,21 @@
 import 'dart:io';
 
 import 'package:bomcurriculo/include/Body.dart';
+import 'package:bomcurriculo/view/resume/GenerateResume.dart';
 import 'package:bomcurriculo/widget/Button.dart';
-import 'package:bomcurriculo/widget/ButtonIcon.dart';
 import 'package:bomcurriculo/widget/InputText.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
-import '../widget/InputFile.dart';
+import '../../widget/InputFile.dart';
 
-class SendData extends StatefulWidget {
-  const SendData({super.key});
+class ValidateResume extends StatefulWidget {
+  const ValidateResume({super.key});
   @override
-  _SendData createState() => _SendData();
+  _ValidateResume createState() => _ValidateResume();
 }
 
-class _SendData extends State<SendData> {
+class _ValidateResume extends State<ValidateResume> {
 
   File? resumeFile;
   File? linkedinFile;
@@ -81,8 +81,14 @@ class _SendData extends State<SendData> {
     super.dispose();
   }
 
-  void generateResume() {
-    // Gerar currículo
+  void validateResume() {
+    // Validar currículo
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const GenerateResume(),
+      ),
+    );
   }
 
   @override
@@ -148,8 +154,8 @@ class _SendData extends State<SendData> {
             SizedBox(height: 15.0),
 
             GestureDetector(
-              onTap: generateResume,
-              child: Button(title: 'Generate resume')
+              onTap: validateResume,
+              child: Button(title: 'Validate resume')
             )
           ],
         ),
