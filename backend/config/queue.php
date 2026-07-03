@@ -1,5 +1,8 @@
 <?php
 
+use App\Services\ConsumerRabbitMqProccess;
+use App\Services\Queue\CustomRabbitMQQueue;
+
 return [
 
     /*
@@ -86,6 +89,48 @@ return [
             'connections' => [
                 'database',
                 'deferred',
+            ],
+        ],
+
+        'rabbitmq_producer' => [
+            'driver' => 'rabbitmq',
+            'queue' => env('RABBITMQ_PRODUCER', 'default'),
+            'connection' => PhpAmqpLib\Connection\AMQPLazyConnection::class,
+            'hosts' => [
+                [
+                    'host' => env('RABBITMQ_HOST', '127.0.0.1'),
+                    'port' => env('RABBITMQ_PORT', 5672),
+                    'user' => env('RABBITMQ_USER', 'guest'),
+                    'password' => env('RABBITMQ_PASSWORD', 'guest'),
+                    'vhost' => env('RABBITMQ_VHOST', '/'),
+                ],
+            ],
+            'options' => [
+                'queue' => [
+                    'declare' => true,
+                    'bind' => true,
+                ],
+            ],
+        ],
+
+        'rabbitmq_consumer' => [
+            'driver' => 'rabbitmq',
+            'queue' => env('RABBITMQ_QUEUE_CONSUMER', 'default_consumer'),
+            'connection' => PhpAmqpLib\Connection\AMQPLazyConnection::class,
+            'hosts' => [
+                [
+                    'host' => env('RABBITMQ_HOST', '127.0.0.1'),
+                    'port' => env('RABBITMQ_PORT', 5672),
+                    'user' => env('RABBITMQ_USER', 'guest'),
+                    'password' => env('RABBITMQ_PASSWORD', 'guest'),
+                    'vhost' => env('RABBITMQ_VHOST', '/'),
+                ],
+            ],
+            'options' => [
+                'queue' => [
+                    'declare' => true,
+                    'bind' => true
+                ],
             ],
         ],
 

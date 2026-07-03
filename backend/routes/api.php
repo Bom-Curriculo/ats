@@ -25,4 +25,5 @@ Route::group([
     Route::post('/validate-resume', [UserController::class, 'storeValidateResume']);
     Route::get('/resume-files/{type?}', [UserController::class, 'getResumesFiles']);
     Route::put('/user/update', [UserController::class, 'update']);
+    Route::get('/user/proccess-resumes', [UserController::class, 'proccessResumes']);
 });
