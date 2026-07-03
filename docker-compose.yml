@@ -1,4 +1,5 @@
 services:
+
   frontend:
     container_name: bomcurriculo-frontend
     build:
@@ -20,16 +21,33 @@ services:
     container_name: bomcurriculo-backend
     build:
       context: ./backend
-      dockerfile: dockerfile
+      dockerfile: Dockerfile
     restart: always
-    ports:
-      - "8080:9000"   # API PHP (http://localhost:8080)
+    working_dir: /var/www/html
+    volumes:
+      - ./backend:/var/www/html
     env_file:
       - path: ./backend/.env
         required: false
     depends_on:
       rabbitmq:
         condition: service_healthy
+    expose:
+      - "9000"
+    networks:
+      - bomcurriculo
+
+  nginx:
+    image: nginx:1.28-alpine
+    container_name: bomcurriculo-nginx
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+    volumes:
+      - ./backend:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     networks:
       - bomcurriculo
 
@@ -40,7 +58,7 @@ services:
       dockerfile: Dockerfile
     restart: always
     ports:
-      - "8000:8000"   # API FastAPI (http://localhost:8000)
+      - "8000:8000"
     env_file:
       - path: ./bot/.env
         required: false
@@ -56,8 +74,8 @@ services:
     restart: always
     hostname: bomcurriculo-rabbitmq
     ports:
-      - "5672:5672"    # AMQP (conexão dos serviços)
-      - "15672:15672"  # Management UI (http://localhost:15672)
+      - "5672:5672"
+      - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-bomcurriculo}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-bomcurriculo}
@@ -116,12 +134,15 @@ services:
     image: gcr.io/cadvisor/cadvisor:v0.49.1
     container_name: bomcurriculo-cadvisor
     restart: always
+    privileged: true
+    devices:
+      - /dev/kmsg
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro
       - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
-      - /dev/disk/:/dev/disk:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /dev/disk:/dev/disk:ro
     networks:
       - bomcurriculo
 
@@ -130,7 +151,7 @@ services:
     container_name: bomcurriculo-grafana
     restart: always
     ports:
-      - "3000:3000"   # Grafana UI (http://localhost:3000)
+      - "3000:3000"
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
