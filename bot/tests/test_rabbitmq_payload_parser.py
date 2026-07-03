@@ -57,6 +57,6 @@ def test_parseia_propriedades_protegidas_e_fallback_generico() -> None:
 
 
 @pytest.mark.parametrize("body", [b"not-json", b"[]", b'{"foo":"bar"}', b'{"data":{"command":"other"}}'])
-def test_rejeita_payload_invalido(body: bytes) -> None:
+def test_rejects_payload_invalido(body: bytes) -> None:
     with pytest.raises(InvalidRabbitMQPayload):
         parse_rabbitmq_payload(body)

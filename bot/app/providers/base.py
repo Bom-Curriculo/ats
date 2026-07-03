@@ -2,12 +2,12 @@ import json
 from abc import ABC, abstractmethod
 from typing import Any
 
-from app.schemas.analise import ComplementoIA, ResultadoAnalise, SolicitacaoAnalise
-from app.schemas.analise_ia import RespostaAnaliseIA
-from app.services.contexto_ia import montar_contexto_ia
+from app.schemas.analysis import AIComplement, AnalysisResult, AnalysisRequest
+from app.schemas.ai_analysis import AIAnalysisResponse
+from app.services.ai_context import build_ai_context
 
 
-class ErroProvedorIA(RuntimeError):
+class AIProviderError(RuntimeError):
     """erro controlado de conf"""
 
     def __init__(
@@ -22,7 +22,7 @@ class ErroProvedorIA(RuntimeError):
         self.status_http = status_http
 
 
-class ProvedorIA(ABC):
+class AIProvider(ABC):
     """nção depender do fornecedor"""
 
     nome: str
@@ -31,14 +31,14 @@ class ProvedorIA(ABC):
     @abstractmethod
     async def gerar_complemento(
         self,
-        solicitacao: SolicitacaoAnalise,
-        resultado_base: ResultadoAnalise,
-    ) -> ComplementoIA:
+        solicitacao: AnalysisRequest,
+        resultado_base: AnalysisResult,
+    ) -> AIComplement:
         """resumo local"""
 
     async def gerar_analise_estruturada(
-        self, solicitacao_segura: SolicitacaoAnalise, resultado_local: ResultadoAnalise
-    ) -> RespostaAnaliseIA | dict | str:
+        self, solicitacao_segura: AnalysisRequest, resultado_local: AnalysisResult
+    ) -> AIAnalysisResponse | dict | str:
         complemento = await self.gerar_complemento(solicitacao_segura, resultado_local)
         return {
             "resumo_contextual": complemento.resumo_gerado,
@@ -58,17 +58,17 @@ class ProvedorIA(ABC):
         return None
 
 
-def criar_prompt(
-    solicitacao: SolicitacaoAnalise,
-    resultado_base: ResultadoAnalise,
+def create_prompt(
+    solicitacao: AnalysisRequest,
+    resultado_base: AnalysisResult,
 ) -> str:
     """Monta uma instrução única e exige uma resposta JSON pequena e previsível."""
 
     # Defesa em profundidade: mesmo uma chamada direta ao builder não inclui PII
-    dados = montar_contexto_ia(solicitacao, resultado_base)
+    dados = build_ai_context(solicitacao, resultado_base)
 
     # monta instrução pro modelo
-    schema = RespostaAnaliseIA.model_json_schema()
+    schema = AIAnalysisResponse.model_json_schema()
     return (
         "Você é um especialista em currículos ATS e recrutamento. Analise o currículo sanitizado "
         "contra a vaga sanitizada. Retorne somente JSON válido no schema solicitado. Não use Markdown. "

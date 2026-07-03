@@ -1,17 +1,17 @@
 """Testes do inventário, evidências e comportamento para início de carreira."""
 
-from app.schemas.analise import SolicitacaoAnalise
-from app.services.analisador_ats import analisar_curriculo
-from app.services.extrator_secoes import extrair_secoes_curriculo
-from app.services.catalogo_tecnologias import Tecnologia
-from app.services.inventario_curriculo import extrair_inventario_curriculo
+from app.schemas.analysis import AnalysisRequest
+from app.services.ats_analyzer import analyze_resume
+from app.services.section_extractor import extract_resume_sections
+from app.services.technology_catalog import Technology
+from app.services.resume_inventory import extract_resume_inventory
 
 
 # evita REPETINDOANALISE ficar repetindo
 def analisar(curriculo: str, vaga: str):
 
-    return analisar_curriculo(
-        SolicitacaoAnalise(curriculo_texto=curriculo, vaga_texto=vaga)
+    return analyze_resume(
+        AnalysisRequest(curriculo_texto=curriculo, vaga_texto=vaga)
     )
 
 
@@ -94,9 +94,9 @@ def test_sem_secao_habilidades_gera_recomendacao_forte() -> None:
     )
 
 
-def test_extrai_titulos_de_pdf_espacados() -> None:
+def test_extracts_titulos_de_pdf_espacados() -> None:
 
-    secoes = extrair_secoes_curriculo(
+    secoes = extract_resume_sections(
         "C O M P E T Ê N C I A S\nPython\nP R O J E T O S\nAPI"
     )
 
@@ -143,7 +143,7 @@ def test_score_cauteloso_quando_vaga_longa_extrai_um_requisito() -> None:
 
 
 def test_inventario_suporta_processos_e_preserva_contrato() -> None:
-    inventario = extrair_inventario_curriculo(
+    inventario = extract_resume_inventory(
         "HABILIDADES\nMetodologias ágeis, Python e LLMs"
     )
     chaves_antigas = {
@@ -162,14 +162,14 @@ def test_inventario_suporta_processos_e_preserva_contrato() -> None:
 
 
 def test_categoria_desconhecida_e_criada_dinamicamente(monkeypatch) -> None:
-    import app.services.inventario_curriculo as modulo_inventario
+    import app.services.resume_inventory as modulo_inventario
 
-    desconhecida = Tecnologia("Competência futura", "categoria_futura", ("futuro",))
+    desconhecida = Technology("Competência futura", "categoria_futura", ("futuro",))
     monkeypatch.setattr(
         modulo_inventario, "CATALOGO", modulo_inventario.CATALOGO + (desconhecida,)
     )
 
-    inventario = modulo_inventario.extrair_inventario_curriculo("Projeto futuro")
+    inventario = modulo_inventario.extract_resume_inventory("Projeto futuro")
 
     assert inventario["categoria_futura"] == ["Competência futura"]
     assert "Competência futura" in inventario["habilidades_detectadas"]

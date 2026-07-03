@@ -1,13 +1,13 @@
 import pytest
 
-from app.schemas.analise import SolicitacaoAnalise
-from app.services.analisador_ats import analisar_curriculo
-from app.services.extrator_secoes import analisar_secoes_curriculo, extrair_secoes_curriculo
-from app.services.sanitizador_privacidade import sanitizar_dados_pessoais
+from app.schemas.analysis import AnalysisRequest
+from app.services.ats_analyzer import analyze_resume
+from app.services.section_extractor import analyze_resume_sections, extract_resume_sections
+from app.services.privacy_sanitizer import sanitize_personal_data
 
 
 def analisar(cv: str, vaga: str = "Requisitos:\nPython"):
-    return analisar_curriculo(SolicitacaoAnalise(curriculo_texto=cv, vaga_texto=vaga, nivel_vaga="junior"))
+    return analyze_resume(AnalysisRequest(curriculo_texto=cv, vaga_texto=vaga, nivel_vaga="junior"))
 
 
 def req(resultado, nome):
@@ -22,11 +22,11 @@ def req(resultado, nome):
     ("Achievements", "conquistas"), ("Open Source Contributions", "open_source"),
 ])
 def test_parser_bilingue_reconhece_headings(heading, chave):
-    assert chave in extrair_secoes_curriculo(f"{heading}\nConteúdo")
+    assert chave in extract_resume_sections(f"{heading}\nConteúdo")
 
 
 def test_curso_certificacao_projeto_e_skill_nao_migram_de_secao():
-    secoes = extrair_secoes_curriculo(
+    secoes = extract_resume_sections(
         "CERTIFICAÇÕES\nCertificado Python\nCURSOS\nSpring Boot 40h\nPROJETOS\nProjeto Web\nStack: FastAPI\nCOMPETÊNCIAS\nDocker"
     )
     assert "Spring Boot" in secoes["cursos"] and "Spring Boot" not in secoes.get("experiencia_profissional", "")
@@ -90,21 +90,21 @@ def test_curso_e_skill_isolados_mantem_forca_correta():
 
 
 @pytest.mark.parametrize("periodo", ["2020 - 2023", "Ago 2025 - Dez 2027", ".NET 9", "Java 17", "Python 3.12"])
-def test_sanitizador_preserva_datas_e_versoes(periodo):
-    resultado = sanitizar_dados_pessoais(periodo)
+def test_sanitizer_preserva_datas_e_versoes(periodo):
+    resultado = sanitize_personal_data(periodo)
     assert resultado.texto_sanitizado == periodo
     assert "telefone" not in resultado.itens_removidos
 
 
-def test_sanitizador_remove_telefone_real_e_preserva_periodo_no_mesmo_texto():
-    resultado = sanitizar_dados_pessoais("Contato: (81)99999-1234\nFormação: 2020 - 2023")
+def test_sanitizer_remove_telefone_real_e_preserva_periodo_no_mesmo_texto():
+    resultado = sanitize_personal_data("Contato: (81)99999-1234\nFormação: 2020 - 2023")
     assert "[TELEFONE_REMOVIDO]" in resultado.texto_sanitizado
     assert "2020 - 2023" in resultado.texto_sanitizado
 
 
 def test_regressao_anonimizada_parser_e_fontes():
     cv = """FORMAÇÃO
-Tecnologia em Sistemas | 2020 - 2023
+Technology em Sistemas | 2020 - 2023
 PROJETOS
 Aplicação Desktop
 Stack: C#, .NET 9, WPF

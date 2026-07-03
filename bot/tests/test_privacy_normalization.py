@@ -1,22 +1,22 @@
 import asyncio
 
-from app.providers.base import criar_prompt
+from app.providers.base import create_prompt
 from app.providers.mock import MockProvider
-from app.schemas.analise import SolicitacaoAnalise
-from app.services.analisador_ats import analisar_curriculo_com_ia
-from app.services.normalizador_texto import normalizar_texto_curriculo
-from app.services.sanitizador_privacidade import sanitizar_dados_pessoais
+from app.schemas.analysis import AnalysisRequest
+from app.services.ats_analyzer import analyze_resume_with_ai
+from app.services.text_normalizer import normalize_resume_text
+from app.services.privacy_sanitizer import sanitize_personal_data
 
 """Casos de privacidade e limpeza de texto extraído de PDF"""
 
 
-def test_sanitizador_remove_email_e_telefone_sem_devolver_originais() -> None:
+def test_sanitizer_remove_email_e_telefone_sem_devolver_originais() -> None:
 
     email = "ana.teste@example.com"
 
     telefone = "(81) 99999-1234"
 
-    resultado = sanitizar_dados_pessoais(f"Contato: {email} ou {telefone}")
+    resultado = sanitize_personal_data(f"Contato: {email} ou {telefone}")
 
     # trocou corretamente pelos marcadores
     assert (
@@ -31,13 +31,13 @@ def test_sanitizador_remove_email_e_telefone_sem_devolver_originais() -> None:
     assert telefone not in repr(resultado)
 
 
-def test_normalizador_corrige_titulo_espacado() -> None:
+def test_normalizer_corrige_titulo_espacado() -> None:
 
-    assert normalizar_texto_curriculo("C O M P E T Ê N C I A S") == "COMPETÊNCIAS"
+    assert normalize_resume_text("C O M P E T Ê N C I A S") == "COMPETÊNCIAS"
 
 
 class ProvedorCaptura(MockProvider):
-    solicitacao_recebida: SolicitacaoAnalise | None = None
+    solicitacao_recebida: AnalysisRequest | None = None
 
     async def gerar_complemento(self, solicitacao, resultado_base):
 
@@ -47,17 +47,17 @@ class ProvedorCaptura(MockProvider):
         return await super().gerar_complemento(solicitacao, resultado_base)
 
 
-def test_ia_recebe_apenas_curriculo_sanitizado() -> None:
+def test_ai_receives_apenas_curriculo_sanitizado() -> None:
 
     provedor = ProvedorCaptura()
 
-    solicitacao = SolicitacaoAnalise(
+    solicitacao = AnalysisRequest(
         curriculo_texto="Ana, ana@example.com, (81) 99999-1234. Experiência: React.",
         vaga_texto="Requisitos obrigatórios:\nReact",
         usar_ia=True,
     )
 
-    resultado = asyncio.run(analisar_curriculo_com_ia(solicitacao, provedor))
+    resultado = asyncio.run(analyze_resume_with_ai(solicitacao, provedor))
 
     assert provedor.solicitacao_recebida is not None
 
@@ -73,16 +73,16 @@ def test_ia_recebe_apenas_curriculo_sanitizado() -> None:
     assert resultado.privacidade.itens_removidos_antes_ia == ["email", "telefone"]
 
 
-def test_prompt_aplica_defesa_em_profundidade() -> None:
+def test_prompt_applies_defesa_em_profundidade() -> None:
 
-    solicitacao = SolicitacaoAnalise(
+    solicitacao = AnalysisRequest(
         curriculo_texto="Contato ana@example.com e experiência com React.",
         vaga_texto="React",
     )
 
-    from app.services.analisador_ats import analisar_curriculo
+    from app.services.ats_analyzer import analyze_resume
 
-    prompt = criar_prompt(solicitacao, analisar_curriculo(solicitacao))
+    prompt = create_prompt(solicitacao, analyze_resume(solicitacao))
 
     # msm q alguem chame o builder direto, o prompt sanitiza dnv
     assert "ana@example.com" not in prompt
@@ -93,7 +93,7 @@ def test_prompt_aplica_defesa_em_profundidade() -> None:
     assert "Não invente experiências" in prompt
 
 
-def test_prompt_remove_todos_identificadores_ficticios() -> None:
+def test_prompt_removes_todos_identificadores_ficticios() -> None:
     pessoais = (
         "teste@example.com",
         "(81) 99999-1234",
@@ -101,12 +101,12 @@ def test_prompt_remove_todos_identificadores_ficticios() -> None:
         "https://github.com/teste",
         "https://portfolio-teste.example.com",
     )
-    solicitacao = SolicitacaoAnalise(
+    solicitacao = AnalysisRequest(
         curriculo_texto="Contato: " + " ".join(pessoais) + " HABILIDADES: Python",
         vaga_texto="Requisitos: Python",
     )
-    from app.services.analisador_ats import analisar_curriculo
+    from app.services.ats_analyzer import analyze_resume
 
-    prompt = criar_prompt(solicitacao, analisar_curriculo(solicitacao))
+    prompt = create_prompt(solicitacao, analyze_resume(solicitacao))
 
     assert not any(valor in prompt for valor in pessoais)

@@ -1,5 +1,4 @@
 import json
-import re
 
 import httpx
 from pydantic import ValidationError
@@ -9,25 +8,30 @@ from app.schemas.analysis import AIComplement, AnalysisResult, AnalysisRequest
 from app.schemas.ai_analysis import AIAnalysisResponse
 
 
-class GeminiProvider(AIProvider):
-    nome = "gemini"
+class OpenAICompatibleProvider(AIProvider):
+    """Compartilha aut, requisição e validação entre APIs compatíveis."""
 
-    def __init__(self, chave_api: str, modelo: str, timeout: float = 120.0) -> None:
+    def __init__(
+        self,
+        nome: str,
+        chave_api: str,
+        variavel_chave: str,
+        modelo: str,
+        url: str,
+        timeout: float = 30.0,
+    ) -> None:
 
         if not chave_api.strip():
             raise AIProviderError(
-                "A variável GEMINI_API_KEY não foi configurada.",
+                f"A variável {variavel_chave} não foi configurada.",
                 categoria="missing_api_key",
             )
 
+        self.nome = nome
         self.chave_api = chave_api
         self.modelo = modelo
+        self.url = url
         self.timeout = timeout
-
-        self.url = (
-            "https://generativelanguage.googleapis.com/v1beta/models/"
-            f"{modelo}:generateContent"
-        )
 
     async def gerar_complemento(
         self,
@@ -42,32 +46,34 @@ class GeminiProvider(AIProvider):
         )
 
     async def gerar_analise_estruturada(self, solicitacao, resultado_base):
-        # body no padrao que o gemini espera
+        # monta o corpo da req
         corpo = {
-            "contents": [
-                {
-                    "role": "user",
-                    "parts": [{"text": create_prompt(solicitacao, resultado_base)}],
-                }
+            "model": self.modelo,
+            "messages": [
+                {"role": "system", "content": "Responda somente com JSON válido."},
+                {"role": "user", "content": create_prompt(solicitacao, resultado_base)},
             ],
-            "generationConfig": {
-                "temperature": 0.2,
-            },
+            "response_format": {"type": "json_object"},
+            "temperature": 0.2,
+        }
+
+        # cabecalho padraozao
+        cabecalhos = {
+            "Authorization": f"Bearer {self.chave_api}",
+            "Content-Type": "application/json",
         }
 
         try:
+            # tenta conectar e msg
             async with httpx.AsyncClient(timeout=self.timeout) as cliente:
-                resposta = await cliente.post(
-                    self.url,
-                    params={"key": self.chave_api},
-                    json=corpo,
-                )
+                resposta = await cliente.post(self.url, headers=cabecalhos, json=corpo)
 
                 resposta.raise_for_status()
 
-            conteudo = extract_gemini_text(resposta.json())
-            conteudo = remove_json_fence(conteudo)
+            conteudo = resposta.json()["choices"][0]["message"]["content"]
 
+            # valida e retorna
+            #
             return AIAnalysisResponse.model_validate(json.loads(conteudo))
 
         except httpx.HTTPStatusError as erro:
@@ -77,57 +83,63 @@ class GeminiProvider(AIProvider):
                 401: "auth_error_401",
                 403: "permission_error_403",
                 404: "invalid_model",
-                413: "request_too_large",
                 429: "rate_limit_429",
             }.get(status, "provider_unavailable" if status >= 500 else "invalid_request")
             raise AIProviderError(
-                f"O Gemini recusou a requisição com status {status}.",
+                f"O provedor {self.nome} recusou a requisição com status "
+                f"{status}.",
                 categoria=categoria,
                 status_http=status,
             ) from erro
 
         except httpx.TimeoutException as erro:
             raise AIProviderError(
-                "O Gemini excedeu o tempo limite.", categoria="timeout"
+                f"O provedor {self.nome} excedeu o tempo limite.",
+                categoria="timeout",
             ) from erro
 
         except httpx.HTTPError as erro:
             raise AIProviderError(
-                "Não foi possível conectar ao Gemini.", categoria="network_error"
+                f"Não foi possível conectar ao provedor {self.nome}.",
+                categoria="network_error",
             ) from erro
 
         except json.JSONDecodeError as erro:
             raise AIProviderError(
-                "O Gemini retornou JSON inválido.", categoria="invalid_json"
+                f"O provedor {self.nome} retornou JSON inválido.",
+                categoria="invalid_json",
             ) from erro
 
         except ValidationError as erro:
             raise AIProviderError(
-                "O Gemini retornou dados fora do schema esperado.",
+                f"O provedor {self.nome} retornou dados fora do schema.",
                 categoria="schema_validation_error",
             ) from erro
 
-        except (KeyError, IndexError, TypeError, ValueError) as erro:
+        except (KeyError, TypeError) as erro:
             raise AIProviderError(
-                "O Gemini retornou uma resposta vazia ou inválida.",
+                f"O provedor {self.nome} retornou uma resposta vazia ou inválida.",
                 categoria="invalid_json",
             ) from erro
 
     async def executar_tarefa_estruturada(self, tarefa, prompt, schema, temperatura=0.1):
-        corpo = {"contents": [{"role": "user", "parts": [{"text": prompt}]}],
-                 "generationConfig": {"temperature": temperatura, "responseMimeType": "application/json"}}
+        corpo = {"model": self.modelo, "messages": [
+            {"role": "system", "content": "Responda somente com JSON válido."},
+            {"role": "user", "content": prompt}],
+            "response_format": {"type": "json_object"}, "temperature": temperatura}
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as cliente:
-                resposta = await cliente.post(self.url, params={"key": self.chave_api}, json=corpo)
+                resposta = await cliente.post(self.url, headers={
+                    "Authorization": f"Bearer {self.chave_api}", "Content-Type": "application/json"}, json=corpo)
                 if resposta.status_code == 400:
-                    # Alguns modelos/versões Gemini recusam responseMimeType.
-                    corpo["generationConfig"].pop("responseMimeType", None)
-                    resposta = await cliente.post(self.url, params={"key": self.chave_api}, json=corpo)
+                    # Endpoints OpenAI-compatible podem não implementar JSON mode.
+                    corpo.pop("response_format", None)
+                    resposta = await cliente.post(self.url, headers={
+                        "Authorization": f"Bearer {self.chave_api}", "Content-Type": "application/json"}, json=corpo)
                 resposta.raise_for_status()
-            try:
-                conteudo = remove_json_fence(extract_gemini_text(resposta.json()))
-            except (KeyError, IndexError, TypeError, ValueError) as erro:
-                raise AIProviderError("Resposta vazia na etapa.", categoria="empty_response") from erro
+            conteudo = resposta.json()["choices"][0]["message"]["content"]
+            if not conteudo or not conteudo.strip():
+                raise AIProviderError("Resposta vazia.", categoria="empty_response")
             return schema.model_validate(json.loads(conteudo)).model_dump()
         except AIProviderError:
             raise
@@ -142,21 +154,5 @@ class GeminiProvider(AIProvider):
             raise AIProviderError("JSON inválido na etapa.", categoria=categoria) from erro
         except ValidationError as erro:
             raise AIProviderError("Schema inválido na etapa.", categoria="schema_validation_error") from erro
-        except (httpx.HTTPError, KeyError, IndexError, TypeError, ValueError) as erro:
+        except (httpx.HTTPError, KeyError, TypeError, ValueError) as erro:
             raise AIProviderError("Resposta inválida na etapa.", categoria="invalid_json") from erro
-
-
-def extract_gemini_text(resposta: dict) -> str:
-    """Extrai somente o texto do primeiro candidato no formato nativo Gemini."""
-    texto = resposta["candidates"][0]["content"]["parts"][0]["text"]
-    if not isinstance(texto, str) or not texto.strip():
-        raise ValueError("Resposta Gemini sem texto")
-    return texto.strip()
-
-
-def remove_json_fence(texto: str) -> str:
-    """Tolera JSON cercado por Markdown sem aceitar texto adicional."""
-    texto = texto.strip()
-    if texto.startswith("```"):
-        texto = re.sub(r"^```(?:json)?\s*|\s*```$", "", texto, flags=re.I)
-    return texto.strip()

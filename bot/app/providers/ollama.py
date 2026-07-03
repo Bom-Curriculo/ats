@@ -3,12 +3,12 @@ import json
 import httpx
 from pydantic import ValidationError
 
-from app.providers.base import ErroProvedorIA, ProvedorIA, criar_prompt
-from app.schemas.analise import ComplementoIA, ResultadoAnalise, SolicitacaoAnalise
-from app.schemas.analise_ia import RespostaAnaliseIA
+from app.providers.base import AIProviderError, AIProvider, create_prompt
+from app.schemas.analysis import AIComplement, AnalysisResult, AnalysisRequest
+from app.schemas.ai_analysis import AIAnalysisResponse
 
 
-class OllamaProvider(ProvedorIA):
+class OllamaProvider(AIProvider):
     nome = "ollama"
 
     def __init__(self, modelo: str, base_url: str, timeout: float = 120.0) -> None:
@@ -22,12 +22,12 @@ class OllamaProvider(ProvedorIA):
 
     async def gerar_complemento(
         self,
-        solicitacao: SolicitacaoAnalise,
-        resultado_base: ResultadoAnalise,
-    ) -> ComplementoIA:
+        solicitacao: AnalysisRequest,
+        resultado_base: AnalysisResult,
+    ) -> AIComplement:
 
         analise = await self.gerar_analise_estruturada(solicitacao, resultado_base)
-        return ComplementoIA(
+        return AIComplement(
             resumo_gerado=analise.resumo_contextual,
             sugestoes=analise.sugestoes_de_melhoria + analise.proximos_passos,
         )
@@ -38,7 +38,7 @@ class OllamaProvider(ProvedorIA):
             "model": self.modelo,
             "messages": [
                 {"role": "system", "content": "Responda somente com JSON válido."},
-                {"role": "user", "content": criar_prompt(solicitacao, resultado_base)},
+                {"role": "user", "content": create_prompt(solicitacao, resultado_base)},
             ],
             "format": "json",
             "stream": False,
@@ -53,20 +53,20 @@ class OllamaProvider(ProvedorIA):
 
             conteudo = resposta.json()["message"]["content"]
 
-            return RespostaAnaliseIA.model_validate(json.loads(conteudo))
+            return AIAnalysisResponse.model_validate(json.loads(conteudo))
 
         except httpx.HTTPStatusError as erro:
-            raise ErroProvedorIA(
+            raise AIProviderError(
                 f"Ollama recusou a requisição com status {erro.response.status_code}."
             ) from erro
 
         except httpx.HTTPError as erro:
-            raise ErroProvedorIA(
+            raise AIProviderError(
                 "Não foi possível conectar ao Ollama. Verifique se o serviço está ativo."
             ) from erro
 
         except (KeyError, TypeError, json.JSONDecodeError, ValidationError) as erro:
-            raise ErroProvedorIA(
+            raise AIProviderError(
                 "O Ollama retornou uma resposta em formato inválido."
             ) from erro
 
@@ -85,19 +85,19 @@ class OllamaProvider(ProvedorIA):
                 resposta.raise_for_status()
             conteudo = resposta.json()["message"]["content"]
             if not conteudo or not conteudo.strip():
-                raise ErroProvedorIA("Resposta vazia.", categoria="empty_response")
+                raise AIProviderError("Resposta vazia.", categoria="empty_response")
             return schema.model_validate(json.loads(conteudo)).model_dump()
-        except ErroProvedorIA:
+        except AIProviderError:
             raise
         except httpx.TimeoutException as erro:
-            raise ErroProvedorIA("Tempo limite da etapa excedido.", categoria="timeout") from erro
+            raise AIProviderError("Tempo limite da etapa excedido.", categoria="timeout") from erro
         except httpx.HTTPStatusError as erro:
             status = erro.response.status_code
-            raise ErroProvedorIA("Falha HTTP na etapa.", categoria="rate_limit_429" if status == 429 else "provider_unavailable", status_http=status) from erro
+            raise AIProviderError("Falha HTTP na etapa.", categoria="rate_limit_429" if status == 429 else "provider_unavailable", status_http=status) from erro
         except json.JSONDecodeError as erro:
             categoria = "json_truncated" if conteudo.lstrip().startswith(("{", "[")) and not conteudo.rstrip().endswith(("}", "]")) else "invalid_json"
-            raise ErroProvedorIA("JSON inválido na etapa.", categoria=categoria) from erro
+            raise AIProviderError("JSON inválido na etapa.", categoria=categoria) from erro
         except ValidationError as erro:
-            raise ErroProvedorIA("Schema inválido na etapa.", categoria="schema_validation_error") from erro
+            raise AIProviderError("Schema inválido na etapa.", categoria="schema_validation_error") from erro
         except (httpx.HTTPError, KeyError, TypeError, ValueError) as erro:
-            raise ErroProvedorIA("Resposta inválida na etapa.", categoria="invalid_json") from erro
+            raise AIProviderError("Resposta inválida na etapa.", categoria="invalid_json") from erro

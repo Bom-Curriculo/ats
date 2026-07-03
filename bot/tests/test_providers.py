@@ -3,18 +3,18 @@ from pathlib import Path
 
 import pytest
 from dotenv import dotenv_values
-from app.providers.base import ErroProvedorIA
-from app.providers.fabrica import criar_provedor
+from app.providers.base import AIProviderError
+from app.providers.factory import create_provider
 from app.providers.mock import MockProvider
-from app.schemas.analise import SolicitacaoAnalise
-from app.services.analisador_ats import analisar_curriculo_com_ia
+from app.schemas.analysis import AnalysisRequest
+from app.services.ats_analyzer import analyze_resume_with_ai
 
 """testes sem chamar Groq ou Ollama, recomendação do GPT"""
 
 
 def test_mock_aprimora_resultado_sem_alterar_pontuacao() -> None:
 
-    solicitacao = SolicitacaoAnalise(
+    solicitacao = AnalysisRequest(
         curriculo_texto="Experiência com Python.",
         vaga_texto="Python FastAPI",
         usar_ia=True,
@@ -25,7 +25,7 @@ def test_mock_aprimora_resultado_sem_alterar_pontuacao() -> None:
         sugestoes=["Sugestão controlada."],
     )
 
-    resultado = asyncio.run(analisar_curriculo_com_ia(solicitacao, provedor))
+    resultado = asyncio.run(analyze_resume_with_ai(solicitacao, provedor))
 
     # score é calculado local, mock so complementa resumo e sugestões
     assert resultado.pontuacao_ats == 50
@@ -46,15 +46,15 @@ def test_groq_sem_chave_retorna_erro_claro(monkeypatch: pytest.MonkeyPatch) -> N
     # tira a chave pra forcar o erro
     monkeypatch.delenv("GROQ_API_KEY", raising=False)
 
-    with pytest.raises(ErroProvedorIA, match="GROQ_API_KEY"):
-        criar_provedor()
+    with pytest.raises(AIProviderError, match="GROQ_API_KEY"):
+        create_provider()
 
 
 def test_modelo_padrao_groq_e_gpt_oss(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("GROQ_API_KEY", "chave-ficticia-para-teste")
     monkeypatch.delenv("GROQ_MODEL", raising=False)
 
-    provedor = criar_provedor("groq")
+    provedor = create_provider("groq")
 
     assert provedor.modelo == "openai/gpt-oss-120b"
 
@@ -65,7 +65,7 @@ def test_modelo_groq_do_ambiente_tem_prioridade(
     monkeypatch.setenv("GROQ_API_KEY", "chave-ficticia-para-teste")
     monkeypatch.setenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 
-    provedor = criar_provedor("groq")
+    provedor = create_provider("groq")
 
     assert provedor.modelo == "llama-3.3-70b-versatile"
 
@@ -86,7 +86,7 @@ def test_defaults_dos_modelos_batem_com_env_example(monkeypatch, nome) -> None:
     if variavel_chave:
         monkeypatch.setenv(variavel_chave, "chave-ficticia-para-teste")
 
-    provedor = criar_provedor(nome)
+    provedor = create_provider(nome)
     exemplo = dotenv_values(Path(__file__).parents[1] / ".env.example")
 
     assert provedor.modelo == esperado
@@ -101,7 +101,7 @@ def test_variavel_de_ambiente_sobrescreve_default(monkeypatch, nome) -> None:
     if variavel_chave:
         monkeypatch.setenv(variavel_chave, "chave-ficticia-para-teste")
 
-    provedor = criar_provedor(nome)
+    provedor = create_provider(nome)
 
     assert provedor.modelo == modelo_customizado
 
@@ -111,8 +111,8 @@ def test_provedor_desconhecido_retorna_erro(monkeypatch: pytest.MonkeyPatch) -> 
     # seta um provider q n existe
     monkeypatch.setenv("IA_PROVIDER", "inexistente")
 
-    with pytest.raises(ErroProvedorIA, match="não reconhecido"):
-        criar_provedor()
+    with pytest.raises(AIProviderError, match="não reconhecido"):
+        create_provider()
 
 
 def test_auto_e_o_padrao_quando_variavel_nao_existe(
@@ -122,5 +122,5 @@ def test_auto_e_o_padrao_quando_variavel_nao_existe(
     # sem setar nada o default é auto mas sem chave vai dar erro
     monkeypatch.delenv("IA_PROVIDER", raising=False)
 
-    with pytest.raises(ErroProvedorIA, match="auto"):
-        criar_provedor()
+    with pytest.raises(AIProviderError, match="auto"):
+        create_provider()

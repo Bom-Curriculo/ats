@@ -1,8 +1,8 @@
-from app.providers.base import ProvedorIA
-from app.schemas.analise import ComplementoIA, ResultadoAnalise, SolicitacaoAnalise
+from app.providers.base import AIProvider
+from app.schemas.analysis import AIComplement, AnalysisResult, AnalysisRequest
 
 
-class MockProvider(ProvedorIA):
+class MockProvider(AIProvider):
     nome = "mock"
 
     def __init__(
@@ -24,10 +24,10 @@ class MockProvider(ProvedorIA):
 
     async def gerar_complemento(
         self,
-        solicitacao: SolicitacaoAnalise,
-        resultado_base: ResultadoAnalise,
-    ) -> ComplementoIA:
-        return ComplementoIA(
+        solicitacao: AnalysisRequest,
+        resultado_base: AnalysisResult,
+    ) -> AIComplement:
+        return AIComplement(
             resumo_gerado=self.resumo,
             sugestoes=self.sugestoes,
         )

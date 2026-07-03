@@ -2,9 +2,9 @@ import asyncio
 import json
 
 from app.providers.mock import MockProvider
-from app.schemas.analise import SolicitacaoAnalise
-from app.services.analisador_ats import analisar_curriculo, analisar_curriculo_com_ia
-from app.services.sanitizador_privacidade import sanitizar_dados_pessoais
+from app.schemas.analysis import AnalysisRequest
+from app.services.ats_analyzer import analyze_resume, analyze_resume_with_ai
+from app.services.privacy_sanitizer import sanitize_personal_data
 
 
 CURRICULO_FAKE = """Pessoa Exemplo
@@ -27,7 +27,7 @@ Curso Superior | 2020 - 2023
 
 
 def test_sanitizacao_classifica_links_sem_retornar_valores():
-    resultado = sanitizar_dados_pessoais(CURRICULO_FAKE)
+    resultado = sanitize_personal_data(CURRICULO_FAKE)
     assert {"email", "telefone", "cpf", "linkedin_url", "github_profile_url",
             "portfolio_url", "github_repo_url", "deploy_url", "endereco"} <= set(resultado.itens_removidos)
     assert resultado.links_detectados_por_tipo == {
@@ -43,7 +43,7 @@ def test_sanitizacao_classifica_links_sem_retornar_valores():
 
 
 def test_sanitizacao_preserva_datas_versoes_e_tecnologias():
-    seguro = sanitizar_dados_pessoais(CURRICULO_FAKE).texto_sanitizado
+    seguro = sanitize_personal_data(CURRICULO_FAKE).texto_sanitizado
     for valor in ("2020 - 2023", ".NET 9", "Java 17", "Python 3.12", "FastAPI"):
         assert valor in seguro
 
@@ -63,12 +63,12 @@ class MockCapturaSeguro(MockProvider):
 
 def test_provider_recebe_somente_texto_sanitizado_e_sem_fontes_brutas():
     provedor = MockCapturaSeguro()
-    entrada = SolicitacaoAnalise(
+    entrada = AnalysisRequest(
         curriculo_texto=CURRICULO_FAKE,
         vaga_texto="Contato: recrutador@example.com\nRequisitos: Python e FastAPI",
         fontes_curriculo=[{"tipo": "github_url", "url": "https://github.com/pessoa-exemplo"}],
     )
-    resultado = asyncio.run(analisar_curriculo_com_ia(entrada, provedor))
+    resultado = asyncio.run(analyze_resume_with_ai(entrada, provedor))
     enviado = provedor.recebida.curriculo_texto + provedor.recebida.vaga_texto
     assert provedor.recebida.fontes_curriculo == []
     for valor in ("pessoa.teste@gmail.example", "99999-1234", "123.456.789-09",
@@ -78,7 +78,7 @@ def test_provider_recebe_somente_texto_sanitizado_e_sem_fontes_brutas():
 
 
 def test_resposta_local_nao_devolve_pii_e_mantem_analise_tecnica():
-    resultado = analisar_curriculo(SolicitacaoAnalise(
+    resultado = analyze_resume(AnalysisRequest(
         curriculo_texto=CURRICULO_FAKE, vaga_texto="Requisitos: Python, FastAPI, .NET e Java"
     ))
     serializado = json.dumps(resultado.model_dump(), ensure_ascii=False)
@@ -94,10 +94,10 @@ def test_resposta_local_nao_devolve_pii_e_mantem_analise_tecnica():
 
 
 def test_fontes_textuais_futuras_mantem_contrato_aditivo():
-    entrada = SolicitacaoAnalise(
+    entrada = AnalysisRequest(
         fontes_curriculo=[{"tipo": "curriculo_texto", "conteudo": "PROJETOS\nAPI\nStack: Python"}],
         vaga_texto="Requisitos: Python",
     )
     assert "Python" in entrada.curriculo_texto
-    resultado = analisar_curriculo(entrada)
+    resultado = analyze_resume(entrada)
     assert "Python" in resultado.palavras_chave_encontradas

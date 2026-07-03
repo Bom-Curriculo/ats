@@ -3,13 +3,13 @@ import asyncio
 import pytest
 
 from app.providers.mock import MockProvider
-from app.schemas.analise import SolicitacaoAnalise
-from app.services.analisador_ats import analisar_curriculo, analisar_curriculo_com_ia
-from app.services.equivalencias_tecnicas import NivelVaga, detectar_nivel_vaga
+from app.schemas.analysis import AnalysisRequest
+from app.services.ats_analyzer import analyze_resume, analyze_resume_with_ai
+from app.services.technical_equivalences import JobLevel, detect_job_level
 
 
 def analisar(cv: str, vaga: str):
-    return analisar_curriculo(SolicitacaoAnalise(curriculo_texto=cv, vaga_texto=vaga))
+    return analyze_resume(AnalysisRequest(curriculo_texto=cv, vaga_texto=vaga))
 
 
 @pytest.mark.parametrize(
@@ -72,7 +72,7 @@ def test_idioma_reconhece_leitura_de_documentacao():
 
 
 def test_nivel_e_peso_educacional_diferem():
-    assert detectar_nivel_vaga("Estágio em desenvolvimento") == NivelVaga.ESTAGIO
+    assert detect_job_level("Estágio em desenvolvimento") == JobLevel.ESTAGIO
     estagio = analisar("CURSOS\nSpring Boot", "Estágio\nSpring Boot")
     senior = analisar("CURSOS\nSpring Boot", "Desenvolvedor sênior\nSpring Boot")
     assert estagio.pontuacao_ats > senior.pontuacao_ats
@@ -80,7 +80,7 @@ def test_nivel_e_peso_educacional_diferem():
 
 
 def test_nivel_pode_ser_informado_explicitamente():
-    resultado = analisar_curriculo(SolicitacaoAnalise(
+    resultado = analyze_resume(AnalysisRequest(
         curriculo_texto="CURSOS\nSpring Boot", vaga_texto="Spring Boot", nivel_vaga="sênior"
     ))
     assert resultado.nivel_vaga == "senior"
@@ -101,11 +101,11 @@ def resposta_ia(status_html="faltando", status_spring="encontrado_com_evidencia"
 
 
 def test_pos_validacao_corrige_equivalencia_e_rebaixa_curso():
-    entrada = SolicitacaoAnalise(
+    entrada = AnalysisRequest(
         curriculo_texto="PROJETOS\nSite com HTML\nCURSOS\nSpring Boot",
         vaga_texto="Vaga júnior\nHTML5 e Spring Boot",
     )
-    resultado = asyncio.run(analisar_curriculo_com_ia(
+    resultado = asyncio.run(analyze_resume_with_ai(
         entrada, MockProvider(resposta_estruturada=resposta_ia())
     ))
     status = {i.item: i.status for i in resultado.requisitos_contextuais}
@@ -118,8 +118,8 @@ def test_pos_validacao_corrige_equivalencia_e_rebaixa_curso():
 
 
 def test_fallback_mantem_score_local():
-    entrada = SolicitacaoAnalise(curriculo_texto="Python", vaga_texto="Python")
-    resultado = asyncio.run(analisar_curriculo_com_ia(
+    entrada = AnalysisRequest(curriculo_texto="Python", vaga_texto="Python")
+    resultado = asyncio.run(analyze_resume_with_ai(
         entrada, MockProvider(erro_simulado=RuntimeError("falha"))
     ))
     assert resultado.fallback_local_usado is True

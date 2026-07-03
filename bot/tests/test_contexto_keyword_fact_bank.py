@@ -1,14 +1,14 @@
 
 import asyncio
 
-from app.providers.base import criar_prompt
+from app.providers.base import create_prompt
 from app.providers.mock import MockProvider
-from app.schemas.analise import SolicitacaoAnalise
-from app.services.analisador_ats import analisar_curriculo, analisar_curriculo_com_ia, calcular_score_final
+from app.schemas.analysis import AnalysisRequest
+from app.services.ats_analyzer import analyze_resume, analyze_resume_with_ai, calculate_final_score
 
 
 def analisar(cv: str, vaga: str):
-    return analisar_curriculo(SolicitacaoAnalise(curriculo_texto=cv, vaga_texto=vaga))
+    return analyze_resume(AnalysisRequest(curriculo_texto=cv, vaga_texto=vaga))
 
 
 def test_keyword_report_pesa_hard_skill_e_lista_ausente():
@@ -54,9 +54,9 @@ def resposta_inventada():
 
 
 def test_ia_inventando_evidencia_e_rebaixada_sem_provider_real():
-    entrada = SolicitacaoAnalise(curriculo_texto="PROJETOS\nDocker", vaga_texto="Kubernetes")
+    entrada = AnalysisRequest(curriculo_texto="PROJETOS\nDocker", vaga_texto="Kubernetes")
 
-    resultado = asyncio.run(analisar_curriculo_com_ia(entrada, MockProvider(resposta_estruturada=resposta_inventada())))
+    resultado = asyncio.run(analyze_resume_with_ai(entrada, MockProvider(resposta_estruturada=resposta_inventada())))
 
     req = resultado.requisitos_contextuais[0]
     assert req.status == "faltando" and req.evidencia is None
@@ -67,19 +67,19 @@ def test_ia_inventando_evidencia_e_rebaixada_sem_provider_real():
 
 
 def test_score_reduz_ia_com_muitas_correcoes_e_usa_keywords():
-    poucos, _ = calcular_score_final(40, 100, 95, 0, "junior", False, 60)
+    poucos, _ = calculate_final_score(40, 100, 95, 0, "junior", False, 60)
 
-    muitos, explicacao = calcular_score_final(40, 100, 95, 4, "junior", False, 60)
+    muitos, explicacao = calculate_final_score(40, 100, 95, 4, "junior", False, 60)
 
-    sem_keywords, _ = calcular_score_final(40, 100, 95, 4, "junior", False, None)
+    sem_keywords, _ = calculate_final_score(40, 100, 95, 4, "junior", False, None)
     assert muitos < poucos and muitos != sem_keywords
     assert "correções 4" in explicacao
 
 
 def test_contexto_do_prompt_e_compacto_rastreavel_e_sem_promover_skill():
-    entrada = SolicitacaoAnalise(curriculo_texto="COMPETÊNCIAS\nDocker", vaga_texto="Kubernetes")
-    local = analisar_curriculo(entrada)
-    prompt = criar_prompt(entrada, local)
+    entrada = AnalysisRequest(curriculo_texto="COMPETÊNCIAS\nDocker", vaga_texto="Kubernetes")
+    local = analyze_resume(entrada)
+    prompt = create_prompt(entrada, local)
 
 
     assert '"fact_bank"' in prompt and "Skill solta nunca é prática" in prompt

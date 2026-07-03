@@ -1,7 +1,7 @@
 import re
 
-from app.schemas.analise import ItemAnaliseRequisito, ItemKeyword, KeywordReport
-from app.services.normalizador_texto import normalizar_para_comparacao
+from app.schemas.analysis import RequirementAnalysisItem, ItemKeyword, KeywordReport
+from app.services.text_normalizer import normalize_for_comparison
 
 
 PESOS = {"hard_skills": 2.0, "title_function_keywords": 1.5, "business_context": 1.0,
@@ -12,7 +12,7 @@ def _hard_filters(vaga: str, curriculo: str) -> tuple[list[ItemKeyword], list[st
     filtros: list[ItemKeyword] = []
 
     alertas: list[str] = []
-    vaga_n, cv_n = normalizar_para_comparacao(vaga), normalizar_para_comparacao(curriculo)
+    vaga_n, cv_n = normalize_for_comparison(vaga), normalize_for_comparison(curriculo)
     padroes = [r"\b\d+\+?\s*anos?\b", r"graduacao completa", r"ingles avancado",
                r"\b(?:presencial|hibrid[oa])\b"]
 
@@ -28,16 +28,16 @@ def _hard_filters(vaga: str, curriculo: str) -> tuple[list[ItemKeyword], list[st
     return filtros, list(dict.fromkeys(alertas))
 
 
-def construir_keyword_report(itens: list[ItemAnaliseRequisito], vaga: str, curriculo: str, titulo: str = "") -> tuple[KeywordReport, int, list[ItemKeyword], list[ItemKeyword]]:
+def build_keyword_report(itens: list[RequirementAnalysisItem], vaga: str, curriculo: str, titulo: str = "") -> tuple[KeywordReport, int, list[ItemKeyword], list[ItemKeyword]]:
     grupos: dict[str, list[ItemKeyword]] = {k: [] for k in PESOS}
-    titulo_n = normalizar_para_comparacao(titulo)
+    titulo_n = normalize_for_comparison(titulo)
 
 
     for item in itens:
         if item.tipo == "tecnologia":
             categoria = "hard_skills"
 
-        elif normalizar_para_comparacao(item.item) in titulo_n and titulo_n:
+        elif normalize_for_comparison(item.item) in titulo_n and titulo_n:
             categoria = "title_function_keywords"
 
         elif item.categoria == "responsabilidade":

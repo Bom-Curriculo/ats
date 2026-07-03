@@ -4,12 +4,12 @@ import os
 from fastapi import FastAPI, HTTPException
 from prometheus_fastapi_instrumentator import Instrumentator
 
-from app.logging_config import configurar_logging
-from app.providers.base import ErroProvedorIA
-from app.schemas.analise import ResultadoAnalise, SolicitacaoAnalise
-from app.services.gerenciador_ia import executar_analise_com_fallback
+from app.logging_setup import configure_logging
+from app.providers.base import AIProviderError
+from app.schemas.analysis import AnalysisResult, AnalysisRequest
+from app.services.ai_manager import run_analysis_with_fallback
 
-configurar_logging(os.getenv("LOG_LEVEL", "INFO"))
+configure_logging(os.getenv("LOG_LEVEL", "INFO"))
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
@@ -22,19 +22,19 @@ Instrumentator().instrument(app).expose(app, endpoint="/metrics")
 
 
 @app.get("/health")
-async def verificar_saude() -> dict[str, str]:
+async def health_check() -> dict[str, str]:
     logger.info("health check ok")
 
     return {"status": "online"}
 
 
-@app.post("/api/v1/analisar", response_model=ResultadoAnalise)
+@app.post("/api/v1/analisar", response_model=AnalysisResult)
 
-async def analisar(solicitacao: SolicitacaoAnalise) -> ResultadoAnalise:
+async def analyze(solicitacao: AnalysisRequest) -> AnalysisResult:
     """fall back (recomendação da IA, para os IA hater)"""
 
     try:
-        return await executar_analise_com_fallback(solicitacao)
+        return await run_analysis_with_fallback(solicitacao)
 
-    except ErroProvedorIA as erro:
+    except AIProviderError as erro:
         raise HTTPException(status_code=503, detail=str(erro)) from erro

@@ -1,7 +1,7 @@
-from app.providers.compativel_openai import ProviderCompativelOpenAI
+from app.providers.openai_compatible import OpenAICompatibleProvider
 
 
-class DeepSeekProvider(ProviderCompativelOpenAI):
+class DeepSeekProvider(OpenAICompatibleProvider):
 
     def __init__(self, chave_api: str, modelo: str) -> None:
         super().__init__(

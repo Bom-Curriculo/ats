@@ -1,9 +1,9 @@
-from app.schemas.analise import SolicitacaoAnalise
-from app.services.analisador_ats import analisar_curriculo
+from app.schemas.analysis import AnalysisRequest
+from app.services.ats_analyzer import analyze_resume
 
 
 def analisar(cv: str, vaga: str):
-    return analisar_curriculo(SolicitacaoAnalise(curriculo_texto=cv, vaga_texto=vaga, nivel_vaga="junior"))
+    return analyze_resume(AnalysisRequest(curriculo_texto=cv, vaga_texto=vaga, nivel_vaga="junior"))
 
 
 def item(resultado, nome):
