@@ -189,7 +189,12 @@ class AuthController extends Controller
     public function user(Request $request)
     {
         return ResponseData::success('User retrieved successfully', [
-            'user' => $request->user()
+            'user' => User::with([
+                'skills',
+                'experiences',
+                'qualifications',
+                'languages'
+            ])->where('id', $request->user()->id)->first()
         ]);
     }
 
