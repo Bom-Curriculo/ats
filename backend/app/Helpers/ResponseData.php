@@ -84,24 +84,16 @@ final class ResponseData {
 
     protected static function handleLog($message, $data, $code) : void
     {
-        switch($code) {
-            case $code >= 500:
-                    self::handleErrorLog($message, $data, $code);
-                break;
-
-            default:
-                    // do nothing
-                break;
-
+        if ($code >= 500) {
+            self::handleErrorLog($message, $data, $code);
         }
-        
     }
 
-    protected static function handleErrorLog($message, $code, $data) : void
+    protected static function handleErrorLog($message, $data, $code) : void
     {
         Log::error('[API][ERROR] - ' . $message, [
-            'code'    => $code ?? self::$defaultErrorCode,
-            'message' => $message ?? self::$defaultErrorMessage,
+            'code'    => $code ?? self::defaultErrorCode,
+            'message' => $message ?? self::defaultErrorMessage,
             'data'    => $data
         ]);
     }

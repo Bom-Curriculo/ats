@@ -2,17 +2,17 @@
 
 namespace App\Console\Commands;
 
-use App\Services\ConsumerRabbitMQService;
+use App\Services\RabbitMQ\ConsumerRabbitMQService;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
 #[Signature('app:rabbit-consume')]
-#[Description('Command description')]
+#[Description('Consumer RabbitMQ Worker')]
 class ConsumeRabbitMQ extends Command
 {
-
+    
     public function handle(ConsumerRabbitMQService $consumer)
     {
         $queue = 'resumes_bot_queue';
@@ -21,7 +21,7 @@ class ConsumeRabbitMQ extends Command
 
         $consumer->consume($queue, function (array $payload) {
 
-            Log::info('Requisição encontrada na fila:', [$payload])
+            Log::info('Requisição encontrada na fila:', [$payload]);
             // Seu processamento aqui
 
             /*

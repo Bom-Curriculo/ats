@@ -1,6 +1,6 @@
 <?php
 
-use App\Jobs\ProccessResumesJobs;
+use App\Jobs\ProcessResumesJobs;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function(){
@@ -11,5 +11,5 @@ Route::get('/', function(){
 });
 
 Route::get('teste', function(){
-    ProccessResumesJobs::dispatch(5, 'testeee')->onConnection('rabbitmq');
+    ProcessResumesJobs::dispatch(5, 'testeee')->onConnection('rabbitmq');
 });

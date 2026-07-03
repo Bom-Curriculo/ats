@@ -7,14 +7,14 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Storage;
 
-class ProccessResumesJobs implements ShouldQueue
+class ResumeProcessingPublisher implements ShouldQueue
 {
     use Queueable;
 
-    protected $user_id = null;
-    protected $resume_cv = null;
-    protected $resume_linkedin = null;
-    protected $expires_link;
+    public $user_id = null;
+    public $resume_cv = null;
+    public $resume_linkedin = null;
+    public $expires_link;
 
     /**
      * Create a new job instance.

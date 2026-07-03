@@ -1,6 +1,6 @@
 <?php
 
-use App\Services\ConsumerRabbitMqProccess;
+use App\Services\ConsumerRabbitMqProcess;
 use App\Services\Queue\CustomRabbitMQQueue;
 
 return [
