@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
-use Services\ResumeFilesProccess;
+use App\Services\ResumeFilesProccess;
 
 class UserController extends Controller
 {
@@ -37,7 +37,7 @@ class UserController extends Controller
                 'github_link'     => ['nullable', 'string'],
                 'site_link'       => ['nullable', 'string'],
                 'skills'          => ['nullable', 'array'],
-                'skills.*'        => ['string']
+                'skills.*.name'   => ['required', 'string']
             ]);
             
             $resumeCV = $request->file('resume_cv');
@@ -63,9 +63,6 @@ class UserController extends Controller
             ]);
 
             $this->proccessSkillsUser($skills, $user);
-
-            // Send proccess and handle it
-            ResumeFilesProccess::handle();
 
             DB::commit();
             return ResponseData::success('User Updated', ['message' => 'User and upload has been updated.'], 200);
@@ -97,7 +94,7 @@ class UserController extends Controller
             ], 404);
         }
 
-        $fileUrl = Storage::temporaryUrl($typeFile, now()->addHour(2));
+        $fileUrl = Storage::temporaryUrl($typeFile, now()->addDay());
 
         return ResponseData::success('success', [
             'file_url' => $fileUrl
@@ -190,18 +187,26 @@ class UserController extends Controller
                 $pathCertificatePCD = $this->storePcdCertificate($request, $user);
             }
 
-            $request->merge([
-                'resume_cv' => $pathResumeCv,
-                'resume_linkedin' => $pathResumeLinkedin,
-                'path_certificate_pcd' => $pathCertificatePCD
-            ]);
-
-            $user->update($request->except([
+            // Remove Files from request
+            $request = $request->except([
+                'resume_cv',
+                'resume_linkedin',
+                'path_certificate_pcd',
                 'skills',
                 'experiences',
                 'qualifications',
                 'languages'
-            ]));
+            ]);
+
+            // Override Files path to request
+            $data = array_merge([
+                'resume_cv' => $pathResumeCv,
+                'resume_linkedin' => $pathResumeLinkedin,
+                'path_certificate_pcd' => $pathCertificatePCD
+            ], $request);
+            
+
+            $user->update($data);
 
             DB::commit();
             return ResponseData::success('Success', [
@@ -225,6 +230,26 @@ class UserController extends Controller
             500);
 
         }
+    }
+
+    public function proccessResumes(Request $request)
+    {
+        try{
+            $user = User::find($request->user()->id);
+            ResumeFilesProccess::handle($user);
+            
+            return ResponseData::success('Success', [
+                'message' => 'Files are sended to proccess worker'
+            ], 200);
+
+        }catch(Exception $exception){
+            return ResponseData::error('Failed',
+            [
+                'message' => $exception->getMessage()
+            ], 500);
+        }
+        
+        
     }
 
     protected function prepareForValidation(Request $request)
