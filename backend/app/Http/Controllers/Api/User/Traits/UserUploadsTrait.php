@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Storage;
 
 trait UserUploadsTrait {
     
-    protected function storeCvResume(Request $request, User $user){
+    public function storeCvResume(Request $request, User $user){
         $file = $request->file('resume_cv');
         $path = $file->store(
                     SystemUploadPrivatePathEnum::PATH_UPLOAD_RESUME_CV->value
@@ -21,7 +21,8 @@ trait UserUploadsTrait {
 
         return $path;
     }
-    protected function storeLinkedinResume(Request $request, User $user){
+
+    public function storeLinkedinResume(Request $request, User $user){
         $path = $request->file('resume_linkedin')->store(
                     SystemUploadPrivatePathEnum::PATH_UPLOAD_RESUME_LINKEDIN->value
                 );
@@ -32,7 +33,8 @@ trait UserUploadsTrait {
 
         return $path;
     }
-    protected function storePcdCertificate(Request $request, User $user){
+    
+    public function storePcdCertificate(Request $request, User $user){
         $path = $request->file('path_certificate_pcd')->store(
                     SystemUploadPrivatePathEnum::PATH_UPLOAD_CERTIFICATE_PCD
                     ->value
