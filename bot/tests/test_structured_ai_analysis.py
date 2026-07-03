@@ -1,9 +1,9 @@
 import asyncio
 
 from app.providers.mock import MockProvider
-from app.schemas.analise import SolicitacaoAnalise
-from app.services.analisador_ats import analisar_curriculo_com_ia
-from app.services.analisador_ats import analisar_curriculo
+from app.schemas.analysis import AnalysisRequest
+from app.services.ats_analyzer import analyze_resume_with_ai
+from app.services.ats_analyzer import analyze_resume
 
 
 def resposta_ia(**alteracoes):
@@ -27,12 +27,12 @@ def resposta_ia(**alteracoes):
 
 
 def test_json_valido_e_incorporado_sem_sobrescrever_score_local() -> None:
-    solicitacao = SolicitacaoAnalise(
+    solicitacao = AnalysisRequest(
         curriculo_texto="Experiência com Python.", vaga_texto="Python e FastAPI"
     )
     local_score = 50
     resultado = asyncio.run(
-        analisar_curriculo_com_ia(
+        analyze_resume_with_ai(
             solicitacao, MockProvider(resposta_estruturada=resposta_ia())
         )
     )
@@ -42,11 +42,11 @@ def test_json_valido_e_incorporado_sem_sobrescrever_score_local() -> None:
     assert resultado.fallback_local_usado is False
 
 
-def test_json_invalido_usa_fallback_local() -> None:
-    solicitacao = SolicitacaoAnalise(curriculo_texto="Python", vaga_texto="Python")
-    score_local = analisar_curriculo(solicitacao).pontuacao_ats
+def test_invalid_json_usa_fallback_local() -> None:
+    solicitacao = AnalysisRequest(curriculo_texto="Python", vaga_texto="Python")
+    score_local = analyze_resume(solicitacao).pontuacao_ats
     resultado = asyncio.run(
-        analisar_curriculo_com_ia(
+        analyze_resume_with_ai(
             solicitacao,
             MockProvider(resposta_estruturada="não é json"),
         )
@@ -69,8 +69,8 @@ def test_evidence_gate_rebaixa_tecnologia_inventada() -> None:
         "recomendacao": "Destacar Kubernetes.",
     }
     resultado = asyncio.run(
-        analisar_curriculo_com_ia(
-            SolicitacaoAnalise(curriculo_texto="Experiência com Python", vaga_texto="Kubernetes"),
+        analyze_resume_with_ai(
+            AnalysisRequest(curriculo_texto="Experiência com Python", vaga_texto="Kubernetes"),
             MockProvider(
                 resposta_estruturada=resposta_ia(requisitos_contextuais=[requisito])
             ),
@@ -96,8 +96,8 @@ def test_fronteira_remove_pii_links_e_tokens_de_curriculo_e_vaga() -> None:
 
     resultado = asyncio.run(
 
-        analisar_curriculo_com_ia(
-            SolicitacaoAnalise(
+        analyze_resume_with_ai(
+            AnalysisRequest(
                 curriculo_texto=(
                     "ana@example.com (81) 99999-1234 CPF 123.456.789-10 "
 

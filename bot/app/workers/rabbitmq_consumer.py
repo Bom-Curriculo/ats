@@ -11,9 +11,9 @@ from typing import Any
 
 import pika
 
-from app.logging_config import configurar_logging
-from app.schemas.analise import SolicitacaoAnalise
-from app.services.gerenciador_ia import executar_analise_com_fallback
+from app.logging_setup import configure_logging
+from app.schemas.analysis import AnalysisRequest
+from app.services.ai_manager import run_analysis_with_fallback
 from app.services.rabbitmq_payload_parser import InvalidRabbitMQPayload, parse_rabbitmq_payload
 
 logger = logging.getLogger(__name__)
@@ -33,8 +33,8 @@ def process_payload(data: dict[str, Any]) -> dict[str, Any]:
     curriculo = data.get("curriculo_texto")
     vaga = data.get("vaga_texto")
     if isinstance(curriculo, str) and curriculo.strip() and isinstance(vaga, str) and vaga.strip():
-        request = SolicitacaoAnalise(curriculo_texto=curriculo, vaga_texto=vaga)
-        result = asyncio.run(executar_analise_com_fallback(request))
+        request = AnalysisRequest(resume_text=curriculo, job_text=vaga)
+        result = asyncio.run(run_analysis_with_fallback(request))
         return _output(data, "completed", result.model_dump(mode="json"))
 
     has_file_reference = any(
@@ -114,7 +114,7 @@ class RabbitMQWorker:
 
 
 def main() -> None:
-    configurar_logging(os.getenv("LOG_LEVEL", "INFO"))
+    configure_logging(os.getenv("LOG_LEVEL", "INFO"))
     while True:
         try:
             RabbitMQWorker().consume()

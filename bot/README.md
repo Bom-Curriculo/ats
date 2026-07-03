@@ -182,24 +182,28 @@ tenham somente arquivo recebem `received_pending_extraction`.
 | Arquivo/pasta | Responsabilidade |
 |---|---|
 | `app/main.py` | Aplicação e rotas FastAPI. |
-| `app/services/analisador_ats.py` | Pipeline local e conciliação final. |
-| `app/services/extrator_secoes.py` | Parser bilíngue e confiança das seções. |
-| `app/services/parser_entidades_curriculo.py` | Extração genérica de projetos. |
+| `app/services/ats_analyzer.py` | Pipeline local e conciliação final. |
+| `app/services/section_extractor.py` | Parser bilíngue e confiança das seções. |
+| `app/services/resume_entity_parser.py` | Extração genérica de projetos. |
 | `app/services/fact_bank.py` | Fonte de verdade e prioridade das evidências. |
-| `app/services/matching_tecnico.py` | Matching técnico com limites léxicos. |
-| `app/services/grupos_requisitos.py` | Alternativas e subrequisitos agrupados. |
-| `app/services/selecao_evidencias.py` | Recuperação limitada e sanitizada. |
-| `app/services/orquestrador_ia.py` | Etapas e fallback do pipeline. |
-| `app/services/prompts_pipeline_ia.py` | Prompts pequenos com schema. |
-| `app/services/gerenciador_ia.py` | Cadeia de providers e erros seguros. |
-| `app/services/sanitizador_privacidade.py` | Remoção conservadora de PII e segredos. |
-| `app/schemas/pipeline_ia.py` | Schemas das etapas. |
+| `app/services/technical_matching.py` | Matching técnico com limites léxicos. |
+| `app/services/requirement_groups.py` | Alternativas e subrequisitos agrupados. |
+| `app/services/evidence_selection.py` | Recuperação limitada e sanitizada. |
+| `app/services/ai_orchestrator.py` | Etapas e fallback do pipeline. |
+| `app/services/ai_pipeline_prompts.py` | Prompts pequenos com schema. |
+| `app/services/ai_manager.py` | Cadeia de providers e erros seguros. |
+| `app/services/privacy_sanitizer.py` | Remoção conservadora de PII e segredos. |
+| `app/schemas/ai_pipeline.py` | Schemas das etapas. |
 | `app/providers/base.py` | Interface comum dos providers. |
 | `app/providers/gemini.py` | Adapter Gemini. |
-| `app/providers/compativel_openai.py` | Adapter OpenAI-compatible. |
+| `app/providers/openai_compatible.py` | Adapter OpenAI-compatible. |
 | `app/providers/ollama.py` | Adapter local Ollama. |
 | `app/providers/mock.py` | Provider determinístico para testes. |
 | `tests/` | Testes locais e providers mockados. |
+
+Os módulos antigos em português permanecem como wrappers temporários de compatibilidade.
+`AnalysisRequest` aceita tanto os nomes internos em inglês (`resume_text`, `job_text`,
+`job_level`, `language`, `resume_sources`) quanto os campos públicos legados em português.
 
 ## referencias
 

@@ -3,12 +3,12 @@ import json
 
 import httpx
 import pytest
-from app.providers.base import ErroProvedorIA
-from app.providers.gemini import GeminiProvider, extrair_texto_gemini
-from app.schemas.analise import SolicitacaoAnalise
-from app.services.analisador_ats import analisar_curriculo
-from app.services.gerenciador_ia import executar_analise_com_fallback
-from app.schemas.pipeline_ia import ClassificacaoVagaIA
+from app.providers.base import AIProviderError
+from app.providers.gemini import GeminiProvider, extract_gemini_text
+from app.schemas.analysis import AnalysisRequest
+from app.services.ats_analyzer import analyze_resume
+from app.services.ai_manager import run_analysis_with_fallback
+from app.schemas.ai_pipeline import AIJobClassification
 
 
 def resposta_estruturada() -> dict:
@@ -82,17 +82,17 @@ def provider() -> GeminiProvider:
 
 
 def base_local():
-    solicitacao = SolicitacaoAnalise(
+    solicitacao = AnalysisRequest(
         curriculo_texto="HABILIDADES\nPython",
         vaga_texto="Requisitos:\nPython e FastAPI",
     )
-    return solicitacao, analisar_curriculo(solicitacao)
+    return solicitacao, analyze_resume(solicitacao)
 
 
-def test_extrai_texto_do_formato_nativo_gemini() -> None:
+def test_extracts_texto_do_formato_nativo_gemini() -> None:
     resposta = envelope_gemini('{"resumo_analise":"ok"}')
 
-    assert extrair_texto_gemini(resposta) == '{"resumo_analise":"ok"}'
+    assert extract_gemini_text(resposta) == '{"resumo_analise":"ok"}'
 
 
 def test_gemini_parseia_json_estruturado_com_fences(monkeypatch) -> None:
@@ -122,7 +122,7 @@ def test_gemini_classifica_erros_http(monkeypatch, status, categoria) -> None:
     )
     solicitacao, resultado = base_local()
 
-    with pytest.raises(ErroProvedorIA) as capturado:
+    with pytest.raises(AIProviderError) as capturado:
         asyncio.run(provider().gerar_analise_estruturada(solicitacao, resultado))
 
     assert capturado.value.categoria == categoria
@@ -139,7 +139,7 @@ def test_fluxo_completo_gemini_valido_nao_usa_fallback(monkeypatch) -> None:
     )
     solicitacao, _ = base_local()
 
-    resultado = asyncio.run(executar_analise_com_fallback(solicitacao))
+    resultado = asyncio.run(run_analysis_with_fallback(solicitacao))
 
     assert resultado.fallback_local_usado is False
     assert resultado.provedor_ia == "gemini"
@@ -154,7 +154,7 @@ def test_fluxo_completo_gemini_falha_e_preserva_fallback(monkeypatch) -> None:
     ClienteHTTPFake.resposta = RespostaHTTPFake(429, {"error": {}})
     solicitacao, local = base_local()
 
-    resultado = asyncio.run(executar_analise_com_fallback(solicitacao))
+    resultado = asyncio.run(run_analysis_with_fallback(solicitacao))
 
     assert resultado.fallback_local_usado is True
     assert resultado.pontuacao_ats == local.pontuacao_ats
@@ -173,9 +173,9 @@ def test_fluxo_completo_gemini_falha_e_preserva_fallback(monkeypatch) -> None:
 def test_tarefa_gemini_classifica_respostas_invalidas(monkeypatch, texto, categoria):
     monkeypatch.setattr("app.providers.gemini.httpx.AsyncClient", ClienteHTTPFake)
     ClienteHTTPFake.resposta = RespostaHTTPFake(200, envelope_gemini(texto))
-    with pytest.raises(ErroProvedorIA) as capturado:
+    with pytest.raises(AIProviderError) as capturado:
         asyncio.run(provider().executar_tarefa_estruturada(
-            "classificacao_vaga", "prompt curto", ClassificacaoVagaIA, 0.1
+            "classificacao_vaga", "prompt curto", AIJobClassification, 0.1
         ))
     assert capturado.value.categoria == categoria
 
@@ -186,6 +186,6 @@ def test_tarefa_gemini_valida_schema(monkeypatch):
         "titulo": "Backend", "senioridade": "junior", "requisitos_centrais": ["Python"], "confianca": 90
     })))
     resposta = asyncio.run(provider().executar_tarefa_estruturada(
-        "classificacao_vaga", "prompt curto", ClassificacaoVagaIA, 0.1
+        "classificacao_vaga", "prompt curto", AIJobClassification, 0.1
     ))
     assert resposta["titulo"] == "Backend" and resposta["confianca"] == 90

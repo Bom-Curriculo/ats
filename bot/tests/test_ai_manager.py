@@ -1,10 +1,10 @@
 import asyncio
 
 import pytest
-from app.providers.base import ErroProvedorIA
+from app.providers.base import AIProviderError
 from app.providers.mock import MockProvider
-from app.schemas.analise import SolicitacaoAnalise
-from app.services.gerenciador_ia import executar_analise_com_fallback
+from app.schemas.analysis import AnalysisRequest
+from app.services.ai_manager import run_analysis_with_fallback
 
 
 class ProviderFake(MockProvider):
@@ -24,14 +24,14 @@ class ProviderFake(MockProvider):
             self.capturas.append((self.nome, solicitacao))
 
         if self.falhar:
-            raise ErroProvedorIA(f"Falha simulada de {self.nome}")
+            raise AIProviderError(f"Falha simulada de {self.nome}")
 
         return await super().gerar_complemento(solicitacao, resultado_base)
 
 
-def solicitacao() -> SolicitacaoAnalise:
+def solicitacao() -> AnalysisRequest:
 
-    return SolicitacaoAnalise(
+    return AnalysisRequest(
         curriculo_texto="COMPETÊNCIAS\nPython", vaga_texto="Requisitos:\nPython"
     )
 
@@ -42,7 +42,7 @@ def configurar_chaves(monkeypatch):
         monkeypatch.setenv(f"{nome}_API_KEY", "chave-ficticia-para-teste")
 
 
-def test_auto_tenta_groq_primeiro(monkeypatch) -> None:
+def test_auto_tries_groq_primeiro(monkeypatch) -> None:
 
     configurar_chaves(monkeypatch)
 
@@ -53,7 +53,7 @@ def test_auto_tenta_groq_primeiro(monkeypatch) -> None:
     chamadas = []
 
     resultado = asyncio.run(
-        executar_analise_com_fallback(
+        run_analysis_with_fallback(
             solicitacao(), lambda nome: chamadas.append(nome) or ProviderFake(nome)
         )
     )
@@ -65,7 +65,7 @@ def test_auto_tenta_groq_primeiro(monkeypatch) -> None:
     assert resultado.fallback_ia.fallback_usado is False
 
 
-def test_falha_groq_e_gemini_assume(monkeypatch) -> None:
+def test_failure_groq_e_gemini_assume(monkeypatch) -> None:
 
     configurar_chaves(monkeypatch)
 
@@ -74,7 +74,7 @@ def test_falha_groq_e_gemini_assume(monkeypatch) -> None:
     monkeypatch.setenv("IA_PROVIDER_CHAIN", "groq,gemini")
 
     resultado = asyncio.run(
-        executar_analise_com_fallback(
+        run_analysis_with_fallback(
             solicitacao(), lambda nome: ProviderFake(nome, falhar=nome == "groq")
         )
     )
@@ -96,7 +96,7 @@ def test_groq_sem_chave_e_ignorado(monkeypatch) -> None:
     monkeypatch.setenv("GEMINI_API_KEY", "chave-ficticia-para-teste")
 
     resultado = asyncio.run(
-        executar_analise_com_fallback(solicitacao(), lambda nome: ProviderFake(nome))
+        run_analysis_with_fallback(solicitacao(), lambda nome: ProviderFake(nome))
     )
 
     assert resultado.provedor_ia == "gemini"
@@ -104,7 +104,7 @@ def test_groq_sem_chave_e_ignorado(monkeypatch) -> None:
     assert resultado.fallback_ia.provedores_tentados == ["gemini"]
 
 
-def test_todos_falham_e_usam_fallback_local(monkeypatch) -> None:
+def test_all_fail_e_usam_fallback_local(monkeypatch) -> None:
 
     configurar_chaves(monkeypatch)
 
@@ -113,7 +113,7 @@ def test_todos_falham_e_usam_fallback_local(monkeypatch) -> None:
     monkeypatch.setenv("IA_PROVIDER_CHAIN", "groq,gemini")
 
     resultado = asyncio.run(
-        executar_analise_com_fallback(
+        run_analysis_with_fallback(
             solicitacao(), lambda nome: ProviderFake(nome, falhar=True)
         )
     )
@@ -138,7 +138,7 @@ def test_modo_explicito_tenta_somente_selecionado(
     chamadas = []
 
     resultado = asyncio.run(
-        executar_analise_com_fallback(
+        run_analysis_with_fallback(
             solicitacao(), lambda nome: chamadas.append(nome) or ProviderFake(nome)
         )
     )
@@ -150,7 +150,7 @@ def test_modo_explicito_tenta_somente_selecionado(
     assert proibido not in chamadas
 
 
-def test_dados_sensiveis_chegam_sanitizados_a_todos_provedores(monkeypatch) -> None:
+def test_sensitive_data_chegam_sanitizados_a_todos_provedores(monkeypatch) -> None:
 
     configurar_chaves(monkeypatch)
 
@@ -160,13 +160,13 @@ def test_dados_sensiveis_chegam_sanitizados_a_todos_provedores(monkeypatch) -> N
 
     capturas = []
 
-    entrada = SolicitacaoAnalise(
+    entrada = AnalysisRequest(
         curriculo_texto="ana@example.com (81) 99999-1234 COMPETÊNCIAS: Python",
         vaga_texto="Requisitos: Python",
     )
 
     resultado = asyncio.run(
-        executar_analise_com_fallback(
+        run_analysis_with_fallback(
             entrada,
             lambda nome: ProviderFake(nome, falhar=nome == "groq", capturas=capturas),
         )
@@ -182,7 +182,7 @@ def test_dados_sensiveis_chegam_sanitizados_a_todos_provedores(monkeypatch) -> N
     assert resultado.privacidade.itens_removidos_antes_ia == ["email", "telefone"]
 
 
-def test_json_invalido_tenta_proximo_provedor(monkeypatch) -> None:
+def test_invalid_json_tenta_proximo_provedor(monkeypatch) -> None:
     configurar_chaves(monkeypatch)
     monkeypatch.setenv("IA_PROVIDER", "auto")
     monkeypatch.setenv("IA_PROVIDER_CHAIN", "groq,gemini")
@@ -196,7 +196,7 @@ def test_json_invalido_tenta_proximo_provedor(monkeypatch) -> None:
             return provedor
         return ProviderFake(nome)
 
-    resultado = asyncio.run(executar_analise_com_fallback(solicitacao(), fabrica))
+    resultado = asyncio.run(run_analysis_with_fallback(solicitacao(), fabrica))
 
     assert chamadas == ["groq", "gemini"]
     assert resultado.provedor_ia == "gemini"
@@ -204,18 +204,18 @@ def test_json_invalido_tenta_proximo_provedor(monkeypatch) -> None:
     assert "inválida" in resultado.erros_provedores_sanitizados[0]
 
 
-def test_score_baixo_valido_nao_troca_provider(monkeypatch) -> None:
+def test_valid_low_score_valido_nao_troca_provider(monkeypatch) -> None:
     configurar_chaves(monkeypatch)
     monkeypatch.setenv("IA_PROVIDER", "auto")
     monkeypatch.setenv("IA_PROVIDER_CHAIN", "groq,gemini")
     chamadas = []
-    entrada = SolicitacaoAnalise(
+    entrada = AnalysisRequest(
         curriculo_texto="COMPETÊNCIAS\nPython",
         vaga_texto="Requisitos obrigatórios:\nKubernetes",
     )
 
     resultado = asyncio.run(
-        executar_analise_com_fallback(
+        run_analysis_with_fallback(
             entrada, lambda nome: chamadas.append(nome) or ProviderFake(nome)
         )
     )
@@ -225,13 +225,13 @@ def test_score_baixo_valido_nao_troca_provider(monkeypatch) -> None:
     assert resultado.provedor_ia == "groq"
 
 
-def test_provider_explicito_falha_e_nao_tenta_outro(monkeypatch) -> None:
+def test_explicit_provider_falha_e_nao_tenta_outro(monkeypatch) -> None:
     configurar_chaves(monkeypatch)
     monkeypatch.setenv("IA_PROVIDER", "groq")
     chamadas = []
 
     resultado = asyncio.run(
-        executar_analise_com_fallback(
+        run_analysis_with_fallback(
             solicitacao(),
             lambda nome: chamadas.append(nome) or ProviderFake(nome, falhar=True),
         )
@@ -247,7 +247,7 @@ def test_usar_ia_padrao_false_nao_chama_provider(monkeypatch) -> None:
     chamadas = []
 
     resultado = asyncio.run(
-        executar_analise_com_fallback(
+        run_analysis_with_fallback(
             solicitacao(), lambda nome: chamadas.append(nome) or ProviderFake(nome)
         )
     )
@@ -257,7 +257,7 @@ def test_usar_ia_padrao_false_nao_chama_provider(monkeypatch) -> None:
     assert resultado.privacidade.texto_enviado_para_ia_foi_sanitizado is False
 
 
-def test_erro_do_provider_nao_vaza_segredo_em_logs_ou_resultado(
+def test_error_do_provider_nao_vaza_segredo_em_logs_ou_resultado(
     monkeypatch, caplog
 ) -> None:
     monkeypatch.setenv("IA_PROVIDER", "groq")
@@ -266,12 +266,12 @@ def test_erro_do_provider_nao_vaza_segredo_em_logs_ou_resultado(
 
     class ProviderInseguro(ProviderFake):
         async def gerar_complemento(self, solicitacao, resultado_base):
-            raise ErroProvedorIA(
+            raise AIProviderError(
                 f"Authorization: {segredo}; prompt completo confidencial"
             )
 
     resultado = asyncio.run(
-        executar_analise_com_fallback(
+        run_analysis_with_fallback(
             solicitacao(), lambda nome: ProviderInseguro(nome)
         )
     )
@@ -292,7 +292,7 @@ def test_erro_do_provider_nao_vaza_segredo_em_logs_ou_resultado(
         ("timeout", None),
     ],
 )
-def test_erro_groq_retorna_diagnostico_estruturado_sanitizado(
+def test_error_groq_retorna_diagnostico_estruturado_sanitizado(
     monkeypatch, categoria, status
 ) -> None:
     monkeypatch.setenv("IA_PROVIDER", "groq")
@@ -300,14 +300,14 @@ def test_erro_groq_retorna_diagnostico_estruturado_sanitizado(
 
     class GroqComFalha(ProviderFake):
         async def gerar_complemento(self, solicitacao, resultado_base):
-            raise ErroProvedorIA(
+            raise AIProviderError(
                 "detalhe interno que não deve sair",
                 categoria=categoria,
                 status_http=status,
             )
 
     resultado = asyncio.run(
-        executar_analise_com_fallback(
+        run_analysis_with_fallback(
             solicitacao(), lambda nome: GroqComFalha(nome)
         )
     )

@@ -1,10 +1,10 @@
-from app.services.normalizador_vaga import limpar_texto_vaga
+from app.services.job_normalizer import clean_job_text
 
 
-def test_remove_portais_e_metadados_de_candidatura() -> None:
+def test_removes_portais_e_metadados_de_candidatura() -> None:
 
     # joga coisas do agregador e conferi se saiu tudo
-    resultado = limpar_texto_vaga(
+    resultado = clean_job_text(
         "Job description\nApply on Indeed via LinkedIn\n3 days ago\nRequisitos:\nNestJS"
     ).lower()
 
@@ -14,9 +14,9 @@ def test_remove_portais_e_metadados_de_candidatura() -> None:
     assert "nestjs" in resultado
 
 
-def test_remove_bloco_de_beneficios_ate_proximo_cabecalho() -> None:
+def test_removes_bloco_de_beneficios_ate_proximo_cabecalho() -> None:
 
-    resultado = limpar_texto_vaga(
+    resultado = clean_job_text(
         "Benefícios:\nVale alimentação\nGympass\nRequisitos:\nPython"
     )
 
