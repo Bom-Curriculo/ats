@@ -38,6 +38,7 @@ dependencies:
   go_router: ^17.3.0
   signal_form: ^0.2.0
   lucid_validation: ^1.4.0
+  dio: ^5.10.0
 
 dev_dependencies:
   flutter_test:
