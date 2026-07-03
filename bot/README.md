@@ -133,6 +133,31 @@ curl -sS http://127.0.0.1:8000/api/v1/analisar \
     "usar_ia": false
   }'
 ```
+
+## Worker RabbitMQ (MVP)
+
+O consumer roda separado do FastAPI e usa `RABBITMQ_HOST`, `RABBITMQ_PORT`,
+`RABBITMQ_USER`, `RABBITMQ_PASSWORD`, `RABBITMQ_VHOST`,
+`RABBITMQ_INPUT_QUEUE` (padrão `resumes_queue`) e `RABBITMQ_OUTPUT_QUEUE`
+(padrão `resumes_results_queue`). A partir da pasta `bot`, execute:
+
+```bash
+python -m app.workers.rabbitmq_consumer
+```
+
+Exemplo para publicar uma entrada JSON limpa com `rabbitmqadmin`:
+
+```bash
+rabbitmqadmin publish exchange=amq.default routing_key=resumes_queue \
+  payload='{"analysis_request_id":"uuid","user_id":12,"resume_cv_url":"http://backend:8000/storage/uploads/resumes/cvs/arquivo.docx","resume_linkedin_url":"http://backend:8000/storage/uploads/resumes/linkedins/arquivo.docx","vaga_texto":"descrição da vaga","callback_queue":"resumes_results_queue"}' \
+  properties='{"content_type":"application/json","delivery_mode":2}'
+```
+
+URLs entre containers devem usar o nome do serviço (por exemplo,
+`http://backend:8000`) ou uma URL externa; `localhost` aponta para o próprio
+container do worker. Enquanto não houver extração de PDF/DOCX, mensagens que
+tenham somente arquivo recebem `received_pending_extraction`.
+
 ## Campos importantes da resposta
 
 - `pontuacao_ats`;
