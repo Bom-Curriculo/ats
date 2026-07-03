@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\Resume\ResumeController;
 use App\Http\Controllers\Api\User\UserController;
+use App\Services\RabbitMQ\ProducerResumesService;
 use Illuminate\Support\Facades\Route;
 
 // Unauthenticated routes
@@ -18,11 +20,33 @@ Route::group([
 
 // Only authenticated users can access the group routes bellow
 Route::group([
+
     'middleware' => 'auth:sanctum',
     'prefix'     => 'client'
+
 ], function () {
-    Route::get('/user', [AuthController::class, 'user']);
-    Route::post('/validate-resume', [UserController::class, 'storeValidateResume']);
-    Route::get('/resume-files/{type?}', [UserController::class, 'getResumesFiles']);
-    Route::put('/user/update', [UserController::class, 'update']);
+
+    Route::prefix('/user')->group(function(){
+    
+        Route::get('/', [AuthController::class, 'user']);
+        Route::put('/update', [UserController::class, 'update']);
+
+    });
+
+    Route::prefix('/resumes')->group(function(){
+
+        Route::get('/files', [ResumeController::class, 'getResumesFiles']);
+        Route::post('/validate-resume', [ResumeController::class, 'storeValidateResume']);
+
+    });
+
+    Route::prefix('/services')->group(function(){
+
+        Route::prefix('/rabbitmq')->group(function(){
+
+            Route::post('/process', ProducerResumesService::class);
+
+        });
+    });
+   
 });

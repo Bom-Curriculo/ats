@@ -20,11 +20,20 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 ])]
 class UserExperience extends Model
 {
-    public $cast = [
-        'start' => 'date',
-        'end'   => 'date',
-        'is_actual' => 'boolean'
-    ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'start' => 'date',
+            'end'   => 'date',
+            'is_actual' => 'boolean'
+        ];
+    }
 
     public function user() : BelongsTo
     {

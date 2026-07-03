@@ -13,9 +13,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 ])]
 class UserLanguage extends Model
 {
-    public $casts = [
-        'level' => UserLanguageLevelEnum::class
-    ];
+   
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'level' => UserLanguageLevelEnum::class
+        ];
+    }
 
     public function user() : BelongsTo
     {
