@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Api\Auth;
 
 use App\Helpers\ResponseData;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\LoginRequest;
-use App\Http\Requests\Requests\Auth\ForgotPasswordRequest;
-use App\Http\Requests\Requests\Auth\RegisterRequest;
-use App\Http\Requests\Requests\Auth\ResetPasswordRequest;
-use App\Http\Requests\Requests\Auth\VerifyOtpRequest;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\ForgotPasswordRequest;
+use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\Auth\ResetPasswordRequest;
+use App\Http\Requests\Auth\VerifyOtpRequest;
 use App\Mail\UserResetPasswordMail;
 use App\Models\PasswordResetOtp;
 use App\Models\User;

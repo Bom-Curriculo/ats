@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Requests\Requests\Auth;
+namespace App\Http\Requests\Auth;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class ResetPasswordRequest extends FormRequest
+class VerifyOtpRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,8 +23,7 @@ class ResetPasswordRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'otp' => 'required|exists:password_reset_otps,otp',
-            'password' => 'required|string|min:8',
+            'otp' => 'required|digits:6|exists:password_reset_otps,otp',
         ];
     }
 }
