@@ -58,7 +58,6 @@ services:
     ports:
       - "5672:5672"    # AMQP (conexão dos serviços)
       - "15672:15672"  # Management UI (http://localhost:15672)
-      - "15692:15692"  # Métricas Prometheus
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-bomcurriculo}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-bomcurriculo}
