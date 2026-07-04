@@ -1,23 +1,27 @@
 
 import 'package:flutter/material.dart';
 
-class Button extends StatefulWidget {
-  const Button({
+class WidgetButton extends StatefulWidget {
+  const WidgetButton({
     super.key,
-    required this.title
+    required this.title,
+    this.color = Colors.blue
   });
+
   final String title;
+  final Color color;
+
   @override
-  _Button createState() => _Button();
+  _WidgetButton createState() => _WidgetButton();
 }
 
-class _Button extends State<Button> {
+class _WidgetButton extends State<WidgetButton> {
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.blue,
+        color: widget.color,
         borderRadius: BorderRadius.circular(4.0),
       ),
       child: Padding(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class InputFile extends StatefulWidget {
-  const InputFile({
+class WidgetInputFile extends StatefulWidget {
+  const WidgetInputFile({
     super.key,
     this.title = '',
     this.label = 'Select a file',
@@ -15,10 +15,10 @@ class InputFile extends StatefulWidget {
   final VoidCallback? onTap;
 
   @override
-  State<InputFile> createState() => _InputFile();
+  State<WidgetInputFile> createState() => _WidgetInputFile();
 }
 
-class _InputFile extends State<InputFile> {
+class _WidgetInputFile extends State<WidgetInputFile> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(

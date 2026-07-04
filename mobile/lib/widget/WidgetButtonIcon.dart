@@ -1,8 +1,8 @@
 
 import 'package:flutter/material.dart';
 
-class ButtonIcon extends StatefulWidget {
-  const ButtonIcon({
+class WidgetButtonIcon extends StatefulWidget {
+  const WidgetButtonIcon({
     super.key,
     required this.icon,
     this.color = const Color(0xFFEEEEEE),
@@ -12,10 +12,10 @@ class ButtonIcon extends StatefulWidget {
   final Color color;
   final Color iconColor;
   @override
-  _ButtonIcon createState() => _ButtonIcon();
+  _WidgetButtonIcon createState() => _WidgetButtonIcon();
 }
 
-class _ButtonIcon extends State<ButtonIcon> {
+class _WidgetButtonIcon extends State<WidgetButtonIcon> {
   @override
   Widget build(BuildContext context) {
     return Container(

@@ -1,16 +1,16 @@
 
-import 'package:bomcurriculo/widget/ButtonIcon.dart';
+import 'package:bomcurriculo/widget/WidgetButtonIcon.dart';
 import 'package:flutter/material.dart';
 
 import '../../include/Body.dart';
 
-class MyResumes extends StatefulWidget {
-  const MyResumes({super.key});
+class ViewMyResumes extends StatefulWidget {
+  const ViewMyResumes({super.key});
   @override
-  _MyResumes createState() => _MyResumes();
+  _ViewMyResumes createState() => _ViewMyResumes();
 }
 
-class _MyResumes extends State<MyResumes> {
+class _ViewMyResumes extends State<ViewMyResumes> {
 
   List<Map<String,dynamic>> resumes = [
     {
@@ -75,7 +75,7 @@ class _MyResumes extends State<MyResumes> {
                                 ],
                               ),
                             ),
-                            ButtonIcon(icon: Icons.file_download_sharp)
+                            WidgetButtonIcon(icon: Icons.file_download_sharp)
                           ],
                         ),
                       ),

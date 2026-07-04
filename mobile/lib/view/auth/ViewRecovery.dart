@@ -1,18 +1,17 @@
 import 'package:bomcurriculo/include/BodyAuth.dart';
-import 'package:bomcurriculo/ui/auth/otp/verify_otp.dart';
 import 'package:flutter/material.dart';
 
-import '../../../widget/Button.dart';
-import '../../../widget/InputText.dart';
-import '../../../widget/Logo.dart';
+import '../../widget/WidgetButton.dart';
+import '../../widget/WidgetInputText.dart';
+import 'ViewVerifyOTP.dart';
 
-class ForgotPassword extends StatefulWidget {
-  const ForgotPassword({super.key});
+class ViewRecovery extends StatefulWidget {
+  const ViewRecovery({super.key});
   @override
-  _ForgotPassword createState() => _ForgotPassword();
+  _ViewRecovery createState() => _ViewRecovery();
 }
 
-class _ForgotPassword extends State<ForgotPassword> {
+class _ViewRecovery extends State<ViewRecovery> {
   void doSendEmail() {}
 
   @override
@@ -20,21 +19,20 @@ class _ForgotPassword extends State<ForgotPassword> {
     return BodyAuth(
       child: Column(
         children: [
-          Logo(),
           Text(
             'Forgot your password? Type your email to receive OTP code to change your password',
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 30.0),
-          InputText(title: 'Email'),
+          WidgetInputText(title: 'Email'),
           GestureDetector(
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const VerifyOTP()),
+                MaterialPageRoute(builder: (context) => const ViewVerifyOTP()),
               );
             },
-            child: Button(title: 'Recover password'),
+            child: WidgetButton(title: 'Recover password'),
           ),
         ],
       ),

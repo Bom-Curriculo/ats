@@ -1,18 +1,17 @@
 import 'package:bomcurriculo/include/BodyAuth.dart';
-import 'package:bomcurriculo/ui/auth/reset_password/reset_password.dart';
+import 'package:bomcurriculo/view/auth/ViewResetPassword.dart';
 import 'package:flutter/material.dart';
 
-import '../../../widget/Button.dart';
-import '../../../widget/InputText.dart';
-import '../../../widget/Logo.dart';
+import '../../widget/WidgetButton.dart';
+import '../../widget/WidgetInputText.dart';
 
-class VerifyOTP extends StatefulWidget {
-  const VerifyOTP({super.key});
+class ViewVerifyOTP extends StatefulWidget {
+  const ViewVerifyOTP({super.key});
   @override
-  _VerifyOTP createState() => _VerifyOTP();
+  _ViewVerifyOTP createState() => _ViewVerifyOTP();
 }
 
-class _VerifyOTP extends State<VerifyOTP> {
+class _ViewVerifyOTP extends State<ViewVerifyOTP> {
 
   final controllerOTP1 = TextEditingController();
   final controllerOTP2 = TextEditingController();
@@ -49,14 +48,30 @@ class _VerifyOTP extends State<VerifyOTP> {
 
   }
 
-  void doConfirmOTP() {}
+  void doConfirmOTP() {
+    if (
+      controllerOTP1.text=="" ||
+      controllerOTP2.text=="" ||
+      controllerOTP3.text=="" ||
+      controllerOTP4.text=="" ||
+      controllerOTP5.text=="" ||
+      controllerOTP6.text==""
+    ) {
+      //erro
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const ViewResetPassword()),
+    );
+
+  }
 
   @override
   Widget build(BuildContext context) {
     return BodyAuth(
       child: Column(
         children: [
-          Logo(),
           Text(
             'Type the OTP sent to your email to change your password',
             textAlign: TextAlign.center,
@@ -64,7 +79,7 @@ class _VerifyOTP extends State<VerifyOTP> {
           SizedBox(height: 30.0),
           Row(
             children: [
-              Expanded(child: InputText(
+              Expanded(child: WidgetInputText(
                 controller: controllerOTP1,
                 focusNode: focusOTP1,
                 nextFocusNode: focusOTP2,
@@ -72,7 +87,7 @@ class _VerifyOTP extends State<VerifyOTP> {
                 textAlignCenter: true
               )),
               SizedBox(width: 5.0),
-              Expanded(child: InputText(
+              Expanded(child: WidgetInputText(
                 controller: controllerOTP2,
                 previousController: controllerOTP1,
                 focusNode: focusOTP2,
@@ -82,7 +97,7 @@ class _VerifyOTP extends State<VerifyOTP> {
                 textAlignCenter: true
               )),
               SizedBox(width: 5.0),
-              Expanded(child: InputText(
+              Expanded(child: WidgetInputText(
                 controller: controllerOTP3,
                 previousController: controllerOTP2,
                 focusNode: focusOTP3,
@@ -92,7 +107,7 @@ class _VerifyOTP extends State<VerifyOTP> {
                 textAlignCenter: true
               )),
               SizedBox(width: 5.0),
-              Expanded(child: InputText(
+              Expanded(child: WidgetInputText(
                 controller: controllerOTP4,
                 previousController: controllerOTP3,
                 focusNode: focusOTP4,
@@ -102,7 +117,7 @@ class _VerifyOTP extends State<VerifyOTP> {
                 textAlignCenter: true
               )),
               SizedBox(width: 5.0),
-              Expanded(child: InputText(
+              Expanded(child: WidgetInputText(
                 controller: controllerOTP5,
                 previousController: controllerOTP4,
                 focusNode: focusOTP5,
@@ -112,7 +127,7 @@ class _VerifyOTP extends State<VerifyOTP> {
                 textAlignCenter: true
               )),
               SizedBox(width: 5.0),
-              Expanded(child: InputText(
+              Expanded(child: WidgetInputText(
                 controller: controllerOTP6,
                 previousController: controllerOTP5,
                 focusNode: focusOTP6,
@@ -126,10 +141,10 @@ class _VerifyOTP extends State<VerifyOTP> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const ResetPassword()),
+                MaterialPageRoute(builder: (context) => const ViewResetPassword()),
               );
             },
-            child: Button(title: 'Confirm OTP'),
+            child: WidgetButton(title: 'Confirm OTP'),
           ),
         ],
       ),

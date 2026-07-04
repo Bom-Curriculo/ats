@@ -1,15 +1,5 @@
 import 'package:bomcurriculo/include/Navbar.dart';
-import 'package:bomcurriculo/ui/Home.dart';
-import 'package:bomcurriculo/ui/resume/MyResumes.dart';
-import 'package:bomcurriculo/ui/resume/ValidateResume.dart';
-import 'package:bomcurriculo/ui/auth/login/login_page.dart';
-import 'package:bomcurriculo/ui/auth/otp/verify_otp.dart';
-import 'package:bomcurriculo/ui/auth/reset_password/reset_password.dart';
-import 'package:bomcurriculo/ui/auth/forgot_password/ForgotPassword.dart';
-import 'package:bomcurriculo/ui/auth/register/register.dart';
 import 'package:flutter/material.dart';
-
-import '../ui/resume/GenerateResume.dart';
 
 class Body extends StatefulWidget {
   const Body({super.key, required this.child});

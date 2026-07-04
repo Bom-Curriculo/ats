@@ -1,15 +1,15 @@
 import 'package:bomcurriculo/include/Navbar.dart';
-import 'package:bomcurriculo/widget/Button.dart';
+import 'package:bomcurriculo/widget/WidgetButton.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-class Home extends StatefulWidget {
-  const Home({super.key});
+class ViewHome extends StatefulWidget {
+  const ViewHome({super.key});
   @override
-  State<Home> createState() => _HomeState();
+  State<ViewHome> createState() => _ViewHomeState();
 }
 
-class _HomeState extends State<Home> {
+class _ViewHomeState extends State<ViewHome> {
   void doAction() {}
 
   @override
@@ -325,7 +325,7 @@ class _HomeState extends State<Home> {
                     onTap: () {
                       context.go('/auth/login');
                     },
-                    child: Button(title: 'Login'),
+                    child: WidgetButton(title: 'Login'),
                   ),
                 ],
               ),

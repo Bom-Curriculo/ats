@@ -1,21 +1,21 @@
 import 'dart:io';
 
 import 'package:bomcurriculo/include/Body.dart';
-import 'package:bomcurriculo/ui/resume/GenerateResume.dart';
-import 'package:bomcurriculo/widget/Button.dart';
-import 'package:bomcurriculo/widget/InputText.dart';
+import 'package:bomcurriculo/view/resume/ViewGenerateResume.dart';
+import 'package:bomcurriculo/widget/WidgetButton.dart';
+import 'package:bomcurriculo/widget/WidgetInputText.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
-import '../../widget/InputFile.dart';
+import '../../widget/WidgetInputFile.dart';
 
-class ValidateResume extends StatefulWidget {
-  const ValidateResume({super.key});
+class ViewValidateResume extends StatefulWidget {
+  const ViewValidateResume({super.key});
   @override
-  _ValidateResume createState() => _ValidateResume();
+  _ViewValidateResume createState() => _ViewValidateResume();
 }
 
-class _ValidateResume extends State<ValidateResume> {
+class _ViewValidateResume extends State<ViewValidateResume> {
   File? resumeFile;
   File? linkedinFile;
   String? resumeFileName;
@@ -83,7 +83,7 @@ class _ValidateResume extends State<ValidateResume> {
     // Validar currículo
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const GenerateResume()),
+      MaterialPageRoute(builder: (context) => const ViewGenerateResume()),
     );
   }
 
@@ -99,7 +99,7 @@ class _ValidateResume extends State<ValidateResume> {
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 30.0),
-            InputFile(
+            WidgetInputFile(
               title: 'Your resume/CV',
               label: 'Choose a PDF file',
               fileName: resumeFileName,
@@ -117,7 +117,7 @@ class _ValidateResume extends State<ValidateResume> {
                 });
               },
             ),
-            InputFile(
+            WidgetInputFile(
               title: 'Linkedin resume',
               label: 'Choose a PDF file',
               fileName: linkedinFileName,
@@ -135,12 +135,12 @@ class _ValidateResume extends State<ValidateResume> {
                 });
               },
             ),
-            InputText(title: 'GitHub URL', httpsPrefix: 'https://github.com/'),
-            InputText(title: 'Your site URL', httpsPrefix: 'https://'),
+            WidgetInputText(title: 'GitHub URL', httpsPrefix: 'https://github.com/'),
+            WidgetInputText(title: 'Your site URL', httpsPrefix: 'https://'),
 
             Column(
               children: List.generate(skills.length, (index) {
-                return InputText(title: 'Skill', controller: skills[index]);
+                return WidgetInputText(title: 'Skill', controller: skills[index]);
               }),
             ),
 
@@ -148,7 +148,7 @@ class _ValidateResume extends State<ValidateResume> {
 
             GestureDetector(
               onTap: validateResume,
-              child: Button(title: 'Validate resume'),
+              child: WidgetButton(title: 'Validate resume'),
             ),
           ],
         ),

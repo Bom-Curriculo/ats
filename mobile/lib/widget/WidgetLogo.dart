@@ -1,13 +1,15 @@
 
 import 'package:flutter/material.dart';
 
-class Logo extends StatefulWidget {
-  const Logo({super.key});
+import '../config.dart';
+
+class WidgetLogo extends StatefulWidget {
+  const WidgetLogo({super.key});
   @override
-  _Logo createState() => _Logo();
+  _WidgetLogo createState() => _WidgetLogo();
 }
 
-class _Logo extends State<Logo> {
+class _WidgetLogo extends State<WidgetLogo> {
 
 
 
@@ -20,7 +22,7 @@ class _Logo extends State<Logo> {
           //height: 100.0,
           //color: Colors.black12,
           child: Center(child: Text(
-              'Bom Currículo',
+              appTitle,
               style: TextStyle(
                   fontSize: 28.0,
                   fontWeight: FontWeight.w900

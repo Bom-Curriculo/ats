@@ -1,17 +1,17 @@
 
-import 'package:bomcurriculo/widget/ButtonIcon.dart';
+import 'package:bomcurriculo/widget/WidgetButtonIcon.dart';
 import 'package:flutter/material.dart';
 
 import '../../include/Body.dart';
-import '../../widget/Button.dart';
+import '../../widget/WidgetButton.dart';
 
-class GenerateResume extends StatefulWidget {
-  const GenerateResume({super.key});
+class ViewGenerateResume extends StatefulWidget {
+  const ViewGenerateResume({super.key});
   @override
-  _GenerateResume createState() => _GenerateResume();
+  _ViewGenerateResume createState() => _ViewGenerateResume();
 }
 
-class _GenerateResume extends State<GenerateResume> {
+class _ViewGenerateResume extends State<ViewGenerateResume> {
 
   List<Map<String,dynamic>> experiences = [
     {
@@ -90,7 +90,7 @@ class _GenerateResume extends State<GenerateResume> {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              ButtonIcon(icon: experience['checked']?Icons.check_box_outlined:Icons.check_box_outline_blank),
+                              Icon(experience['checked']?Icons.check_box_outlined:Icons.check_box_outline_blank),
                               SizedBox(width: 5.0),
                               Expanded(
                                 child: Container(
@@ -142,7 +142,7 @@ class _GenerateResume extends State<GenerateResume> {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              ButtonIcon(icon: skill['checked']?Icons.check_box_outlined:Icons.check_box_outline_blank),
+                              Icon(skill['checked']?Icons.check_box_outlined:Icons.check_box_outline_blank),
                               SizedBox(width: 5.0),
                               Expanded(
                                 child: Container(
@@ -178,7 +178,7 @@ class _GenerateResume extends State<GenerateResume> {
 
             GestureDetector(
                 onTap: generateResume,
-                child: Button(title: 'Generate resume')
+                child: WidgetButton(title: 'Generate resume')
             )
           ],
         ),

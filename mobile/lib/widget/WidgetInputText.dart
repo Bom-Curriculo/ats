@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-class InputText extends StatefulWidget {
-  const InputText({
+class WidgetInputText extends StatefulWidget {
+  const WidgetInputText({
     super.key,
     this.isPassword = false,
     this.title = '',
@@ -15,6 +15,7 @@ class InputText extends StatefulWidget {
     this.previousFocusNode,
     this.maxLength,
     this.textAlignCenter = false,
+    this.error = ''
   });
 
   final bool isPassword;
@@ -31,11 +32,13 @@ class InputText extends StatefulWidget {
 
   final bool textAlignCenter;
 
+  final String? error;
+
   @override
-  _InputText createState() => _InputText();
+  _WidgetInputText createState() => _WidgetInputText();
 }
 
-class _InputText extends State<InputText> {
+class _WidgetInputText extends State<WidgetInputText> {
   late final FocusNode _focusNode = widget.focusNode ?? FocusNode();
 
   // controla se o campo já estava vazio ANTES do backspace ser apertado,
@@ -58,6 +61,11 @@ class _InputText extends State<InputText> {
   }
 
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+
+    if (widget.maxLength != 1) {
+      return KeyEventResult.ignored;
+    }
+
     final isBackspace = event.logicalKey == LogicalKeyboardKey.backspace;
     if (!isBackspace) return KeyEventResult.ignored;
 
@@ -113,8 +121,8 @@ class _InputText extends State<InputText> {
               controller: widget.controller,
               focusNode: _focusNode,
               maxLength: widget.maxLength,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              keyboardType: widget.maxLength == 1 ? TextInputType.number : TextInputType.text,
+              inputFormatters: widget.maxLength == 1 ? [FilteringTextInputFormatter.digitsOnly] : null,
               textAlign:
                   widget.textAlignCenter ? TextAlign.center : TextAlign.start,
               obscureText: widget.isPassword,
@@ -141,6 +149,10 @@ class _InputText extends State<InputText> {
               ),
             ),
           ),
+
+          SizedBox(height: widget.error!=""?5.0:0),
+          widget.error!=""?Text(widget.error!, style: TextStyle(color: Colors.red)):SizedBox(),
+
           const SizedBox(height: 15.0),
         ],
       ),
