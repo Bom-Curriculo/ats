@@ -35,25 +35,25 @@ export function Login() {
     mutation.mutate(data);
   }
   return (
-    <section className="flex min-h-screen items-center justify-center bg-slate-100 p-6">
-      <div className="flex w-full min-h-200 max-w-7xl overflow-hidden  bg-white shadow-2xl">
-        <div className="flex w-1/2 flex-col bg-[#03206E] p-12 text-white">
+    <section className="flex min-h-screen items-center justify-center bg-slate-100 p-4 md:p-6">
+      <div className="flex w-full max-w-7xl flex-col overflow-hidden bg-white shadow-2xl lg:flex-row">
+        <div className="hidden w-full flex-col bg-[#03206E] p-8 text-white lg:flex lg:w-1/2 lg:p-12">
           <div className="mb-10 flex items-center gap-4">
             <div className="h-20 w-0.5 bg-white/60" />
 
             <img
               src="/logo.png"
               alt="BomCurriculo"
-              className="h-45 w-auto"
+              className="h-24 w-auto lg:h-32"
             />
 
             <div>
-              <h1 className="text-5xl font-bold">
+              <h1 className="text-3xl font-bold lg:text-5xl">
                 Bom
                 <span className="text-blue-400">Currículo</span>
               </h1>
 
-              <p className="mt-2 text-xl text-white/80">
+              <p className="mt-2 text-sm text-white/80 lg:text-xl">
                 ATS INTELIGENTE. RESULTADOS REAIS.
               </p>
             </div>
@@ -68,36 +68,43 @@ export function Login() {
           </div>
 
           <div className="flex gap-4">
-            <div className="flex-1 rounded-none border border-white/10 bg-white/5 p-6 ">
-              <h2 className="text-4xl font-bold">1k+</h2>
-              <p className="text-white/70">APROVAÇÕES ATS</p>
+            <div className="flex-1 border border-white/10 bg-white/5 p-4 lg:p-6">
+              <h2 className="text-2xl font-bold lg:text-4xl">1k+</h2>
+              <p className="text-sm text-white/70 lg:text-base">
+                APROVAÇÕES ATS
+              </p>
             </div>
 
-            <div className="flex-1 rounded-none border border-white/10 bg-white/5 p-6">
-              <h2 className="text-4xl font-bold">98%</h2>
-              <p className="text-white/70">TAXA DE SUCESSO</p>
+            <div className="flex-1 border border-white/10 bg-white/5 p-4 lg:p-6">
+              <h2 className="text-2xl font-bold lg:text-4xl">98%</h2>
+              <p className="text-sm text-white/70 lg:text-base">
+                TAXA DE SUCESSO
+              </p>
             </div>
           </div>
         </div>
 
-        <div className="flex w-1/2 items-center justify-center bg-white p-16">
+        <div className="flex w-full items-center justify-center bg-white p-6 sm:p-8 md:p-12 lg:w-1/2 lg:p-16">
           <div className="w-full max-w-md">
-            <h2 className="mb-2 text-4xl font-bold text-slate-900">
+            <h2 className="mb-2 text-3xl font-bold text-slate-900 lg:text-4xl">
               Acesse sua conta
             </h2>
 
-            <p className="mb-10 text-slate-500">
+            <p className="mb-8 text-sm text-slate-500 lg:mb-10 lg:text-base">
               Insira suas credenciais corporativas.
             </p>
 
-            <form onSubmit={handleSubmit(handleSignIn)} className="space-y-6">
+            <form
+              onSubmit={handleSubmit(handleSignIn)}
+              className="space-y-5 lg:space-y-6"
+            >
               <div>
                 <label className="mb-2 block font-medium text-slate-900">
                   Endereço de e-mail
                 </label>
 
                 <Input
-                  className="h-14 rounded-none border-slate-900 text-slate-900"
+                  className="h-12 rounded-none border-slate-900 text-slate-900 lg:h-14"
                   placeholder="nome@exemplo.com.br"
                   {...register("email")}
                 />
@@ -110,11 +117,13 @@ export function Login() {
               </div>
 
               <div>
-                <label className="mb-2 block font-medium text-slate-900">Senha</label>
+                <label className="mb-2 block font-medium text-slate-900">
+                  Senha
+                </label>
 
                 <Input
                   type="password"
-                  className="h-14 rounded-none border-slate-900 text-slate-900"
+                  className="h-12 rounded-none border-slate-900 text-slate-900 lg:h-14"
                   placeholder="••••••••"
                   {...register("password")}
                 />
@@ -129,12 +138,12 @@ export function Login() {
               <Button
                 type="submit"
                 disabled={mutation.isPending}
-                className="h-14 w-full bg-[#03206E] hover:bg-[#03206E]/80 text-lg rounded-none"
+                className="h-12 w-full rounded-none bg-[#03206E] text-base text-white hover:bg-[#03206E]/80 lg:h-14 lg:text-lg"
               >
                 {mutation.isPending ? "Entrando..." : "Acessar Plataforma"}
               </Button>
 
-              <p className="pt-6 text-center text-slate-600">
+              <p className="pt-4 text-center text-sm text-slate-600 lg:pt-6">
                 Novo usuário?{" "}
                 <Link to="/register" className="text-slate-900 hover:underline">
                   Criar conta profissional

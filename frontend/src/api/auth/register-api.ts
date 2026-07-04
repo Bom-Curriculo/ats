@@ -8,12 +8,12 @@ export async function RegisterApi(dataRegister: RegisterType) {
     headers: {
       "Content-Type": "application/json",
     },
-    credentials: "include",
     body: JSON.stringify(dataRegister),
   });
 
   if (!response.ok) {
     throw new Error("Error to register try again");
   }
+  
   return response.json();
 }

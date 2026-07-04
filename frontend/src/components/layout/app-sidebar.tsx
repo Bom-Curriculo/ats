@@ -19,6 +19,10 @@ import {
   SidebarMenu,
 } from "../ui/sidebar";
 import { Button } from "../ui/button";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { LogoutApi } from "@/api/auth/logout-api";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const items = [
   {
@@ -49,6 +53,23 @@ const items = [
 ];
 
 export default function AppSidebar() {
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
+  const logoutMutation = useMutation({
+    mutationFn: LogoutApi,
+    onSuccess: () => {
+      queryClient.removeQueries({
+        queryKey: ["me"],
+      });
+      toast.success("Logout!");
+      navigate("/login");
+    },
+    onError: () => {
+      toast.error("Erro ao sair da conta");
+    },
+  });
+
   return (
     <Sidebar collapsible="icon">
       <SidebarContent className="border-b border-solid border-gray-300">
@@ -100,14 +121,16 @@ export default function AppSidebar() {
       <footer className="p-4">
         <div className="flex flex-col gap-2">
           <Button className="bg-[#03206E] dark:bg-blue-500 p-6 hover:bg-[#03206E]">
-            {/** Tds os botoes aqui criar o component */} <Plus /> Novo Currículo
+            {/** Tds os botoes aqui criar o component */} <Plus /> Novo
+            Currículo
           </Button>
           <div className="flex gap-1 items-center">
             <CircleQuestionMarkIcon size={16} /> <h1>Ajuda</h1>
           </div>
           <div className="flex gap-1 items-center">
-            <LogOut size={16} className="" />
-            <h1 className="">Sair</h1>
+            <Button  onClick={() => logoutMutation.mutate()} className="text-red-500 bg-transparent hover:bg-transparent">
+              <LogOut/> Desconectar
+            </Button>
           </div>
         </div>
       </footer>

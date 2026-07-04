@@ -44,52 +44,61 @@ export default function Register() {
   }
 
   return (
-    <section className="flex min-h-screen items-center justify-center bg-white p-6">
-      <div className="grid w-full max-w-7xl grid-cols-1 items-center gap-16 lg:grid-cols-2">
-        <div className="flex flex-col">
-          <div className="mb-10 flex items-center gap-3">
-            <img
-              src="/logo-dark.png"
-              alt="BomCurriculo"
-              className="h-14 w-auto"
-            />
-            <h1 className="text-3xl font-bold text-[#03206E]">
-              Bom<span className="text-blue-600">Currículo</span>
-            </h1>
+    <section className="flex min-h-screen items-center justify-center bg-slate-100 p-4 md:p-6">
+      <div className="flex w-full max-w-7xl overflow-hidden bg-white shadow-2xl">
+        <div className="hidden w-1/2 flex-col bg-[#03206E] p-12 text-white lg:flex">
+          <div className="mb-10 flex items-center gap-4">
+            <div className="h-20 w-0.5 bg-white/60" />
+
+            <img src="/logo.png" alt="BomCurriculo" className="h-32 w-auto" />
+
+            <div>
+              <h1 className="text-5xl font-bold">
+                Bom<span className="text-blue-400">Currículo</span>
+              </h1>
+
+              <p className="mt-2 text-xl text-white/80">
+                ATS INTELIGENTE. RESULTADOS REAIS.
+              </p>
+            </div>
           </div>
 
-          <h2 className="text-5xl font-extrabold leading-[1.1] tracking-tight text-[#03206E]">
-            Impulsione sua carreira
-            <br />
-            com <span className="text-blue-600">Inteligência Artificial.</span>
-          </h2>
+          <div className="mb-10">
+            <h2 className="text-4xl font-bold leading-tight">
+              Impulsione sua carreira
+              <br />
+              com <span className="text-blue-400">Inteligência Artificial</span>
+            </h2>
 
-          <p className="mt-6 max-w-md text-lg leading-relaxed text-slate-500">
-            Otimize seu currículo para sistemas ATS e destaque-se entre os
-            candidatos. Soluções focadas no mercado de trabalho atual.
-          </p>
+            <p className="mt-6 max-w-lg text-lg text-white/70">
+              Otimize seu currículo para sistemas ATS e destaque-se entre os
+              candidatos. Soluções focadas no mercado de trabalho atual.
+            </p>
+          </div>
 
-          <div className="mt-10 flex flex-col gap-6">
-            <div className="flex items-start gap-3">
-              <CircleCheck className="mt-0.5 h-6 w-6 shrink-0 text-blue-600" />
+          <div className="space-y-6">
+            <div className="flex items-start gap-4">
+              <CircleCheck className="mt-1 h-6 w-6 shrink-0 text-blue-400" />
+
               <div>
-                <h3 className="text-base font-semibold text-[#03206E]">
+                <h3 className="font-semibold">
                   Análise de Compatibilidade ATS
                 </h3>
-                <p className="text-sm text-slate-500">
+
+                <p className="text-white/70">
                   Garanta que seu currículo seja lido corretamente pelos
                   softwares de recrutamento.
                 </p>
               </div>
             </div>
 
-            <div className="flex items-start gap-3">
-              <CircleCheck className="mt-0.5 h-6 w-6 shrink-0 text-blue-600" />
+            <div className="flex items-start gap-4">
+              <CircleCheck className="mt-1 h-6 w-6 shrink-0 text-blue-400" />
+
               <div>
-                <h3 className="text-base font-semibold text-[#03206E]">
-                  Otimização de Keywords
-                </h3>
-                <p className="text-sm text-slate-500">
+                <h3 className="font-semibold">Otimização de Keywords</h3>
+
+                <p className="text-white/70">
                   Sugestões baseadas em inteligência de dados para sua área de
                   atuação.
                 </p>
@@ -98,155 +107,156 @@ export default function Register() {
           </div>
         </div>
 
-        <div className="w-full rounded-2xl border border-slate-900 bg-white p-10 shadow-sm lg:p-12">
-          <h2 className="mb-2 text-3xl font-bold text-[#03206E]">
-            Criar sua conta
-          </h2>
+        <div className="flex w-full items-center justify-center bg-white p-6 sm:p-8 lg:w-1/2 lg:p-16">
+          <div className="w-full max-w-md">
+            <h2 className="mb-2 text-4xl font-bold text-slate-900">
+              Criar sua conta
+            </h2>
 
-          <p className="mb-8 text-slate-500">
-            Comece agora sua jornada profissional. Já possui conta?{" "}
-            <Link
-              to="/login"
-              className="font-medium text-blue-600 hover:underline"
-            >
-              Entrar
-            </Link>
-          </p>
+            <p className="mb-10 text-slate-500">
+              Comece sua jornada profissional.{" "}
+              <Link
+                to="/login"
+                className="font-medium text-[#03206E] hover:underline"
+              >
+                Já possui conta?
+              </Link>
+            </p>
 
-          <form onSubmit={handleSubmit(handleSingUp)} className="space-y-5">
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">
-                Nome Completo
-              </label>
+            <form onSubmit={handleSubmit(handleSingUp)} className="space-y-5">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">
+                  Nome Completo
+                </label>
 
-              <Input
-                className="h-14 rounded-none border-slate-900 bg-slate-50 focus-visible:ring-blue-600 text-[#03206E]"
-                placeholder="Ex: João Silva"
-                {...register("name")}
-              />
-
-              {errors.name && (
-                <p className="mt-1 text-sm text-red-500">
-                  {errors.name.message}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">
-                E-mail Profissional
-              </label>
-
-              <Input
-                className="h-14 rounded-none border-slate-900 bg-slate-50 focus-visible:ring-blue-600 text-[#03206E]"
-                placeholder="seu@email.com"
-                {...register("email")}
-              />
-
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-500">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">
-                Senha
-              </label>
-
-              <div className="relative">
                 <Input
-                  type={showPassword ? "text" : "password"}
-                  className="h-14 rounded-none border-slate-900 bg-slate-50 pr-12 focus-visible:ring-blue-600 text-[#03206E]"
-                  placeholder="Mínimo 8 caracteres"
-                  {...register("password")}
+                  className="h-12 rounded-none border-slate-900 bg-slate-50 text-[#03206E] focus-visible:ring-blue-600 sm:h-14"
+                  placeholder="Ex: João Silva"
+                  {...register("name")}
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2  hover:text-slate-600 text-[#03206E]"
-                  tabIndex={-1}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
-                </button>
+
+                {errors.name && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.name.message}
+                  </p>
+                )}
               </div>
 
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-500">
-                  {errors.password.message}
-                </p>
-              )}
-            </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">
+                  E-mail Profissional
+                </label>
 
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">
-                Confirmar Senha
-              </label>
-
-              <div className="relative">
                 <Input
-                  type={showConfirmPassword ? "text" : "password"}
-                  className="h-14 rounded-none border-slate-900 bg-slate-50 pr-12 focus-visible:ring-blue-600 text-slate-900"
-                  placeholder="Repita sua senha"
-                  {...register("password_confirm")}
+                  className="h-12 rounded-none border-slate-900 bg-slate-50 text-[#03206E] focus-visible:ring-blue-600 sm:h-14"
+                  placeholder="seu@email.com"
+                  {...register("email")}
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword((v) => !v)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 rounded-none"
-                  tabIndex={-1}
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
-                </button>
+
+                {errors.email && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.email.message}
+                  </p>
+                )}
               </div>
 
-              {errors.password_confirm && (
-                <p className="mt-1 text-sm text-red-500">
-                  {errors.password_confirm.message}
-                </p>
-              )}
-            </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">
+                  Senha
+                </label>
 
-            <div className="flex items-start gap-2 pt-1">
-              <input
-                type="checkbox"
-                id="terms"
-                className="mt-1 h-4 w-4 rounded-none border-slate-300 text-blue-600 focus:ring-blue-600"
-              />
-              <label htmlFor="terms" className="text-sm text-slate-600">
-                Li e aceito os{" "}
-                <a href="/termo" className="text-blue-600 hover:underline">
-                  Termos de Uso
-                </a>{" "}
-                e{" "}
-                <a href="/termos" className="text-blue-600 hover:underline">
-                  Privacidade
-                </a>
-                .
-              </label>
-            </div>
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    className="h-12 rounded-none border-slate-900 bg-slate-50 pr-12 text-[#03206E] focus-visible:ring-blue-600 sm:h-14"
+                    placeholder="Mínimo 8 caracteres"
+                    {...register("password")}
+                  />
 
-            <Button
-              type="submit"
-              disabled={mutation.isPending}
-              className="h-14 w-full rounded-none bg-[#03206E] text-lg font-semibold hover:bg-[#03206E]/90 text-white"
-            >
-              {mutation.isPending ? "Entrando..." : "Finalizar Cadastro"}
-            </Button>
-          </form>
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#03206E] hover:text-slate-600"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
 
-          <p className="mt-8 border-t border-slate-100 pt-6 text-center text-xs text-slate-400">
-            Protegemos seus dados de acordo com a LGPD.
-          </p>
+                {errors.password && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.password.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">
+                  Confirmar Senha
+                </label>
+
+                <div className="relative">
+                  <Input
+                    type={showConfirmPassword ? "text" : "password"}
+                    className="h-12 rounded-none border-slate-900 bg-slate-50 pr-12 text-[#03206E] focus-visible:ring-blue-600 sm:h-14"
+                    placeholder="Repita sua senha"
+                    {...register("password_confirm")}
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword((v) => !v)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    tabIndex={-1}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
+
+                {errors.password_confirm && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.password_confirm.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-start gap-2">
+                <input
+                  type="checkbox"
+                  id="terms"
+                  className="mt-1 h-4 w-4 border-slate-300"
+                />
+
+                <label htmlFor="terms" className="text-sm text-slate-600">
+                  Li e aceito os{" "}
+                  <a href="/termo" className="text-blue-600 hover:underline">
+                    Termos de Uso
+                  </a>{" "}
+                  e{" "}
+                  <a href="/termos" className="text-blue-600 hover:underline">
+                    Privacidade
+                  </a>
+                  .
+                </label>
+              </div>
+
+              <Button
+                type="submit"
+                disabled={mutation.isPending}
+                className="h-12 w-full rounded-none bg-[#03206E] text-base font-semibold text-white hover:bg-[#03206E]/90 sm:h-14 sm:text-lg"
+              >
+                {mutation.isPending ? "Entrando..." : "Finalizar Cadastro"}
+              </Button>
+            </form>
+          </div>
         </div>
       </div>
     </section>
