@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from app.services.rabbitmq_payload_parser import InvalidRabbitMQPayload, parse_rabbitmq_payload
+from app.services.parsing.rabbitmq_payload_parser import InvalidRabbitMQPayload, parse_rabbitmq_payload
 
 
 def test_rabbitmq_payload_parser_behavior_01() -> None:

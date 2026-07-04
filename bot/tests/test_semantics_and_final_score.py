@@ -3,9 +3,9 @@ import asyncio
 import pytest
 
 from app.providers.mock import MockProvider
-from app.schemas.analysis import AnalysisRequest
+from app.models.analysis import AnalysisRequest
 from app.services.ats_analyzer import analyze_resume, analyze_resume_with_ai
-from app.services.technical_equivalences import JobLevel, detect_job_level
+from app.services.matching.technical_equivalences import JobLevel, detect_job_level
 
 
 def analyze(cv: str, job: str):

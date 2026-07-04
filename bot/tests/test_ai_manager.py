@@ -3,8 +3,8 @@ import asyncio
 import pytest
 from app.providers.base import AIProviderError
 from app.providers.mock import MockProvider
-from app.schemas.analysis import AnalysisRequest
-from app.services.ai_manager import run_analysis_with_fallback
+from app.models.analysis import AnalysisRequest
+from app.services.ai.ai_manager import AIManager
 
 
 class ProviderFake(MockProvider):
@@ -53,7 +53,7 @@ def test_ai_manager_behavior_01(monkeypatch) -> None:
     calls = []
 
     result = asyncio.run(
-        run_analysis_with_fallback(
+        AIManager().run_analysis_with_fallback(
             request(), lambda name: calls.append(name) or ProviderFake(name)
         )
     )
@@ -74,7 +74,7 @@ def test_ai_manager_behavior_02(monkeypatch) -> None:
     monkeypatch.setenv("IA_PROVIDER_CHAIN", "groq,gemini")
 
     result = asyncio.run(
-        run_analysis_with_fallback(
+        AIManager().run_analysis_with_fallback(
             request(), lambda name: ProviderFake(name, should_fail=name == "groq")
         )
     )
@@ -96,7 +96,7 @@ def test_ai_manager_behavior_03(monkeypatch) -> None:
     monkeypatch.setenv("GEMINI_API_KEY", "chave-ficticia-para-teste")
 
     result = asyncio.run(
-        run_analysis_with_fallback(request(), lambda name: ProviderFake(name))
+        AIManager().run_analysis_with_fallback(request(), lambda name: ProviderFake(name))
     )
 
     assert result.ai_provider == "gemini"
@@ -113,7 +113,7 @@ def test_ai_manager_behavior_04(monkeypatch) -> None:
     monkeypatch.setenv("IA_PROVIDER_CHAIN", "groq,gemini")
 
     result = asyncio.run(
-        run_analysis_with_fallback(
+        AIManager().run_analysis_with_fallback(
             request(), lambda name: ProviderFake(name, should_fail=True)
         )
     )
@@ -138,7 +138,7 @@ def test_ai_manager_behavior_05(
     calls = []
 
     result = asyncio.run(
-        run_analysis_with_fallback(
+        AIManager().run_analysis_with_fallback(
             request(), lambda name: calls.append(name) or ProviderFake(name)
         )
     )
@@ -166,7 +166,7 @@ def test_ai_manager_behavior_06(monkeypatch) -> None:
     )
 
     result = asyncio.run(
-        run_analysis_with_fallback(
+        AIManager().run_analysis_with_fallback(
             input_request,
             lambda name: ProviderFake(name, should_fail=name == "groq", captures=captures),
         )
@@ -179,7 +179,7 @@ def test_ai_manager_behavior_06(monkeypatch) -> None:
 
         assert "99999-1234" not in received.resume_text
 
-    assert result.privacy.items_removed_before_ai == ["email", "telefone"]
+    assert result.privacy.items_removed_before_ai == ["email", "phone"]
 
 
 def test_invalid_json_tries_next_provider(monkeypatch) -> None:
@@ -196,12 +196,12 @@ def test_invalid_json_tries_next_provider(monkeypatch) -> None:
             return provider
         return ProviderFake(name)
 
-    result = asyncio.run(run_analysis_with_fallback(request(), factory))
+    result = asyncio.run(AIManager().run_analysis_with_fallback(request(), factory))
 
     assert calls == ["groq", "gemini"]
     assert result.ai_provider == "gemini"
     assert result.ai_fallback.fallback_used is True
-    assert "inválida" in result.sanitized_provider_errors[0]
+    assert "invalid" in result.sanitized_provider_errors[0]
 
 
 def test_valid_low_score_does_not_change_provider(monkeypatch) -> None:
@@ -215,7 +215,7 @@ def test_valid_low_score_does_not_change_provider(monkeypatch) -> None:
     )
 
     result = asyncio.run(
-        run_analysis_with_fallback(
+        AIManager().run_analysis_with_fallback(
             input_request, lambda name: calls.append(name) or ProviderFake(name)
         )
     )
@@ -231,7 +231,7 @@ def test_ai_manager_behavior_09(monkeypatch) -> None:
     calls = []
 
     result = asyncio.run(
-        run_analysis_with_fallback(
+        AIManager().run_analysis_with_fallback(
             request(),
             lambda name: calls.append(name) or ProviderFake(name, should_fail=True),
         )
@@ -247,7 +247,7 @@ def test_use_ai_defaults_to_false_without_calling_provider(monkeypatch) -> None:
     calls = []
 
     result = asyncio.run(
-        run_analysis_with_fallback(
+        AIManager().run_analysis_with_fallback(
             request(), lambda name: calls.append(name) or ProviderFake(name)
         )
     )
@@ -271,7 +271,7 @@ def test_ai_manager_behavior_11(
             )
 
     result = asyncio.run(
-        run_analysis_with_fallback(
+        AIManager().run_analysis_with_fallback(
             request(), lambda name: ProviderInseguro(name)
         )
     )
@@ -307,7 +307,7 @@ def test_error_groq_returns_diagnostic_structured_sanitized(
             )
 
     result = asyncio.run(
-        run_analysis_with_fallback(
+        AIManager().run_analysis_with_fallback(
             request(), lambda name: GroqComFalha(name)
         )
     )

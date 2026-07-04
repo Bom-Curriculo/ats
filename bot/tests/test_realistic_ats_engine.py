@@ -1,10 +1,10 @@
 """Tests for inventory, evidence, and early-career behavior."""
 
-from app.schemas.analysis import AnalysisRequest
+from app.models.analysis import AnalysisRequest
 from app.services.ats_analyzer import analyze_resume
-from app.services.section_extractor import extract_resume_sections
-from app.services.technology_catalog import Technology
-from app.services.resume_inventory import extract_resume_inventory
+from app.services.parsing.section_extractor import extract_resume_sections
+from app.services.matching.technology_catalog import Technology
+from app.services.parsing.resume_inventory import extract_resume_inventory
 
 
 # Technical note removed during English standardization.
@@ -162,7 +162,7 @@ def test_realistic_ats_engine_behavior_09() -> None:
 
 
 def test_realistic_ats_engine_behavior_10(monkeypatch) -> None:
-    import app.services.resume_inventory as modulo_inventario
+    import app.services.parsing.resume_inventory as modulo_inventario
 
     desconhecida = Technology("Competência futura", "category_futura", ("futuro",))
     monkeypatch.setattr(
