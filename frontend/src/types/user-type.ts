@@ -1,0 +1,23 @@
+export type UserType = {
+  name: string;
+  email: string;
+  email_verified_at: boolean;
+  created_at: string;
+  updated_at: string;
+  github_link: string;
+  site_link: null;
+  social_name: string;
+  phone: string;
+  resume: string;
+  resume_email: string;
+  gender: string;
+  is_pcd: number;
+  city: string;
+  state: string;
+  country: string;
+  linkedin_link: string;
+  skills: [];
+  experiences: [];
+  qualifications: [];
+  languages: [];
+};
