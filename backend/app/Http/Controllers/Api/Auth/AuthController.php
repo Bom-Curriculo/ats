@@ -4,6 +4,11 @@ namespace App\Http\Controllers\Api\Auth;
 
 use App\Helpers\ResponseData;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\ForgotPasswordRequest;
+use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\Auth\ResetPasswordRequest;
+use App\Http\Requests\Auth\VerifyOtpRequest;
 use App\Mail\UserResetPasswordMail;
 use App\Models\PasswordResetOtp;
 use App\Models\User;
@@ -16,16 +21,10 @@ use Illuminate\Validation\ValidationException;
 class AuthController extends Controller
 {
 
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
 
         try{
-
-            $request->validate([
-                'email' => 'required|email',
-                'password' => 'required',
-            ]);
-
             if (!auth()->attempt($request->only('email', 'password'))) {
                 return ResponseData::error('Invalid credentials', ['Email or password is incorrect'], 401);
             }
@@ -41,22 +40,14 @@ class AuthController extends Controller
         }catch(Exception $e){
             return ResponseData::error('Login failed', [$e->getMessage()], 500);
         }
-        
+
     }
 
-    public function register(Request $request)
+    public function register(RegisterRequest $request)
     {
 
         try{
-
-            $request->validate([
-                'name' => 'required|string|max:255',
-                'email' => 'required|email|unique:users,email',
-                'password' => 'required|string|min:8',
-                'password_confirm' => 'required|string|same:password',
-            ]);
-
-            $user = \App\Models\User::create([
+            $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
@@ -82,16 +73,11 @@ class AuthController extends Controller
         return ResponseData::success('Logged out successfully');
     }
 
-    public function forgotPassword(Request $request)
+    public function forgotPassword(ForgotPasswordRequest $request)
     {
         try{
-
-            $request->validate([
-                'email' => 'required|email|exists:users,email',
-            ]);
-
             $user = User::where('email', $request->email)->first();
-            
+
             PasswordResetOtp::query()
                 ->where('user_id', $user->id)
                 ->orWhere('expires_at', '<', now())
@@ -121,13 +107,9 @@ class AuthController extends Controller
         }
     }
 
-    public function verifyOtp(Request $request)
+    public function verifyOtp(VerifyOtpRequest $request)
     {
         try{
-
-            $request->validate([
-                'otp' => 'required|digits:6|exists:password_reset_otps,otp'
-            ]);
 
             $otpRecord = PasswordResetOtp::where('otp', $request->otp)
                 ->where('otp', $request->otp)
@@ -154,15 +136,10 @@ class AuthController extends Controller
         }
     }
 
-    public function resetPassword(Request $request)
+    public function resetPassword(ResetPasswordRequest $request)
     {
 
         try{
-
-            $request->validate([
-                'otp' => 'required|exists:password_reset_otps,otp',
-                'password' => 'required|string|min:8',
-            ]);
 
             $otp = PasswordResetOtp::where('otp', $request->otp)
                 ->where('expires_at', '>', now())
@@ -183,7 +160,7 @@ class AuthController extends Controller
         }catch(Exception $e){
             return ResponseData::error('Password reset failed', ['error' => $e->getMessage()], 500);
         }
-        
+
     }
 
     public function user(Request $request)
