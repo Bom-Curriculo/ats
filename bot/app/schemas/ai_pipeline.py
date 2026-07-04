@@ -3,91 +3,91 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class AIJobClassification(BaseModel):
-    titulo: str | None = None
-    senioridade: str | None = None
+    title: str | None = None
+    seniority: str | None = None
     area: str | None = None
-    requisitos_centrais: list[str] = Field(default_factory=list)
-    requisitos_secundarios: list[str] = Field(default_factory=list)
-    diferenciais: list[str] = Field(default_factory=list)
+    core_requirements: list[str] = Field(default_factory=list)
+    secondary_requirements: list[str] = Field(default_factory=list)
+    differentials: list[str] = Field(default_factory=list)
 
 
-    # sem hard filters
+    # Implementation note.
     hard_filters: list[str] = Field(default_factory=list)
-    contexto_negocio: list[str] = Field(default_factory=list)
-    confianca: int | None = Field(default=None, ge=0, le=100)
-    empresa: str | None = None
-    tecnologias: list[str] = Field(default_factory=list)
+    business_context: list[str] = Field(default_factory=list)
+    confidence: int | None = Field(default=None, ge=0, le=100)
+    company: str | None = None
+    technologies: list[str] = Field(default_factory=list)
 
 
-    responsabilidades: list[str] = Field(default_factory=list)
+    responsibilities: list[str] = Field(default_factory=list)
 
 
-    modalidade: str | None = None
-    localizacao: str | None = None
+    modality: str | None = None
+    location: str | None = None
 
 
-    # se a vaga aceita junior sem exp
-    aceita_sem_experiencia: bool = False
+    # Technical note removed during English standardization.
+    accepts_no_experience: bool = False
 
 
-    # ignora campo extra q vier da ia
+    # Ignore extra provider fields.
     model_config = ConfigDict(extra="ignore")
 
 
 
 class SelectedEvidence(BaseModel):
     item: str
-    fonte: str | None = None
+    source: str | None = None
 
 
-    tipo_fonte: str | None = None
-    trecho: str | None = None
+    source_type: str | None = None
+    excerpt: str | None = None
 
 
-    # nivel da evidencia: direta, indireta, inferida...
-    nivel_evidencia: str = "sem_evidencia"
-    confianca: int | None = Field(default=None, ge=0, le=100)
-    relacionado_a: list[str] = Field(default_factory=list)
+    # Technical note removed during English standardization.
+    evidence_level: str = "no_evidence"
+    confidence: int | None = Field(default=None, ge=0, le=100)
+    related_to: list[str] = Field(default_factory=list)
 
 
 
 class ContextualRequirementEvaluation(BaseModel):
     item: str
-    importancia: str = "nao_informado"
-    relevancia_para_vaga: str = "media"
-    status: str = "nao_avaliado"
-    evidencia_usada: SelectedEvidence | None = None
+    importance: str = "not_provided"
+    job_relevance: str = "medium"
+    status: str = "not_evaluated"
+    used_evidence: SelectedEvidence | None = None
 
-    # true se o cara realmente nao tem a skill
-    lacuna_real: bool = False
+    # Implementation note.
+    real_gap: bool = False
 
-    # true se pode ser so falta de descricao no curriculo
-    lacuna_de_descricao: bool = False
-    recomendacao_segura: str = ""
-    # chance da ia ter alucinado nesse item
-    risco_alucinacao: str = "baixo"
+    # Technical note removed during English standardization.
+    description_gap: bool = False
+    recommendation_safe: str = ""
+    # Implementation note.
+    hallucination_risk: str = "low"
     model_config = ConfigDict(extra="ignore")
 
 
 
 class AIPipelineResult(BaseModel):
-    classificacao_vaga: AIJobClassification | None = None
-    evidencias_relevantes: list[SelectedEvidence] = Field(default_factory=list)
-    avaliacao_requisitos: list[ContextualRequirementEvaluation] = Field(default_factory=list)
-    lacunas_priorizadas: list[dict] = Field(default_factory=list)
+    job_classification: AIJobClassification | None = None
+    relevant_evidence: list[SelectedEvidence] = Field(default_factory=list)
+    requirement_evaluations: list[ContextualRequirementEvaluation] = Field(default_factory=list)
+    prioritized_gaps: list[dict] = Field(default_factory=list)
 
 
-    sugestoes_seguras: list[str] = Field(default_factory=list)
-    score_contextual_ia: int | None = Field(default=None, ge=0, le=100)
-    confianca_pipeline: int | None = Field(default=None, ge=0, le=100)
+    safe_suggestions: list[str] = Field(default_factory=list)
+    contextual_ai_score: int | None = Field(default=None, ge=0, le=100)
+    pipeline_confidence: int | None = Field(default=None, ge=0, le=100)
 
 
-    # quais etapas rodaram com sucesso
-    etapas_executadas: list[str] = Field(default_factory=list)
+    # Implementation note.
+    executed_steps: list[str] = Field(default_factory=list)
 
 
-    # quais etapas cairam no fallback
-    etapas_com_fallback: list[str] = Field(default_factory=list)
+    # Implementation note.
+    fallback_steps: list[str] = Field(default_factory=list)
 
 
-    detalhes_fallback: list[dict] = Field(default_factory=list)
+    fallback_details: list[dict] = Field(default_factory=list)

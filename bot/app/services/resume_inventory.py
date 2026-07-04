@@ -1,55 +1,55 @@
 import re
 
-from app.services.technology_catalog import CATALOGO
+from app.services.technology_catalog import TECHNOLOGY_CATALOG
 from app.services.text_normalizer import normalize_for_comparison, normalize_resume_text
 from app.services.technical_matching import contains_alias
 
 
-# wrapper so pra manter compatibilidade
-def _presente(texto: str, aliases: tuple[str, ...]) -> bool:
-    return contains_alias(texto, aliases)
+# Implementation note.
+def _presente(text: str, aliases: tuple[str, ...]) -> bool:
+    return contains_alias(text, aliases)
 
 
-def extract_resume_inventory(texto: str, secoes: dict[str, str] | None = None) -> dict[str, list[str]]:
-    normalizado = normalize_for_comparison(normalize_resume_text(texto))
+def extract_resume_inventory(text: str, sections: dict[str, str] | None = None) -> dict[str, list[str]]:
+    normalized = normalize_for_comparison(normalize_resume_text(text))
 
-    # cria dict com td que pode ser classificado
-    categorias = {nome: [] for nome in (
-        "linguagens", "frontend", "backend", "mobile", "bancos_dados",
+    # Implementation note.
+    categories = {name: [] for name in (
+        "linguagens", "frontend", "backend", "mobile", "bancos_data",
         "devops", "cloud", "testes", "ferramentas", "metodologias",
         "processos", "ia", "automacao", "arquitetura", "produto",
-        "design", "outros", "idiomas", "formacao", "projetos_detectados",
+        "design", "outros", "languages", "education", "projetos_detectados",
     )}
 
 
-    # varre o catálogo e joga na categoria certa
-    for tecnologia in CATALOGO:
-        if _presente(normalizado, tecnologia.aliases):
-            categorias.setdefault(tecnologia.categoria, []).append(tecnologia.nome)
+    # Implementation note.
+    for technology in TECHNOLOGY_CATALOG:
+        if _presente(normalized, technology.aliases):
+            categories.setdefault(technology.category, []).append(technology.name)
 
 
-    # inglês genérioco detectado
-    if "ingles" in normalizado:
-        categorias["idiomas"].append("Inglês")
+    # Implementation note.
+    if "ingles" in normalized:
+        categories["languages"].append("Inglês")
 
 
-    # formacao genérica detectada
-    if re.search(r"graduacao|formacao|bacharel|tecnologo", normalizado):
-        categorias["formacao"].append("Formação acadêmica detectada")
-    # seção de projetos encontrada
+    # Implementation note.
+    if re.search(r"graduacao|formacao|bacharel|tecnologo", normalized):
+        categories["education"].append("Formação acadêmica detectada")
+    # Technical note removed during English standardization.
     #
-    if secoes and secoes.get("projetos"):
-        categorias["projetos_detectados"].append("Seção de projetos detectada")
+    if sections and sections.get("projects"):
+        categories["projetos_detectados"].append("Seção de projects detectada")
 
 
-    # junta td em habilidades_detectadas (menos formacao e projetos)
-    categorias["habilidades_detectadas"] = [
-        item for nome, itens in categorias.items()
-        if nome not in {"formacao", "projetos_detectados"}
-        for item in itens
+    # junta td em habilidades_detectadas (menos formacao e projects)
+    categories["habilidades_detectadas"] = [
+        item for name, items in categories.items()
+        if name not in {"education", "projetos_detectados"}
+        for item in items
 
     ]
 
-    # placeholder preenchido depois no pipeline principal
-    categorias["habilidades_nao_exigidas_pela_vaga"] = []
-    return categorias
+    # Implementation note.
+    categories["habilidades_nao_exigidas_pela_job"] = []
+    return categories

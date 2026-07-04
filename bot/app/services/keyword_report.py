@@ -4,67 +4,67 @@ from app.schemas.analysis import RequirementAnalysisItem, ItemKeyword, KeywordRe
 from app.services.text_normalizer import normalize_for_comparison
 
 
-PESOS = {"hard_skills": 2.0, "title_function_keywords": 1.5, "business_context": 1.0,
+WEIGHTS = {"hard_skills": 2.0, "title_function_keywords": 1.5, "business_context": 1.0,
          "action_keywords": 1.0, "domain_keywords": 1.0}
 
 
-def _hard_filters(vaga: str, curriculo: str) -> tuple[list[ItemKeyword], list[str]]:
+def _hard_filters(job: str, resume: str) -> tuple[list[ItemKeyword], list[str]]:
     filtros: list[ItemKeyword] = []
 
-    alertas: list[str] = []
-    vaga_n, cv_n = normalize_for_comparison(vaga), normalize_for_comparison(curriculo)
-    padroes = [r"\b\d+\+?\s*anos?\b", r"graduacao completa", r"ingles avancado",
+    alerts: list[str] = []
+    job_n, cv_n = normalize_for_comparison(job), normalize_for_comparison(resume)
+    patterns = [r"\b\d+\+?\s*anos?\b", r"graduacao completa", r"ingles avancado",
                r"\b(?:presencial|hibrid[oa])\b"]
 
-    for padrao in padroes:
-        for match in re.finditer(padrao, vaga_n):
-            termo = match.group(0)
-            presente = termo in cv_n
+    for pattern in patterns:
+        for match in re.finditer(pattern, job_n):
+            term = match.group(0)
+            present = term in cv_n
 
-            filtros.append(ItemKeyword(termo=termo, categoria="hard_filters", peso=0, presente=presente))
-            if not presente:
-                alertas.append(f"Possível impeditivo: hard filter não comprovado no currículo: {termo}.")
+            filtros.append(ItemKeyword(term=term, category="hard_filters", weight=0, present=present))
+            if not present:
+                alerts.append(f"Possível impeditivo: hard filter não comprovado no currículo: {term}.")
 
-    return filtros, list(dict.fromkeys(alertas))
-
-
-def build_keyword_report(itens: list[RequirementAnalysisItem], vaga: str, curriculo: str, titulo: str = "") -> tuple[KeywordReport, int, list[ItemKeyword], list[ItemKeyword]]:
-    grupos: dict[str, list[ItemKeyword]] = {k: [] for k in PESOS}
-    titulo_n = normalize_for_comparison(titulo)
+    return filtros, list(dict.fromkeys(alerts))
 
 
-    for item in itens:
-        if item.tipo == "tecnologia":
-            categoria = "hard_skills"
+def build_keyword_report(items: list[RequirementAnalysisItem], job: str, resume: str, title: str = "") -> tuple[KeywordReport, int, list[ItemKeyword], list[ItemKeyword]]:
+    grupos: dict[str, list[ItemKeyword]] = {k: [] for k in WEIGHTS}
+    title_n = normalize_for_comparison(title)
 
-        elif normalize_for_comparison(item.item) in titulo_n and titulo_n:
-            categoria = "title_function_keywords"
 
-        elif item.categoria == "responsabilidade":
-            categoria = "action_keywords"
+    for item in items:
+        if item.type == "technology":
+            category = "hard_skills"
 
-        elif item.categoria == "contexto":
-            categoria = "business_context"
+        elif normalize_for_comparison(item.item) in title_n and title_n:
+            category = "title_function_keywords"
+
+        elif item.category == "responsabilidade":
+            category = "action_keywords"
+
+        elif item.category == "context":
+            category = "business_context"
 
         else:
-            categoria = "domain_keywords"
-        presente = item.status in {"encontrado_com_evidencia", "encontrado_sem_contexto_claro"}
-        grupos[categoria].append(ItemKeyword(termo=item.item, categoria=categoria, peso=PESOS[categoria], presente=presente, fonte=item.fonte_evidencia))
-    filtros, alertas = _hard_filters(vaga, curriculo)
-    todos = [kw for valores in grupos.values() for kw in valores]
+            category = "domain_keywords"
+        present = item.status in {"found_with_evidence", "found_without_clear_context"}
+        grupos[category].append(ItemKeyword(term=item.item, category=category, weight=WEIGHTS[category], present=present, source=item.evidence_source))
+    filtros, alerts = _hard_filters(job, resume)
+    todos = [kw for values in grupos.values() for kw in values]
 
 
-    # não separa em vários requisitros e o o peso fica baixo
-    sql_nomes = {"SQL", "SELECT", "JOIN", "WHERE", "INSERT", "UPDATE", "DELETE"}
-    sql = [kw for kw in todos if kw.termo in sql_nomes]
-    pontuaveis = [kw for kw in todos if kw.termo not in sql_nomes]
-    total = sum(kw.peso for kw in pontuaveis)
-    obtido = sum(kw.peso for kw in pontuaveis if kw.presente)
+    # Implementation note.
+    sql_names = {"SQL", "SELECT", "JOIN", "WHERE", "INSERT", "UPDATE", "DELETE"}
+    sql = [kw for kw in todos if kw.term in sql_names]
+    pontuaveis = [kw for kw in todos if kw.term not in sql_names]
+    total = sum(kw.weight for kw in pontuaveis)
+    obtido = sum(kw.weight for kw in pontuaveis if kw.present)
     if sql:
-        peso_sql = max(kw.peso for kw in sql)
-        total += peso_sql
-        if any(kw.presente for kw in sql):
-            obtido += peso_sql
+        weight_sql = max(kw.weight for kw in sql)
+        total += weight_sql
+        if any(kw.present for kw in sql):
+            obtido += weight_sql
     score = round(obtido / total * 100) if total else 0
-    report = KeywordReport(**grupos, hard_filters=filtros, alertas_hard_filters=alertas)
-    return report, score, [x for x in todos if x.presente], [x for x in todos if not x.presente]
+    report = KeywordReport(**grupos, hard_filters=filtros, hard_filter_alerts=alerts)
+    return report, score, [x for x in todos if x.present], [x for x in todos if not x.present]

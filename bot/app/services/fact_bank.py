@@ -4,104 +4,104 @@ from collections import Counter
 import re
 
 from app.schemas.analysis import FactBank
-from app.services.technology_catalog import CATALOGO
+from app.services.technology_catalog import TECHNOLOGY_CATALOG
 from app.services.technical_matching import contains_alias
 from app.services.resume_entity_parser import section_block, extract_projects
 
 
-# mapeia secao canonica -> (fonte legível, tipo_fonte)
-FONTES = {
-    "experiencia_profissional": ("experiência profissional", "experiencia_profissional"),
-    "projetos": ("projeto", "projeto"),
-    "projetos_academicos": ("projeto acadêmico", "projeto_academico"),
-    "freelas": ("freela", "freela"), "open_source": ("open source", "open_source"),
-    "residencias": ("residência/laboratório prático", "residencia_tecnologica"),
-    "cursos": ("curso/formação", "curso_formacao"), "educacao": ("curso/formação", "curso_formacao"),
-    "certificacoes": ("certificação", "certificacao"),
-    "competencias_tecnicas": ("competências", "competencia"),
-    "idiomas": ("idiomas", "idioma"), "conquistas": ("conquista", "conquista"),
+# Technical note removed during English standardization.
+SECTION_SOURCES = {
+    "professional_experience": ("experiência profissional", "professional_experience"),
+    "projects": ("project", "project"),
+    "academic_projects": ("project acadêmico", "projeto_academico"),
+    "freelance": ("freela", "freela"), "open_source": ("open source", "open_source"),
+    "residencies": ("residência/laboratório prático", "technology_residency"),
+    "courses": ("curso/formação", "curso_formacao"), "education": ("curso/formação", "curso_formacao"),
+    "certifications": ("certificação", "certification"),
+    "technical_skills": ("competências", "competencia"),
+    "languages": ("languages", "language"), "achievements": ("conquista", "conquista"),
 }
 
 
-# extrai só os nomes das tecnologias presentes no texto
-def _tecnologias(texto: str) -> list[str]:
-    return [t.nome for t in CATALOGO if contains_alias(texto, t.aliases, t.nome)]
+# Technical note removed during English standardization.
+def _technologies(text: str) -> list[str]:
+    return [t.name for t in TECHNOLOGY_CATALOG if contains_alias(text, t.aliases, t.name)]
 
 
-def build_fact_bank(secoes: dict[str, str]) -> FactBank:
-    por_fonte: dict[str, list[str]] = {}
-    evidencias: list[dict] = []
-    for secao, (fonte, tipo) in FONTES.items():
-        texto = secoes.get(secao, "").strip()
-        if not texto:
+def build_fact_bank(sections: dict[str, str]) -> FactBank:
+    by_source: dict[str, list[str]] = {}
+    evidence_items: list[dict] = []
+    for section, (source, type) in SECTION_SOURCES.items():
+        text = sections.get(section, "").strip()
+        if not text:
             continue
-        tecnologias = list(dict.fromkeys(_tecnologias(texto)))
-        por_fonte.setdefault(fonte, []).extend(tecnologias)
+        technologies = list(dict.fromkeys(_technologies(text)))
+        by_source.setdefault(source, []).extend(technologies)
 
-        # tenta ver se tem entrega real (só pra projeto/freela/open source)
+        # Implementation note.
         #
-        entrega_real = bool(re.search(
+        real_delivery = bool(re.search(
             r"(?i)\b(entreg|cliente|publicad|deploy|contribu|commit|pull request|merged|aceit|implement|desenvolv|delivered|released|built|fixed)\w*\b",
-            texto,
-        )) if tipo in {"freela", "open_source", "projeto"} else None
-        for tecnologia in tecnologias:
-            aliases = next(t.aliases for t in CATALOGO if t.nome == tecnologia)
-            trecho = next((linha.strip() for linha in texto.splitlines() if contains_alias(linha, aliases, tecnologia)), "")
-            evidencias.append({"item": tecnologia, "fonte": fonte, "tipo_fonte": tipo,
-                               "evidencia": trecho[:500] or f"Detectado em {fonte}.",
-                               "confianca": 90, "entrega_real": entrega_real, "secundaria": False})
+            text,
+        )) if type in {"freela", "open_source", "project"} else None
+        for technology in technologies:
+            aliases = next(t.aliases for t in TECHNOLOGY_CATALOG if t.name == technology)
+            excerpt = next((line.strip() for line in text.splitlines() if contains_alias(line, aliases, technology)), "")
+            evidence_items.append({"item": technology, "source": source, "source_type": type,
+                               "evidence": excerpt[:500] or f"Detectado em {source}.",
+                               "confidence": 90, "real_delivery": real_delivery, "secondary": False})
 
 
-    # seção desconhecida (outros) tem peso menor
+    # Technical note removed during English standardization.
     #
-    desconhecido = secoes.get("outros", "").strip()
-    if desconhecido:
-        tecnologias = _tecnologias(desconhecido)
-        por_fonte["desconhecido"] = tecnologias
-        for tecnologia in tecnologias:
-            evidencias.append({"item": tecnologia, "fonte": "desconhecido", "tipo_fonte": "desconhecido",
-                               "evidencia": "Technology detectada fora de seção confiável.", "confianca": 30,
-                               "confianca_baixa": True, "motivo": "Heading de origem não identificado.", "secundaria": False})
+    unknown = sections.get("outros", "").strip()
+    if unknown:
+        technologies = _technologies(unknown)
+        by_source["unknown"] = technologies
+        for technology in technologies:
+            evidence_items.append({"item": technology, "source": "unknown", "source_type": "unknown",
+                               "evidence": "Technology detectada fora de seção confiável.", "confidence": 30,
+                               "low_confidence": True, "reason": "Heading de origin não identificado.", "secondary": False})
 
-    # Marca ocorrências menos fortes como secundárias e mantém tudoi
+    # Implementation note.
     #
     #
     #
-    ordem = {"experiencia_profissional": 9, "freela": 8, "projeto": 7, "open_source": 6,
-             "residencia_tecnologica": 5, "projeto_academico": 4, "curso_formacao": 3,
-             "certificacao": 3, "competencia": 2, "idioma": 1, "conquista": 1}
+    priority = {"professional_experience": 9, "freela": 8, "project": 7, "open_source": 6,
+             "technology_residency": 5, "projeto_academico": 4, "curso_formacao": 3,
+             "certification": 3, "competencia": 2, "language": 1, "conquista": 1}
 
 
-    for item in {x["item"] for x in evidencias}:
-        candidatas = [x for x in evidencias if x["item"] == item]
+    for item in {x["item"] for x in evidence_items}:
+        candidates = [x for x in evidence_items if x["item"] == item]
 
-        melhor = max(candidatas, key=lambda x: ordem.get(x["tipo_fonte"], 0))
-        for evidencia in candidatas:
-            evidencia["secundaria"] = evidencia is not melhor
+        best = max(candidates, key=lambda x: priority.get(x["source_type"], 0))
+        for evidence in candidates:
+            evidence["secondary"] = evidence is not best
 
-    projetos = extract_projects(secoes.get("projetos", ""), tipo_fonte="projeto")
-    academicos = extract_projects(secoes.get("projetos_academicos", ""), tipo_fonte="projeto_academico")
+    projects = extract_projects(sections.get("projects", ""), source_type="project")
+    academic_projects = extract_projects(sections.get("academic_projects", ""), source_type="projeto_academico")
 
 
     return FactBank(
-        experiencias=section_block(secoes.get("experiencia_profissional", ""), "experiencia_profissional"),
-        projetos=projetos,
-        projetos_academicos=academicos,
-        freelas=section_block(secoes.get("freelas", ""), "freela"),
-        open_source=section_block(secoes.get("open_source", ""), "open_source"),
+        experiences=section_block(sections.get("professional_experience", ""), "professional_experience"),
+        projects=projects,
+        academic_projects=academic_projects,
+        freelance=section_block(sections.get("freelance", ""), "freela"),
+        open_source=section_block(sections.get("open_source", ""), "open_source"),
 
-        residencias=section_block(secoes.get("residencias", ""), "residencia_tecnologica"),
-        cursos=section_block(secoes.get("cursos", ""), "curso_formacao") + section_block(secoes.get("educacao", ""), "curso_formacao"),
-        certificacoes=section_block(secoes.get("certificacoes", ""), "certificacao"),
-        skills=section_block(secoes.get("competencias_tecnicas", ""), "competencia"),
-        idiomas=section_block(secoes.get("idiomas", ""), "idioma"),
+        residencies=section_block(sections.get("residencies", ""), "technology_residency"),
+        courses=section_block(sections.get("courses", ""), "curso_formacao") + section_block(sections.get("education", ""), "curso_formacao"),
+        certifications=section_block(sections.get("certifications", ""), "certification"),
+        skills=section_block(sections.get("technical_skills", ""), "competencia"),
+        languages=section_block(sections.get("languages", ""), "language"),
 
-        conquistas=section_block(secoes.get("conquistas", ""), "conquista"),
-        tecnologias_por_fonte={k: list(dict.fromkeys(v)) for k, v in por_fonte.items()},
-        evidencias=evidencias,
+        achievements=section_block(sections.get("achievements", ""), "conquista"),
+        technologies_by_source={k: list(dict.fromkeys(v)) for k, v in by_source.items()},
+        evidence_items=evidence_items,
     )
 
 
-# conta quantas evidências por tipo de fonte
+# Technical note removed during English standardization.
 def summarize_sources(fact_bank: FactBank) -> dict[str, int]:
-    return dict(Counter(str(x.get("tipo_fonte", "desconhecido")) for x in fact_bank.evidencias))
+    return dict(Counter(str(x.get("source_type", "unknown")) for x in fact_bank.evidence_items))

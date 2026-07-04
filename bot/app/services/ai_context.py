@@ -2,43 +2,43 @@ from app.schemas.analysis import AnalysisResult, AnalysisRequest
 from app.services.privacy_sanitizer import sanitize_personal_data
 
 
-"""o provider não precisa do payload bruto"""
-def _resumir(texto: str, limite: int = 1600) -> str:
-    seguro = sanitize_personal_data(texto).texto_sanitizado
-    linhas = [linha.strip() for linha in seguro.splitlines() if linha.strip()]
-    return "\n".join(linhas)[:limite]
+"""Build compact provider context without the raw payload."""
+def _summarize(text: str, limite: int = 1600) -> str:
+    safe = sanitize_personal_data(text).text_sanitized
+    lines = [line.strip() for line in safe.splitlines() if line.strip()]
+    return "\n".join(lines)[:limite]
 
 
-def build_ai_context(solicitacao: AnalysisRequest, resultado: AnalysisResult) -> dict:
+def build_ai_context(request: AnalysisRequest, result: AnalysisResult) -> dict:
 
     # extrai so oq a ia precisa, td filtrado
-    requisitos = [item.model_dump() for item in resultado.analise_por_requisito]
+    requirements = [item.model_dump() for item in result.requirement_analysis]
     return {
 
-        "resumo_curriculo_sanitizado": _resumir(solicitacao.resume_text),
-        "resumo_vaga_sanitizado": _resumir(solicitacao.job_text),
-        "nivel_vaga": resultado.nivel_vaga,
-        "titulo_cargo_detectado": ((resultado.avaliacao_relevancia or {}).get("titulo_detectado")),
-        "requisitos_extraidos": [r["item"] for r in requisitos],
-        "requisitos_por_importancia": requisitos,
-        "inventario_relevante": resultado.inventario_curriculo or {},
-        "fact_bank": resultado.fact_bank.model_dump() if resultado.fact_bank else None,
+        "summary_resume_sanitized": _summarize(request.resume_text),
+        "summary_job_sanitized": _summarize(request.job_text),
+        "job_level": result.job_level,
+        "title_cargo_detectado": ((result.relevance_evaluation or {}).get("title_detectado")),
+        "requirements_extraidos": [r["item"] for r in requirements],
+        "requirements_por_importancia": requirements,
+        "inventario_relevante": result.resume_inventory or {},
+        "fact_bank": result.fact_bank.model_dump() if result.fact_bank else None,
 
 
-        # so manda fonte e nivel, sem expor dado bruto
-        "evidencias_por_requisito": [
-            {"item": r["item"], "fonte": r["fonte_evidencia"], "nivel": r["nivel_evidencia"]}
-            for r in requisitos
+        # Technical note removed during English standardization.
+        "evidence_items_por_requirement": [
+            {"item": r["item"], "source": r["evidence_source"], "level": r["evidence_level"]}
+            for r in requirements
         ],
-        "lacunas_locais": resultado.palavras_chave_faltando,
-        "pontos_fortes_locais": resultado.palavras_chave_encontradas,
-        "keyword_report": resultado.keyword_report.model_dump() if resultado.keyword_report else None,
-        "alertas_privacidade": ["Conteúdo sanitizado; não reproduzir nem inferir dados pessoais."],
+        "gaps_local": result.missing_keywords,
+        "pontos_fortes_local": result.matched_keywords,
+        "keyword_report": result.keyword_report.model_dump() if result.keyword_report else None,
+        "alerts_privacy": ["Conteúdo sanitizado; não reproduzir nem inferir dados pessoais."],
 
 
-        # regras pra ia não alucinar
+        # Implementation note.
         "regras_contra_invencao": [
             "Curso nunca é experiência prática.", "Skill solta nunca é prática.",
-            "Projeto é evidência de projeto, não emprego.", "Ausência vira lacuna ou sugestão de estudo/projeto.",
+            "Projeto é evidência de project, não emprego.", "Ausência vira lacuna ou sugestão de estudo/project.",
         ],
     }

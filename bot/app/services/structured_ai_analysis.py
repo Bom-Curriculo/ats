@@ -9,111 +9,111 @@ from app.services.section_extractor import extract_resume_sections
 from app.services.privacy_sanitizer import sanitize_personal_data
 
 
-def _json_da_resposta(resposta: AIAnalysisResponse | dict | str) -> dict:
-    if isinstance(resposta, AIAnalysisResponse):
-        return resposta.model_dump()
-    if isinstance(resposta, dict):
-        return resposta
-    texto = resposta.strip()
-    if texto.startswith("```"):
-        texto = re.sub(r"^```(?:json)?\s*|\s*```$", "", texto, flags=re.I)
-    inicio, fim = texto.find("{"), texto.rfind("}")
+def _response_json(response: AIAnalysisResponse | dict | str) -> dict:
+    if isinstance(response, AIAnalysisResponse):
+        return response.model_dump()
+    if isinstance(response, dict):
+        return response
+    text = response.strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text, flags=re.I)
+    inicio, fim = text.find("{"), text.rfind("}")
     if inicio < 0 or fim <= inicio:
         raise ValueError("Resposta sem objeto JSON")
-    carregado = json.loads(texto[inicio : fim + 1])
+    carregado = json.loads(text[inicio : fim + 1])
     if not isinstance(carregado, dict):
         raise ValueError("Resposta JSON não é objeto")
     return carregado
 
 
-def _normalize(texto: str) -> str:
+def _normalize(text: str) -> str:
     sem_acentos = "".join(
-        c for c in unicodedata.normalize("NFKD", texto) if not unicodedata.combining(c)
+        c for c in unicodedata.normalize("NFKD", text) if not unicodedata.combining(c)
     )
     return re.sub(r"\s+", " ", sem_acentos.casefold()).strip()
 
 
-def _tem_evidencia(item: AIRequirementAnalysis, corpus: str) -> bool:
+def _has_evidence(item: AIRequirementAnalysis, corpus: str) -> bool:
     item_normalizado = _normalize(item.item)
-    evidencia = _normalize(item.evidencia or "")
+    evidence = _normalize(item.evidence or "")
     return bool(
         (len(item_normalizado) >= 2 and item_normalizado in corpus)
-        or (len(evidencia) >= 4 and evidencia in corpus)
+        or (len(evidence) >= 4 and evidence in corpus)
     )
 
 
-def _sugestao_segura(texto: str) -> bool:
-    normalizado = _normalize(texto)
+def _is_safe_suggestion(text: str) -> bool:
+    normalized = _normalize(text)
     proibidos = (
         "invente ", "finja ", "minta ", "declare experiencia sem", "exagere ",
         "adicione como experiencia mesmo sem", "omita a falta",
     )
-    return not any(item in normalizado for item in proibidos)
+    return not any(item in normalized for item in proibidos)
 
 
 def apply_evidence_gate(
-    resposta: AIAnalysisResponse,
-    curriculo_sanitizado: str,
-    resultado_local: AnalysisResult,
+    response: AIAnalysisResponse,
+    resume_sanitized: str,
+    local_result: AnalysisResult,
 ) -> AIAnalysisResponse:
-    secoes = extract_resume_sections(curriculo_sanitizado)
-    partes = [curriculo_sanitizado, json.dumps(secoes, ensure_ascii=False)]
-    partes.append(json.dumps(resultado_local.inventario_curriculo or {}, ensure_ascii=False))
+    sections = extract_resume_sections(resume_sanitized)
+    partes = [resume_sanitized, json.dumps(sections, ensure_ascii=False)]
+    partes.append(json.dumps(local_result.resume_inventory or {}, ensure_ascii=False))
     corpus = _normalize("\n".join(partes))
-    requisitos: list[AIRequirementAnalysis] = []
-    lacunas = list(resposta.lacunas)
+    requirements: list[AIRequirementAnalysis] = []
+    gaps = list(response.gaps)
 
-    for requisito in resposta.requisitos_contextuais:
-        tem_evidencia = _tem_evidencia(requisito, corpus)
-        if requisito.status == "encontrado_com_evidencia" and not tem_evidencia:
-            requisito = requisito.model_copy(
+    for requirement in response.contextual_requirements:
+        tem_evidence = _has_evidence(requirement, corpus)
+        if requirement.status == "found_with_evidence" and not tem_evidence:
+            requirement = requirement.model_copy(
                 update={
-                    "status": "faltando",
-                    "evidencia": None,
-                    "justificativa": "Não há evidência verificável no currículo sanitizado.",
-                    "recomendacao": "Trate como lacuna ou confirme antes de incluir no currículo.",
+                    "status": "missing",
+                    "evidence": None,
+                    "rationale": "Não há evidência verificável no currículo sanitizado.",
+                    "recommendation": "Trate como lacuna ou confirme antes de incluir no currículo.",
                 }
             )
-            if requisito.item not in lacunas:
-                lacunas.append(requisito.item)
-        elif requisito.evidencia and not _tem_evidencia(requisito, corpus):
-            requisito = requisito.model_copy(update={"evidencia": None})
-        requisitos.append(requisito)
+            if requirement.item not in gaps:
+                gaps.append(requirement.item)
+        elif requirement.evidence and not _has_evidence(requirement, corpus):
+            requirement = requirement.model_copy(update={"evidence": None})
+        requirements.append(requirement)
 
-    return resposta.model_copy(
+    return response.model_copy(
         update={
-            "requisitos_contextuais": requisitos,
-            "lacunas": lacunas,
-            "sugestoes_de_melhoria": [
-                s for s in resposta.sugestoes_de_melhoria if _sugestao_segura(s)
+            "contextual_requirements": requirements,
+            "gaps": gaps,
+            "improvement_suggestions": [
+                s for s in response.improvement_suggestions if _is_safe_suggestion(s)
             ],
-            "proximos_passos": [s for s in resposta.proximos_passos if _sugestao_segura(s)],
+            "next_steps": [s for s in response.next_steps if _is_safe_suggestion(s)],
         }
     )
 
 
 async def run_structured_ai_analysis(
-    solicitacao_segura: AnalysisRequest,
-    resultado_local: AnalysisResult,
-    provedor: AIProvider,
+    safe_request: AnalysisRequest,
+    local_result: AnalysisResult,
+    provider: AIProvider,
 ) -> AIAnalysisResponse | None:
     """Valida a fronteira externa; falhas viram fallback local controlado."""
-    curriculo = sanitize_personal_data(solicitacao_segura.resume_text).texto_sanitizado
-    vaga = sanitize_personal_data(solicitacao_segura.job_text).texto_sanitizado
-    segura = solicitacao_segura.model_copy(
-        update={"resume_text": curriculo, "job_text": vaga}
+    resume = sanitize_personal_data(safe_request.resume_text).text_sanitized
+    job = sanitize_personal_data(safe_request.job_text).text_sanitized
+    safe = safe_request.model_copy(
+        update={"resume_text": resume, "job_text": job}
     )
     try:
-        resposta_bruta = await provedor.gerar_analise_estruturada(segura, resultado_local)
-        resposta = AIAnalysisResponse.model_validate(_json_da_resposta(resposta_bruta))
-        validada = apply_evidence_gate(resposta, curriculo, resultado_local)
+        response_raw = await provider.generate_structured_analysis(safe, local_result)
+        response = AIAnalysisResponse.model_validate(_response_json(response_raw))
+        validada = apply_evidence_gate(response, resume, local_result)
         conteudo_validado = json.dumps(validada.model_dump(), ensure_ascii=False)
-        if sanitize_personal_data(conteudo_validado).itens_removidos:
-            # Uma resposta que reintroduz PII ou segredo é rejeitada por inteiro.
+        if sanitize_personal_data(conteudo_validado).items_removidos:
+            # Implementation note.
             return None
         return validada
     except AIProviderError:
         raise
     except Exception:
-        # Nenhum conteúdo externo, prompt ou stack trace é registrado/propagado.
+        # Implementation note.
         return None

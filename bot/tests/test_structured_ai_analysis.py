@@ -6,110 +6,110 @@ from app.services.ats_analyzer import analyze_resume_with_ai
 from app.services.ats_analyzer import analyze_resume
 
 
-def resposta_ia(**alteracoes):
+def ai_response(**changes):
     base = {
-        "resumo_contextual": "Há aderência parcial comprovada.",
-        "requisitos_contextuais": [],
-        "pontos_fortes": ["Experiência descrita com Python."],
-        "lacunas": [],
+        "contextual_summary": "Há aderência parcial comprovada.",
+        "contextual_requirements": [],
+        "strengths": ["Experiência descrita com Python."],
+        "gaps": [],
 
-        "possiveis_impeditivos": [],
-        "sugestoes_de_melhoria": ["Detalhe o contexto de uso de Python."],
-        "proximos_passos": ["Confirme habilidades antes de adicioná-las."],
-        "alertas_contra_inventar": ["Não declarar competências ausentes."],
-        "confianca": 80,
+        "possible_blockers": [],
+        "improvement_suggestions": ["Detalhe o contexto de uso de Python."],
+        "next_steps": ["Confirme habilidades antes de adicioná-las."],
+        "anti_fabrication_alerts": ["Não declarar competências missing_items."],
+        "confidence": 80,
 
-        "score_sugerido_ia": 95,
-        "justificativa_score_ia": "Leitura contextual complementar.",
+        "ai_suggested_score": 95,
+        "ai_score_rationale": "Leitura contextual complementar.",
     }
-    base.update(alteracoes)
+    base.update(changes)
     return base
 
 
-def test_json_valido_e_incorporado_sem_sobrescrever_score_local() -> None:
-    solicitacao = AnalysisRequest(
-        curriculo_texto="Experiência com Python.", vaga_texto="Python e FastAPI"
+def test_structured_ai_analysis_behavior_01() -> None:
+    request = AnalysisRequest(
+        resume_text="Experiência com Python.", job_text="Python e FastAPI"
     )
     local_score = 50
-    resultado = asyncio.run(
+    result = asyncio.run(
         analyze_resume_with_ai(
-            solicitacao, MockProvider(resposta_estruturada=resposta_ia())
+            request, MockProvider(structured_response=ai_response())
         )
     )
-    assert resultado.pontuacao_ats == local_score
-    assert resultado.score_sugerido_ia == 95
-    assert resultado.analise_ia is not None
-    assert resultado.fallback_local_usado is False
+    assert result.ats_score == local_score
+    assert result.ai_suggested_score == 95
+    assert result.ai_analysis is not None
+    assert result.local_fallback_used is False
 
 
-def test_invalid_json_usa_fallback_local() -> None:
-    solicitacao = AnalysisRequest(curriculo_texto="Python", vaga_texto="Python")
-    score_local = analyze_resume(solicitacao).pontuacao_ats
-    resultado = asyncio.run(
+def test_structured_ai_analysis_behavior_02() -> None:
+    request = AnalysisRequest(resume_text="Python", job_text="Python")
+    score_local = analyze_resume(request).ats_score
+    result = asyncio.run(
         analyze_resume_with_ai(
-            solicitacao,
-            MockProvider(resposta_estruturada="não é json"),
+            request,
+            MockProvider(structured_response="não é json"),
         )
     )
 
-    # fallback local é usado quando a resposta não é JSON válido
-    assert resultado.fallback_local_usado is True
-    assert resultado.analise_ia is None
-    assert resultado.pontuacao_ats == score_local
+    # Implementation note.
+    assert result.local_fallback_used is True
+    assert result.ai_analysis is None
+    assert result.ats_score == score_local
 
 
-def test_evidence_gate_rebaixa_tecnologia_inventada() -> None:
-    requisito = {
+def test_structured_ai_analysis_behavior_03() -> None:
+    requirement = {
         "item": "Kubernetes",
-        "categoria": "ferramenta",
-        "importancia": "obrigatorio",
-        "status": "encontrado_com_evidencia",
-        "evidencia": "Administrou Kubernetes",
-        "justificativa": "Suposta experiência.",
-        "recomendacao": "Destacar Kubernetes.",
+        "category": "tool",
+        "importance": "required",
+        "status": "found_with_evidence",
+        "evidence": "Administrou Kubernetes",
+        "rationale": "Suposta experiência.",
+        "recommendation": "Destacar Kubernetes.",
     }
-    resultado = asyncio.run(
+    result = asyncio.run(
         analyze_resume_with_ai(
-            AnalysisRequest(curriculo_texto="Experiência com Python", vaga_texto="Kubernetes"),
+            AnalysisRequest(resume_text="Experiência com Python", job_text="Kubernetes"),
             MockProvider(
-                resposta_estruturada=resposta_ia(requisitos_contextuais=[requisito])
+                structured_response=ai_response(contextual_requirements=[requirement])
             ),
         )
     )
-    validado = resultado.requisitos_contextuais[0]
-    assert validado.status == "faltando"
-    assert validado.evidencia is None
-    assert "Kubernetes" in resultado.lacunas_contextuais
+    validado = result.contextual_requirements[0]
+    assert validado.status == "missing"
+    assert validado.evidence is None
+    assert "Kubernetes" in result.contextual_gaps
 
 
 class MockCaptura(MockProvider):
-    recebida = None
+    received = None
 
-    async def gerar_analise_estruturada(self, solicitacao_segura, resultado_local):
-        self.recebida = solicitacao_segura
-        return resposta_ia()
+    async def generate_structured_analysis(self, safe_request, local_result):
+        self.received = safe_request
+        return ai_response()
 
 
-def test_fronteira_remove_pii_links_e_tokens_de_curriculo_e_vaga() -> None:
-    provedor = MockCaptura()
-    segredo = "Bearer abcdefghijklmnopqrstuvwxyz123456"
+def test_structured_ai_analysis_behavior_04() -> None:
+    provider = MockCaptura()
+    secret = "Bearer abcdefghijklmnopqrstuvwxyz123456"
 
-    resultado = asyncio.run(
+    result = asyncio.run(
 
         analyze_resume_with_ai(
             AnalysisRequest(
-                curriculo_texto=(
+                resume_text=(
                     "ana@example.com (81) 99999-1234 CPF 123.456.789-10 "
 
-                    "https://linkedin.com/in/ana " + segredo
+                    "https://linkedin.com/in/ana " + secret
                 ),
-                vaga_texto="Contato recrutador@example.com https://empresa.example/vaga",
+                job_text="Contato recrutador@example.com https://empresa.example/vaga",
             ),
-            provedor,
+            provider,
         )
     )
-    enviado = provedor.recebida.curriculo_texto + provedor.recebida.vaga_texto
-    #pii não vaza pro provider
-    for valor in ("ana@example.com", "99999-1234", "123.456.789-10", "linkedin.com", segredo, "recrutador@example.com", "empresa.example"):
-        assert valor not in enviado
-    assert resultado.privacidade.texto_enviado_para_ia_foi_sanitizado is True
+    sent = provider.received.resume_text + provider.received.job_text
+    # Implementation note.
+    for value in ("ana@example.com", "99999-1234", "123.456.789-10", "linkedin.com", secret, "recrutador@example.com", "empresa.example"):
+        assert value not in sent
+    assert result.privacy.ai_text_was_sanitized is True

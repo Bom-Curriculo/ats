@@ -3,12 +3,12 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class Technology:
-    nome: str
-    categoria: str
+    name: str
+    category: str
     aliases: tuple[str, ...]
 
-# catalogo de tecnologias
-CATALOGO: tuple[Technology, ...] = (
+# Technical note removed during English standardization.
+TECHNOLOGY_CATALOG: tuple[Technology, ...] = (
     Technology("C#", "linguagens", ("c#", "csharp", "c sharp")),
     Technology(".NET", "backend", (".net", "dotnet", "dot net")),
     Technology("JavaScript", "linguagens", ("javascript", "js")),
@@ -48,17 +48,17 @@ CATALOGO: tuple[Technology, ...] = (
     Technology("HTML", "frontend", ("html5", "html")),
     Technology("CSS", "frontend", ("css3", "css")),
     Technology("UI/UX", "ferramentas", ("ui/ux", "ui ux")),
-    Technology("MongoDB", "bancos_dados", ("mongodb",)),
-    Technology("DynamoDB", "bancos_dados", ("dynamodb",)),
-    Technology("PostgreSQL", "bancos_dados", ("postgresql", "postgres")),
-    Technology("MySQL", "bancos_dados", ("mysql",)),
-    Technology("SQLite", "bancos_dados", ("sqlite",)),
-    Technology("Redis", "bancos_dados", ("redis",)),
-    Technology("MariaDB", "bancos_dados", ("mariadb", "maria db")),
-    Technology("Prisma", "bancos_dados", ("prisma",)),
-    Technology("SQLAlchemy", "bancos_dados", ("sqlalchemy",)),
-    Technology("Eloquent", "bancos_dados", ("eloquent",)),
-    Technology("Entity Framework", "bancos_dados", ("entity framework",)),
+    Technology("MongoDB", "bancos_data", ("mongodb",)),
+    Technology("DynamoDB", "bancos_data", ("dynamodb",)),
+    Technology("PostgreSQL", "bancos_data", ("postgresql", "postgres")),
+    Technology("MySQL", "bancos_data", ("mysql",)),
+    Technology("SQLite", "bancos_data", ("sqlite",)),
+    Technology("Redis", "bancos_data", ("redis",)),
+    Technology("MariaDB", "bancos_data", ("mariadb", "maria db")),
+    Technology("Prisma", "bancos_data", ("prisma",)),
+    Technology("SQLAlchemy", "bancos_data", ("sqlalchemy",)),
+    Technology("Eloquent", "bancos_data", ("eloquent",)),
+    Technology("Entity Framework", "bancos_data", ("entity framework",)),
     Technology("Docker", "devops", ("docker",)),
     Technology("Docker Compose", "devops", ("docker compose", "docker-compose")),
     Technology("Kubernetes", "devops", ("kubernetes", "k8s")),
@@ -96,18 +96,18 @@ CATALOGO: tuple[Technology, ...] = (
     Technology("APIs REST", "backend", ("apis rest", "api rest", "restful api", "rest api", "endpoints rest")),
     Technology("integração de sistemas", "backend", ("integracao de sistemas", "integracoes de sistemas")),
     Technology("tratamento de erros", "backend", ("tratamento de erros", "error handling")),
-    Technology("SQL", "bancos_dados", ("sql",)),
-    Technology("SELECT", "bancos_dados", ("select",)),
-    Technology("JOIN", "bancos_dados", ("join", "joins")),
-    Technology("WHERE", "bancos_dados", ("where",)),
-    Technology("INSERT", "bancos_dados", ("insert",)),
-    Technology("UPDATE", "bancos_dados", ("update",)),
-    Technology("DELETE", "bancos_dados", ("delete",)),
-    Technology("modelagem de banco de dados", "bancos_dados", ("modelagem de banco de dados", "modelagem de dados")),
+    Technology("SQL", "bancos_data", ("sql",)),
+    Technology("SELECT", "bancos_data", ("select",)),
+    Technology("JOIN", "bancos_data", ("join", "joins")),
+    Technology("WHERE", "bancos_data", ("where",)),
+    Technology("INSERT", "bancos_data", ("insert",)),
+    Technology("UPDATE", "bancos_data", ("update",)),
+    Technology("DELETE", "bancos_data", ("delete",)),
+    Technology("modelagem de banco de dados", "bancos_data", ("modelagem de banco de dados", "modelagem de dados")),
     Technology("testes unitários", "testes", ("testes unitarios", "unit tests")),
     Technology("testes de integração", "testes", ("testes de integracao", "integration tests")),
     Technology("metodologias ágeis", "processos", ("metodologias ageis", "scrum", "kanban")),
-    Technology("inglês técnico", "idiomas", ("ingles tecnico", "technical english", "leitura de docs", "leitura de documentacao", "ingles para leitura tecnica")),
+    Technology("inglês técnico", "languages", ("ingles tecnico", "technical english", "leitura de docs", "leitura de documentacao", "ingles para leitura tecnica")),
     Technology("LLMs", "ia", ("llms", "large language models")),
     Technology("APIs de IA", "ia", ("apis de ia", "api de ia", "ai apis")),
     Technology("OpenAI API", "ia", ("openai api", "api da openai")),
@@ -139,6 +139,6 @@ CATALOGO: tuple[Technology, ...] = (
     Technology("OAuth", "arquitetura", ("oauth", "oauth2")),
 )
 
- # busca pelo nome e não achar retorna NOne
-def find_technology(nome: str) -> Technology | None:
-    return next((item for item in CATALOGO if item.nome == nome), None)
+ # Implementation note.
+def find_technology(name: str) -> Technology | None:
+    return next((item for item in TECHNOLOGY_CATALOG if item.name == name), None)

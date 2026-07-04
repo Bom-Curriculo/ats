@@ -11,16 +11,16 @@ from app.schemas.ai_pipeline import (
 from app.services.ai_context import build_ai_context
 from app.services.text_normalizer import normalize_for_comparison
 from app.services.ai_pipeline_prompts import (
-    prompt_avaliacao_contextual, prompt_classificacao_vaga, prompt_sugestoes_seguras,
+    prompt_contextual_evaluation, prompt_job_classification, prompt_safe_suggestions,
 )
 from app.services.evidence_selection import select_relevant_evidence_for_job
 
 
-ETAPAS = ["prepare_ai_context", "classify_job", "select_relevant_evidence",
+STEPS = ["prepare_ai_context", "classify_job", "select_relevant_evidence",
           "evaluate_requirements_contextually", "prioritize_gaps",
           "generate_safe_suggestions", "consolidate_ai_response"]
 
-MENSAGENS_ERRO = {
+ERROR_MESSAGES = {
     "timeout": "A etapa excedeu o tempo limite.", "rate_limit_429": "O provider limitou a etapa.",
     "request_too_large": "O contexto da etapa excedeu o limite.", "invalid_json": "A etapa retornou JSON inválido.",
     "json_truncated": "A etapa retornou JSON truncado.", "empty_response": "A etapa retornou resposta vazia.",
@@ -30,205 +30,205 @@ MENSAGENS_ERRO = {
 }
 
 
-def _detalhe_fallback(etapa: str, provedor: AIProvider, schema: type, erro: Exception | None = None) -> dict:
-    categoria = getattr(erro, "categoria", None) or ("unsupported_task_api" if erro is None else "unknown_provider_error")
-    return {"etapa": etapa, "categoria_erro": categoria,
-            "mensagem_segura": MENSAGENS_ERRO.get(categoria, MENSAGENS_ERRO["unknown_provider_error"]),
-            "provider": provedor.nome, "modelo": provedor.modelo,
-            "schema_usado": schema.__name__}
+def _fallback_detail(step: str, provider: AIProvider, schema: type, error: Exception | None = None) -> dict:
+    category = getattr(error, "category", None) or ("unsupported_task_api" if error is None else "unknown_provider_error")
+    return {"step": step, "error_category": category,
+            "safe_message": ERROR_MESSAGES.get(category, ERROR_MESSAGES["unknown_provider_error"]),
+            "provider": provider.name, "model": provider.model,
+            "schema_used": schema.__name__}
 
 
 class EvaluationsResponse(BaseModel):
-    avaliacoes: list[ContextualRequirementEvaluation] = Field(default_factory=list)
+    evaluations: list[ContextualRequirementEvaluation] = Field(default_factory=list)
 
-    score_contextual_ia: int | None = Field(default=None, ge=0, le=100)
-    confianca: int | None = Field(default=None, ge=0, le=100)
+    contextual_ai_score: int | None = Field(default=None, ge=0, le=100)
+    confidence: int | None = Field(default=None, ge=0, le=100)
 
 
 class SuggestionsResponse(BaseModel):
 
-    sugestoes: list[str] = Field(default_factory=list)
-    proximos_passos: list[str] = Field(default_factory=list)
+    suggestions: list[str] = Field(default_factory=list)
+    next_steps: list[str] = Field(default_factory=list)
 
 
 def get_task_model_policy() -> dict[str, str]:
-    """Formato opcional: classificacao_vaga=groq,avaliacao_contextual=openai."""
-    politica = {"classificacao_vaga": "rapido", "avaliacao_contextual": "principal",
-                "sugestoes_seguras": "principal", "fallback": "local"}
+    """Parse the optional per-task provider policy."""
+    politica = {"job_classification": "rapido", "evaluation_contextual": "principal",
+                "safe_suggestions": "principal", "fallback": "local"}
     for parte in os.getenv("IA_TASK_PROVIDER_POLICY", "").split(","):
         if "=" in parte:
-            tarefa, perfil = (x.strip().lower() for x in parte.split("=", 1))
-            if tarefa in politica and perfil:
-                politica[tarefa] = perfil
+            task, perfil = (x.strip().lower() for x in parte.split("=", 1))
+            if task in politica and perfil:
+                politica[task] = perfil
     return politica
 
 
-def prepare_ai_context(solicitacao: AnalysisRequest, resultado: AnalysisResult) -> dict:
-    contexto = build_ai_context(solicitacao, resultado)
-    # Fact Bank integral fica exclusivamente no processo local
-    contexto.pop("fact_bank", None)
-    return contexto
+def prepare_ai_context(request: AnalysisRequest, result: AnalysisResult) -> dict:
+    context = build_ai_context(request, result)
+    # Implementation note.
+    context.pop("fact_bank", None)
+    return context
 
 
-def _classificacao_local(resultado: AnalysisResult) -> AIJobClassification:
-    report = resultado.keyword_report
-    centrais = [x.item for x in resultado.analise_por_requisito if x.peso >= 2]
-    secundarios = [x.item for x in resultado.analise_por_requisito if x.peso < 2]
+def _local_classification(result: AnalysisResult) -> AIJobClassification:
+    report = result.keyword_report
+    centrais = [x.item for x in result.requirement_analysis if x.weight >= 2]
+    secundarios = [x.item for x in result.requirement_analysis if x.weight < 2]
     return AIJobClassification(
-        titulo=str((resultado.avaliacao_relevancia or {}).get("titulo_detectado") or "") or None,
-        senioridade=resultado.nivel_vaga, requisitos_centrais=centrais,
-        requisitos_secundarios=secundarios,
-        diferenciais=[x.item for x in resultado.analise_por_requisito if x.categoria == "diferencial"],
-        hard_filters=[x.termo for x in report.hard_filters] if report else [],
-        contexto_negocio=[x.termo for x in report.business_context] if report else [], confianca=75,
-        empresa=(resultado.avaliacao_relevancia or {}).get("empresa") or None,
-        area=(resultado.avaliacao_relevancia or {}).get("area") or None,
-        tecnologias=[x.item for x in resultado.analise_por_requisito if x.tipo == "tecnologia"],
-        responsabilidades=[], modalidade=(resultado.avaliacao_relevancia or {}).get("modalidade") or None,
-        localizacao=(resultado.avaliacao_relevancia or {}).get("localizacao") or None,
-        aceita_sem_experiencia=bool((resultado.avaliacao_relevancia or {}).get("aceita_sem_experiencia")),
+        title=str((result.relevance_evaluation or {}).get("title_detectado") or "") or None,
+        seniority=result.job_level, core_requirements=centrais,
+        secondary_requirements=secundarios,
+        differentials=[x.item for x in result.requirement_analysis if x.category == "differential"],
+        hard_filters=[x.term for x in report.hard_filters] if report else [],
+        business_context=[x.term for x in report.business_context] if report else [], confidence=75,
+        company=(result.relevance_evaluation or {}).get("company") or None,
+        area=(result.relevance_evaluation or {}).get("area") or None,
+        technologies=[x.item for x in result.requirement_analysis if x.type == "technology"],
+        responsibilities=[], modality=(result.relevance_evaluation or {}).get("modality") or None,
+        location=(result.relevance_evaluation or {}).get("location") or None,
+        accepts_no_experience=bool((result.relevance_evaluation or {}).get("accepts_no_experience")),
     )
 
 
-async def classify_job(contexto: dict, resultado: AnalysisResult, provedor: AIProvider) -> tuple[AIJobClassification, bool]:
-    local = _classificacao_local(resultado)
-    prompt = prompt_classificacao_vaga(contexto.get("resumo_vaga_sanitizado", ""), {
-        "nivel": resultado.nivel_vaga, "requisitos": local.requisitos_centrais + local.requisitos_secundarios,
+async def classify_job(context: dict, result: AnalysisResult, provider: AIProvider) -> tuple[AIJobClassification, bool]:
+    local = _local_classification(result)
+    prompt = prompt_job_classification(context.get("summary_job_sanitized", ""), {
+        "level": result.job_level, "requirements": local.core_requirements + local.secondary_requirements,
         "hard_filters": local.hard_filters}, AIJobClassification.model_json_schema())
     try:
-        bruto = await provedor.executar_tarefa_estruturada("classificacao_vaga", prompt, AIJobClassification, 0.1)
-        return (AIJobClassification.model_validate(bruto), False, None) if bruto else (local, True, _detalhe_fallback("classify_job", provedor, AIJobClassification))
-    except Exception as erro:
-        return local, True, _detalhe_fallback("classify_job", provedor, AIJobClassification, erro)
+        raw = await provider.run_structured_task("job_classification", prompt, AIJobClassification, 0.1)
+        return (AIJobClassification.model_validate(raw), False, None) if raw else (local, True, _fallback_detail("classify_job", provider, AIJobClassification))
+    except Exception as error:
+        return local, True, _fallback_detail("classify_job", provider, AIJobClassification, error)
 
 
-def select_relevant_evidence(resultado: AnalysisResult, classificacao: AIJobClassification):
+def select_relevant_evidence(result: AnalysisResult, classification: AIJobClassification):
     return select_relevant_evidence_for_job(
-        resultado.fact_bank, resultado.analise_por_requisito, resultado.keyword_report,
-        classificacao.senioridade or resultado.nivel_vaga)
+        result.fact_bank, result.requirement_analysis, result.keyword_report,
+        classification.seniority or result.job_level)
 
 
-def _avaliacoes_locais(resultado: AnalysisResult, evidencias: list) -> list[ContextualRequirementEvaluation]:
+def _local_evaluations(result: AnalysisResult, evidence_items: list) -> list[ContextualRequirementEvaluation]:
     por_item = {}
-    for evidencia in evidencias:
-        por_item.setdefault(normalize_for_comparison(evidencia.item), evidencia)
-    saida = []
-    for item in resultado.analise_por_requisito:
-        evidencia = por_item.get(normalize_for_comparison(item.item))
-        ausente = item.status == "faltando"
-        descricao = item.status in {"encontrado_sem_contexto_claro", "relacionado_mas_nao_explicito"}
-        saida.append(ContextualRequirementEvaluation(
-            item=item.item, importancia="obrigatorio" if item.peso >= 3 else "desejavel",
-            relevancia_para_vaga="alta" if item.peso >= 2 else "media", status=item.status,
-            evidencia_usada=evidencia, lacuna_real=ausente, lacuna_de_descricao=descricao,
-            recomendacao_segura=item.orientacao,
-            risco_alucinacao="alto" if ausente else ("medio" if descricao else "baixo")))
-    return saida
+    for evidence in evidence_items:
+        por_item.setdefault(normalize_for_comparison(evidence.item), evidence)
+    output = []
+    for item in result.requirement_analysis:
+        evidence = por_item.get(normalize_for_comparison(item.item))
+        absent = item.status == "missing"
+        descricao = item.status in {"found_without_clear_context", "related_but_not_explicit"}
+        output.append(ContextualRequirementEvaluation(
+            item=item.item, importance="required" if item.weight >= 3 else "desired",
+            job_relevance="high" if item.weight >= 2 else "medium", status=item.status,
+            used_evidence=evidence, real_gap=absent, description_gap=descricao,
+            recommendation_safe=item.guidance,
+            hallucination_risk="high" if absent else ("medium" if descricao else "low")))
+    return output
 
 
-async def evaluate_requirements_contextually(resultado: AnalysisResult, classificacao: AIJobClassification,
-                                              evidencias: list, provedor: AIProvider):
+async def evaluate_requirements_contextually(result: AnalysisResult, classification: AIJobClassification,
+                                              evidence_items: list, provider: AIProvider):
 
-    locais = _avaliacoes_locais(resultado, evidencias)
-    prompt = prompt_avaliacao_contextual(classificacao.model_dump(),
-        [{"item": x.item, "peso": x.peso, "status_local": x.status} for x in resultado.analise_por_requisito],
-        [x.model_dump() for x in evidencias], EvaluationsResponse.model_json_schema())
+    local = _local_evaluations(result, evidence_items)
+    prompt = prompt_contextual_evaluation(classification.model_dump(),
+        [{"item": x.item, "weight": x.weight, "status_local": x.status} for x in result.requirement_analysis],
+        [x.model_dump() for x in evidence_items], EvaluationsResponse.model_json_schema())
 
     try:
-        bruto = await provedor.executar_tarefa_estruturada("avaliacao_contextual", prompt, EvaluationsResponse, 0.1)
-        if not bruto:
-            return locais, resultado.pontuacao_ats, 70, True, _detalhe_fallback("evaluate_requirements_contextually", provedor, EvaluationsResponse)
-        resposta = EvaluationsResponse.model_validate(bruto)
+        raw = await provider.run_structured_task("evaluation_contextual", prompt, EvaluationsResponse, 0.1)
+        if not raw:
+            return local, result.ats_score, 70, True, _fallback_detail("evaluate_requirements_contextually", provider, EvaluationsResponse)
+        response = EvaluationsResponse.model_validate(raw)
 
 
-        # IA nunca pode elevar acima da evidência local
-        externas = {normalize_for_comparison(x.item): x for x in resposta.avaliacoes}
+        # Technical note removed during English standardization.
+        externas = {normalize_for_comparison(x.item): x for x in response.evaluations}
         conciliadas = []
-        for local in locais:
-            externa = externas.get(normalize_for_comparison(local.item))
-            if externa:
+        for local in local:
+            external = externas.get(normalize_for_comparison(local.item))
+            if external:
                 local = local.model_copy(update={
-                    "relevancia_para_vaga": externa.relevancia_para_vaga,
-                    "recomendacao_segura": externa.recomendacao_segura or local.recomendacao_segura,
-                    "risco_alucinacao": max(local.risco_alucinacao, externa.risco_alucinacao),
+                    "job_relevance": external.job_relevance,
+                    "recommendation_safe": external.recommendation_safe or local.recommendation_safe,
+                    "hallucination_risk": max(local.hallucination_risk, external.hallucination_risk),
                 })
             conciliadas.append(local)
-        return conciliadas, resposta.score_contextual_ia or resultado.pontuacao_ats, resposta.confianca or 70, False, None
-    except Exception as erro:
-        return locais, resultado.pontuacao_ats, 60, True, _detalhe_fallback("evaluate_requirements_contextually", provedor, EvaluationsResponse, erro)
+        return conciliadas, response.contextual_ai_score or result.ats_score, response.confidence or 70, False, None
+    except Exception as error:
+        return local, result.ats_score, 60, True, _fallback_detail("evaluate_requirements_contextually", provider, EvaluationsResponse, error)
 
 
-def prioritize_gaps(avaliacoes: list[ContextualRequirementEvaluation]) -> list[dict]:
-    prioridade = {"alta": 3, "media": 2, "baixa": 1}
-    lacunas = [{"item": x.item, "prioridade": x.relevancia_para_vaga,
-                "lacuna_real": x.lacuna_real, "lacuna_de_descricao": x.lacuna_de_descricao,
-                "recomendacao": x.recomendacao_segura} for x in avaliacoes if x.lacuna_real or x.lacuna_de_descricao]
-    return sorted(lacunas, key=lambda x: -prioridade.get(x["prioridade"], 0))
+def prioritize_gaps(evaluations: list[ContextualRequirementEvaluation]) -> list[dict]:
+    prioridade = {"high": 3, "medium": 2, "low": 1}
+    gaps = [{"item": x.item, "prioridade": x.job_relevance,
+                "real_gap": x.real_gap, "description_gap": x.description_gap,
+                "recommendation": x.recommendation_safe} for x in evaluations if x.real_gap or x.description_gap]
+    return sorted(gaps, key=lambda x: -prioridade.get(x["prioridade"], 0))
 
 
-async def generate_safe_suggestions(avaliacoes: list[ContextualRequirementEvaluation], lacunas: list[dict], provedor: AIProvider):
-    locais = list(dict.fromkeys(x.recomendacao_segura for x in avaliacoes if x.recomendacao_segura))[:12]
-    prompt = prompt_sugestoes_seguras([x.model_dump() for x in avaliacoes], lacunas, SuggestionsResponse.model_json_schema())
+async def generate_safe_suggestions(evaluations: list[ContextualRequirementEvaluation], gaps: list[dict], provider: AIProvider):
+    local = list(dict.fromkeys(x.recommendation_safe for x in evaluations if x.recommendation_safe))[:12]
+    prompt = prompt_safe_suggestions([x.model_dump() for x in evaluations], gaps, SuggestionsResponse.model_json_schema())
 
 
     try:
-        bruto = await provedor.executar_tarefa_estruturada("sugestoes_seguras", prompt, SuggestionsResponse, 0.1)
-        if not bruto:
-            return locais, [], True, _detalhe_fallback("generate_safe_suggestions", provedor, SuggestionsResponse)
-        resposta = SuggestionsResponse.model_validate(bruto)
+        raw = await provider.run_structured_task("safe_suggestions", prompt, SuggestionsResponse, 0.1)
+        if not raw:
+            return local, [], True, _fallback_detail("generate_safe_suggestions", provider, SuggestionsResponse)
+        response = SuggestionsResponse.model_validate(raw)
 
-        # Sugestões externas ainda passarão pela pós-validação local provada
+        # Technical note removed during English standardization.
         #
         #
-        return resposta.sugestoes[:12], resposta.proximos_passos[:12], False, None
-    except Exception as erro:
-        return locais, [], True, _detalhe_fallback("generate_safe_suggestions", provedor, SuggestionsResponse, erro)
+        return response.suggestions[:12], response.next_steps[:12], False, None
+    except Exception as error:
+        return local, [], True, _fallback_detail("generate_safe_suggestions", provider, SuggestionsResponse, error)
 
 
-def consolidate_ai_response(resultado: AnalysisResult, pipeline: AIPipelineResult,
-                           proximos_passos: list[str]) -> AIAnalysisResponse:
-    categoria = {"tecnologia": "habilidade_tecnica", "requisito": "outro"}
-    requisitos = [AIRequirementAnalysis(
-        item=x.item, categoria=categoria.get(next((i.tipo for i in resultado.analise_por_requisito if i.item == x.item), "requisito"), "outro"),
-        importancia=x.importancia if x.importancia in {"obrigatorio", "desejavel", "diferencial", "contextual", "nao_informado"} else "nao_informado",
-        status=x.status if x.status in {"encontrado_com_evidencia", "encontrado_sem_contexto_claro", "relacionado_mas_nao_explicito", "faltando", "nao_avaliado", "possivel_impeditivo"} else "nao_avaliado",
-        evidencia=x.evidencia_usada.trecho if x.evidencia_usada else None,
-        justificativa="Avaliação conciliada com evidência local selecionada.", recomendacao=x.recomendacao_segura or "Confirme a evidência antes de alterar o currículo.")
-        for x in pipeline.avaliacao_requisitos]
+def consolidate_ai_response(result: AnalysisResult, pipeline: AIPipelineResult,
+                           next_steps: list[str]) -> AIAnalysisResponse:
+    category = {"technology": "technical_skill", "requirement": "other"}
+    requirements = [AIRequirementAnalysis(
+        item=x.item, category=category.get(next((i.type for i in result.requirement_analysis if i.item == x.item), "requirement"), "other"),
+        importance=x.importance if x.importance in {"required", "desired", "differential", "contextual", "not_provided"} else "not_provided",
+        status=x.status if x.status in {"found_with_evidence", "found_without_clear_context", "related_but_not_explicit", "missing", "not_evaluated", "possible_blocker"} else "not_evaluated",
+        evidence=x.used_evidence.excerpt if x.used_evidence else None,
+        rationale="Avaliação conciliada com evidência local selecionada.", recommendation=x.recommendation_safe or "Confirme a evidência antes de alterar o currículo.")
+        for x in pipeline.requirement_evaluations]
     return AIAnalysisResponse(
-        resumo_contextual="Análise contextual em etapas, conciliada com evidências locais.",
-        requisitos_contextuais=requisitos,
-        pontos_fortes=[x.item for x in pipeline.avaliacao_requisitos if x.status == "encontrado_com_evidencia"],
-        lacunas=[x.item for x in pipeline.avaliacao_requisitos if x.lacuna_real],
-        possiveis_impeditivos=resultado.keyword_report.alertas_hard_filters if resultado.keyword_report else [],
-        sugestoes_de_melhoria=pipeline.sugestoes_seguras, proximos_passos=proximos_passos,
-        alertas_contra_inventar=["Não transforme curso, skill isolada ou tecnologia ausente em experiência prática."],
-        confianca=pipeline.confianca_pipeline or 50, score_sugerido_ia=pipeline.score_contextual_ia,
-        justificativa_score_ia="Score contextual calculado sobre requisitos e evidências selecionadas.",
-        papel_ia=["classificadora da vaga", "auditora de evidências", "revisora anti-alucinação"],
-        qualidade_contexto_ia=pipeline.confianca_pipeline,
-        matriz_evidencia=[x.model_dump() for x in pipeline.evidencias_relevantes],
-        lacunas_priorizadas=pipeline.lacunas_priorizadas,
-        sugestoes_de_reescrita_seguras=pipeline.sugestoes_seguras,
-        score_contextual_ia=pipeline.score_contextual_ia)
+        contextual_summary="Análise contextual em etapas, conciliada com evidências locais.",
+        contextual_requirements=requirements,
+        strengths=[x.item for x in pipeline.requirement_evaluations if x.status == "found_with_evidence"],
+        gaps=[x.item for x in pipeline.requirement_evaluations if x.real_gap],
+        possible_blockers=result.keyword_report.hard_filter_alerts if result.keyword_report else [],
+        improvement_suggestions=pipeline.safe_suggestions, next_steps=next_steps,
+        anti_fabrication_alerts=["Não transforme curso, skill isolada ou tecnologia absent em experiência prática."],
+        confidence=pipeline.pipeline_confidence or 50, ai_suggested_score=pipeline.contextual_ai_score,
+        ai_score_rationale="Score contextual calculado sobre requisitos e evidências selected.",
+        ai_roles=["classificadora da vaga", "auditora de evidências", "revisora anti-alucinação"],
+        ai_context_quality=pipeline.pipeline_confidence,
+        evidence_matrix=[x.model_dump() for x in pipeline.relevant_evidence],
+        prioritized_gaps=pipeline.prioritized_gaps,
+        safe_rewrite_suggestions=pipeline.safe_suggestions,
+        contextual_ai_score=pipeline.contextual_ai_score)
 
 
-async def run_ai_pipeline(solicitacao: AnalysisRequest, resultado: AnalysisResult,
-                               provedor: AIProvider) -> tuple[AIPipelineResult, AIAnalysisResponse]:
-    executadas, fallbacks, detalhes = [], [], []
-    contexto = prepare_ai_context(solicitacao, resultado); executadas.append(ETAPAS[0])
-    classificacao, fallback, detalhe = await classify_job(contexto, resultado, provedor); executadas.append(ETAPAS[1])
-    if fallback: fallbacks.append(ETAPAS[1]); detalhes.append(detalhe)
-    evidencias = select_relevant_evidence(resultado, classificacao); executadas.append(ETAPAS[2])
-    avaliacoes, score, confianca, fallback, detalhe = await evaluate_requirements_contextually(resultado, classificacao, evidencias, provedor); executadas.append(ETAPAS[3])
-    if fallback: fallbacks.append(ETAPAS[3]); detalhes.append(detalhe)
-    lacunas = prioritize_gaps(avaliacoes); executadas.append(ETAPAS[4])
-    sugestoes, passos, fallback, detalhe = await generate_safe_suggestions(avaliacoes, lacunas, provedor); executadas.append(ETAPAS[5])
-    if fallback: fallbacks.append(ETAPAS[5]); detalhes.append(detalhe)
-    confianca_pipeline = max(20, round(confianca - len(fallbacks) * 12))
-    pipeline = AIPipelineResult(classificacao_vaga=classificacao, evidencias_relevantes=evidencias,
-        avaliacao_requisitos=avaliacoes, lacunas_priorizadas=lacunas, sugestoes_seguras=sugestoes,
-        score_contextual_ia=score, confianca_pipeline=confianca_pipeline,
-        etapas_executadas=executadas + [ETAPAS[6]], etapas_com_fallback=fallbacks,
-        detalhes_fallback=[x for x in detalhes if x])
-    return pipeline, consolidate_ai_response(resultado, pipeline, passos)
+async def run_ai_pipeline(request: AnalysisRequest, result: AnalysisResult,
+                               provider: AIProvider) -> tuple[AIPipelineResult, AIAnalysisResponse]:
+    executadas, fallbacks, details = [], [], []
+    context = prepare_ai_context(request, result); executadas.append(STEPS[0])
+    classification, fallback, detail = await classify_job(context, result, provider); executadas.append(STEPS[1])
+    if fallback: fallbacks.append(STEPS[1]); details.append(detail)
+    evidence_items = select_relevant_evidence(result, classification); executadas.append(STEPS[2])
+    evaluations, score, confidence, fallback, detail = await evaluate_requirements_contextually(result, classification, evidence_items, provider); executadas.append(STEPS[3])
+    if fallback: fallbacks.append(STEPS[3]); details.append(detail)
+    gaps = prioritize_gaps(evaluations); executadas.append(STEPS[4])
+    suggestions, passos, fallback, detail = await generate_safe_suggestions(evaluations, gaps, provider); executadas.append(STEPS[5])
+    if fallback: fallbacks.append(STEPS[5]); details.append(detail)
+    pipeline_confidence = max(20, round(confidence - len(fallbacks) * 12))
+    pipeline = AIPipelineResult(job_classification=classification, relevant_evidence=evidence_items,
+        requirement_evaluations=evaluations, prioritized_gaps=gaps, safe_suggestions=suggestions,
+        contextual_ai_score=score, pipeline_confidence=pipeline_confidence,
+        executed_steps=executadas + [STEPS[6]], fallback_steps=fallbacks,
+        fallback_details=[x for x in details if x])
+    return pipeline, consolidate_ai_response(result, pipeline, passos)

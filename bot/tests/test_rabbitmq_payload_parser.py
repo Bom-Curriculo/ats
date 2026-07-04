@@ -5,7 +5,7 @@ import pytest
 from app.services.rabbitmq_payload_parser import InvalidRabbitMQPayload, parse_rabbitmq_payload
 
 
-def test_parseia_json_limpo() -> None:
+def test_rabbitmq_payload_parser_behavior_01() -> None:
     payload = {
         "analysis_request_id": "request-123",
         "user_id": 12,
@@ -21,7 +21,22 @@ def test_parseia_json_limpo() -> None:
     assert parsed.data == payload
 
 
-def test_parseia_job_laravel_serializado() -> None:
+def test_parses_clean_english_json() -> None:
+    payload = {
+        "analysis_request_id": "request-english",
+        "resume_text": "Python project",
+        "job_text": "Python required",
+        "language": "en-US",
+        "job_level": "junior",
+        "resume_sources": [],
+        "use_ai": False,
+    }
+    parsed = parse_rabbitmq_payload(json.dumps(payload))
+    assert parsed.format == "json"
+    assert parsed.data == payload
+
+
+def test_rabbitmq_payload_parser_behavior_03() -> None:
     command = (
         'O:27:"App\\Jobs\\ProcessResumesJobs":4:{'
         's:9:"resume_cv";s:31:"uploads/resumes/cvs/teste.docx";'
@@ -41,7 +56,7 @@ def test_parseia_job_laravel_serializado() -> None:
     assert parsed.data["urls"] == ["http://backend:8000/linkedin/teste.pdf"]
 
 
-def test_parseia_propriedades_protegidas_e_fallback_generico() -> None:
+def test_rabbitmq_payload_parser_behavior_04() -> None:
     command = (
         'O:27:"App\\Jobs\\ProcessResumesJobs":3:{'
         's:12:"\\u0000*\\u0000resume_cv";s:8:"file.pdf";'

@@ -1,4 +1,4 @@
-"""Parser seguro para mensagens de entrada do worker RabbitMQ."""
+"""Safe parser for RabbitMQ worker input messages."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from typing import Any, Literal
 
 
 class InvalidRabbitMQPayload(ValueError):
-    """Indica uma mensagem que não pode ser processada de forma definitiva."""
+    """A message that cannot be processed permanently."""
 
 
 PayloadFormat = Literal["json", "laravel"]
@@ -21,6 +21,12 @@ _ALLOWED_FIELDS = {
     "resume_cv_url",
     "resume_linkedin",
     "resume_linkedin_url",
+    "resume_text",
+    "job_text",
+    "language",
+    "job_level",
+    "resume_sources",
+    "use_ai",
     "curriculo_texto",
     "vaga_texto",
     "expires_link",
@@ -47,10 +53,10 @@ def _decode_json(body: bytes | str) -> dict[str, Any]:
 
 
 def _extract_serialized_value(command: str, field: str) -> str | int | None:
-    """Extrai valores simples sem executar/deserializar o objeto PHP."""
+    """Extract simple values without executing or deserializing PHP objects."""
     escaped = re.escape(field)
     # Laravel serializa propriedades protected como "\0*\0campo". O JSON pode
-    # entregá-las como NUL real ou como a sequência textual ``\u0000``.
+    # Implementation note.
     command = re.sub(
         rf'(?:\x00|\\u0000)(?:\*|[^\x00]*?)(?:\x00|\\u0000){escaped}',
         field,
@@ -62,7 +68,7 @@ def _extract_serialized_value(command: str, field: str) -> str | int | None:
         rf'["\']{escaped}["\']\s*;?\s*'
         rf'(?:s:\d+:)?["\'](?P<string>[^"\']*)["\']',
         rf'["\']{escaped}["\']\s*;?\s*i:(?P<int>\d+)',
-        # Fallback para representações debug/JSON-like dentro de command.
+        # Implementation note.
         rf'(?<![\w]){escaped}["\']?\s*(?:=>|:|=)\s*["\'](?P<plain>[^"\']*)["\']',
         rf'(?<![\w]){escaped}["\']?\s*(?:=>|:|=)\s*(?P<number>\d+)',
         rf'(?<![\w]){escaped}["\']?\s*(?:=>|:|=)\s*(?P<bare>https?://[^\s;}}]+|[^\s;}}]+)',
@@ -96,7 +102,7 @@ def _parse_laravel(payload: dict[str, Any]) -> ParsedRabbitMQPayload:
     if urls:
         extracted["urls"] = list(dict.fromkeys(urls))
 
-    # O envelope do Laravel costuma fornecer um UUID útil para correlação.
+    # Implementation note.
     if "analysis_request_id" not in extracted and payload.get("uuid"):
         extracted["analysis_request_id"] = str(payload["uuid"])
 
@@ -104,7 +110,7 @@ def _parse_laravel(payload: dict[str, Any]) -> ParsedRabbitMQPayload:
 
 
 def parse_rabbitmq_payload(body: bytes | str) -> ParsedRabbitMQPayload:
-    """Reconhece JSON limpo ou um job Laravel suportado."""
+    """Recognize clean JSON or a supported Laravel job."""
     payload = _decode_json(body)
     if isinstance(payload.get("data"), dict) and "command" in payload["data"]:
         return _parse_laravel(payload)

@@ -13,7 +13,7 @@ from app.schemas.analysis import (
     DetailedSuggestions,
 )
 from app.schemas.ai_analysis import AIRequirementAnalysis, AIAnalysisResponse
-from app.services.technology_catalog import CATALOGO, Technology
+from app.services.technology_catalog import TECHNOLOGY_CATALOG, Technology
 from app.services.section_extractor import detect_evidence, extract_resume_sections, analyze_resume_sections
 from app.services.resume_inventory import extract_resume_inventory
 from app.services.fact_bank import build_fact_bank, summarize_sources
@@ -35,343 +35,343 @@ from app.services.technical_equivalences import (
     inferences_for,
     source_weight,
     public_status,
-    GRUPOS_SUBREQUISITOS,
+    SUBREQUIREMENT_GROUPS,
 )
 
-# requisitos não tech q tb entram no catalogo
-REQUISITOS_NAO_TECNICOS = (
-    Technology("Inglês avançado", "idiomas", ("ingles avancado", "advanced english")),
+# Technical note removed during English standardization.
+NON_TECHNICAL_REQUIREMENTS = (
+    Technology("Inglês avançado", "languages", ("ingles avancado", "advanced english")),
     Technology(
         "graduação completa",
-        "formacao",
-        ("graduacao completa", "ensino superior completo"),
+        "education",
+        ("graduacao completa", "ensino superior complete"),
     ),
     Technology("portfólio", "ferramentas", ("portfolio",)),
 )
 
 
-# mapeia nome da seção pra chave q a gente usa
-SECOES_ESPERADAS = {
-    "experiência": "experiencia_profissional",
-    "formação": "educacao",
-    "projetos": "projetos",
-    "habilidades": "competencias_tecnicas",
+# Technical note removed during English standardization.
+EXPECTED_SECTIONS = {
+    "experiência": "professional_experience",
+    "formação": "education",
+    "projects": "projects",
+    "habilidades": "technical_skills",
 }
 
 
 @dataclass(frozen=True)
 class Keyword:
-    termo: str
+    term: str
 
-    peso: int
+    weight: int
 
-    ordem: int
+    priority: int
 
     grupo: str
 
-    tecnologia: bool
+    technology: bool
 
 
-def normalize_text(texto: str) -> str:
+def normalize_text(text: str) -> str:
 
-    return normalize_for_comparison(texto)
+    return normalize_for_comparison(text)
 
 
-# acha a primeira ocorrencia da tecnologia pelo texto
-def _ocorrencia(texto: str, aliases: tuple[str, ...]) -> re.Match[str] | None:
-    return find_alias(texto, aliases)
+# Technical note removed during English standardization.
+def _ocorrencia(text: str, aliases: tuple[str, ...]) -> re.Match[str] | None:
+    return find_alias(text, aliases)
 
 
 def extract_job_requirements(
-    vaga_estruturada: dict[str, str | list[str]],
+    job_estruturada: dict[str, str | list[str]],
 ) -> list[Keyword]:
-    """Extrai somente catálogo conhecido das áreas que podem influenciar o score."""
+    """Extract known catalog entries only from score-relevant areas."""
 
-    requisitos: dict[str, Keyword] = {}
+    requirements: dict[str, Keyword] = {}
 
     grupos = (
-        ("requisito_obrigatorio", 3, "requisitos_obrigatorios"),
-        ("responsabilidade", 2, "responsabilidades"),
-        ("diferencial", 1, "diferenciais"),
+        ("requirement_obrigatorio", 3, "requirements_obrigatorios"),
+        ("responsabilidade", 2, "responsibilities"),
+        ("differential", 1, "differentials"),
     )
 
-    catalogo = CATALOGO + REQUISITOS_NAO_TECNICOS
+    catalogo = TECHNOLOGY_CATALOG + NON_TECHNICAL_REQUIREMENTS
 
     deslocamento = 0
 
-    for grupo, peso, campo in grupos:
-        valor = vaga_estruturada.get(campo, [])
+    for grupo, weight, campo in grupos:
+        value = job_estruturada.get(campo, [])
 
-        texto = normalize_for_comparison(
-            "\n".join(valor) if isinstance(valor, list) else valor
+        text = normalize_for_comparison(
+            "\n".join(value) if isinstance(value, list) else value
         )
 
-        for tecnologia in catalogo:
-            match = _ocorrencia(texto, tecnologia.aliases)
+        for technology in catalogo:
+            match = _ocorrencia(text, technology.aliases)
 
-            if match and tecnologia.nome not in requisitos:
-                requisitos[tecnologia.nome] = Keyword(
-                    tecnologia.nome,
-                    peso,
+            if match and technology.name not in requirements:
+                requirements[technology.name] = Keyword(
+                    technology.name,
+                    weight,
                     deslocamento + match.start(),
                     grupo,
-                    tecnologia in CATALOGO,
+                    technology in TECHNOLOGY_CATALOG,
                 )
 
-        deslocamento += len(texto) + 1
+        deslocamento += len(text) + 1
 
     # Technologies in the title are also primary requirements.
-    titulo = normalize_for_comparison(str(vaga_estruturada.get("titulo", "")))
+    title = normalize_for_comparison(str(job_estruturada.get("title", "")))
 
-    for tecnologia in CATALOGO:
-        match = _ocorrencia(titulo, tecnologia.aliases)
+    for technology in TECHNOLOGY_CATALOG:
+        match = _ocorrencia(title, technology.aliases)
 
-        if match and tecnologia.nome not in requisitos:
-            requisitos[tecnologia.nome] = Keyword(
-                tecnologia.nome, 3, match.start(), "requisito_obrigatorio", True
+        if match and technology.name not in requirements:
+            requirements[technology.name] = Keyword(
+                technology.name, 3, match.start(), "requirement_obrigatorio", True
             )
 
-    # Descrições reais frequentemente não preservam cabeçalhos ao serem copiadas.
-    # O texto completo funciona como cobertura contextual de baixo peso.
-    texto_completo = normalize_for_comparison(
+    # Implementation note.
+    # Implementation note.
+    text_completo = normalize_for_comparison(
         "\n".join(
             str(item)
-            for valor in vaga_estruturada.values()
-            for item in (valor if isinstance(valor, list) else [valor])
+            for value in job_estruturada.values()
+            for item in (value if isinstance(value, list) else [value])
         )
     )
-    for tecnologia in catalogo:
-        match = _ocorrencia(texto_completo, tecnologia.aliases)
-        if match and tecnologia.nome not in requisitos:
-            requisitos[tecnologia.nome] = Keyword(
-                tecnologia.nome,
+    for technology in catalogo:
+        match = _ocorrencia(text_completo, technology.aliases)
+        if match and technology.name not in requirements:
+            requirements[technology.name] = Keyword(
+                technology.name,
                 1,
                 deslocamento + match.start(),
-                "contexto",
-                tecnologia in CATALOGO,
+                "context",
+                technology in TECHNOLOGY_CATALOG,
             )
 
-    # Evita contar o requisito genérico e o específico para a mesma menção.
-    if ("APIs REST" in requisitos or "APIs de IA" in requisitos) and "APIs" in requisitos:
-        del requisitos["APIs"]
+    # Technical note removed during English standardization.
+    if ("APIs REST" in requirements or "APIs de IA" in requirements) and "APIs" in requirements:
+        del requirements["APIs"]
 
-    # Evita matches por substring de bases que só aparecem dentro do composto.
+    # Implementation note.
     pares_compostos = (
         ("Spring Boot", "Spring", r"\bspring\b(?!\s+boot)"),
         ("Docker Compose", "Docker", r"\bdocker\b(?!\s+compose)"),
         ("React Native", "React", r"\breact\b(?!\s+native)"),
     )
-    for composto, base, padrao_base_solto in pares_compostos:
-        if composto in requisitos and base in requisitos and not re.search(padrao_base_solto, texto_completo):
-            del requisitos[base]
+    for composto, base, standalone_base_pattern in pares_compostos:
+        if composto in requirements and base in requirements and not re.search(standalone_base_pattern, text_completo):
+            del requirements[base]
 
-    return sorted(requisitos.values(), key=lambda item: (-item.peso, item.ordem))
+    return sorted(requirements.values(), key=lambda item: (-item.weight, item.priority))
 
 
 def extract_weighted_relevant_keywords(
-    texto_vaga: str, limite: int = 40
+    text_job: str, limite: int = 40
 ) -> list[Keyword]:
 
-    return extract_job_requirements(normalize_job_text(texto_vaga))[:limite]
+    return extract_job_requirements(normalize_job_text(text_job))[:limite]
 
 
-def extract_relevant_keywords(texto_vaga: str, limite: int = 40) -> list[str]:
+def extract_relevant_keywords(text_job: str, limite: int = 40) -> list[str]:
 
     return [
-        item.termo for item in extract_weighted_relevant_keywords(texto_vaga, limite)
+        item.term for item in extract_weighted_relevant_keywords(text_job, limite)
     ]
 
 
-# pega o objeto [tecnologias] pelo nome
-def _tecnologia(nome: str) -> Technology:
+# Technical note removed during English standardization.
+def _technology(name: str) -> Technology:
 
     return next(
-        item for item in CATALOGO + REQUISITOS_NAO_TECNICOS if item.nome == nome
+        item for item in TECHNOLOGY_CATALOG + NON_TECHNICAL_REQUIREMENTS if item.name == name
     )
 
 
-# verifica se o termo aparece no texto normalizado
-def _contains(texto: str, nome: str) -> bool:
+# Implementation note.
+def _contains(text: str, name: str) -> bool:
 
     return (
         _ocorrencia(
-            normalize_for_comparison(normalize_resume_text(texto)),
-            _tecnologia(nome).aliases,
+            normalize_for_comparison(normalize_resume_text(text)),
+            _technology(name).aliases,
         )
         is not None
     )
 
 
-def detect_missing_sections(curriculo_texto: str) -> list[str]:
+def detect_missing_sections(resume_text: str) -> list[str]:
 
-    secoes = extract_resume_sections(curriculo_texto)
+    sections = extract_resume_sections(resume_text)
 
     return [
-        f"Seção de {nome} não identificada no currículo."
-        for nome, chave in SECOES_ESPERADAS.items()
-        if chave not in secoes
+        f"Seção de {name} não identificada no currículo."
+        for name, key in EXPECTED_SECTIONS.items()
+        if key not in sections
     ]
 
 
 def compare_resume_to_job(
-    curriculo: str, secoes: dict[str, str], requisitos: list[Keyword]
+    resume: str, sections: dict[str, str], requirements: list[Keyword]
 ) -> list[RequirementAnalysisItem]:
-    """Classifica cada requisito e n copia dados pessoais"""
+    """Classify each requirement without copying personal data."""
 
-    itens: list[RequirementAnalysisItem] = []
+    items: list[RequirementAnalysisItem] = []
 
-    secoes_praticas_parciais = ("residencias", "projetos_academicos")
-    secoes_educacionais = ("educacao", "certificacoes", "cursos")
+    sections_praticas_parciais = ("residencies", "academic_projects")
+    sections_educacionais = ("education", "certifications", "courses")
 
-    def contem_direto(texto: str, nome: str) -> bool:
-        # Evita que uma tecnologia composta satisfaça a base por mera substring;
-        # relações legítimas são avaliadas depois pelo catálogo de inferências.
+    def contem_direto(text: str, name: str) -> bool:
+        # Technical note removed during English standardization.
+        # Implementation note.
         compostos = {
             "CSS": ("Tailwind CSS",),
             "Docker": ("Docker Compose",),
             "React": ("React Native",),
             "Spring": ("Spring Boot",),
         }
-        limpo = texto
-        for composto in compostos.get(nome, ()):
+        limpo = text
+        for composto in compostos.get(name, ()):
             limpo = re.sub(re.escape(composto), " ", limpo, flags=re.I)
-        return _contains(limpo, nome)
+        return _contains(limpo, name)
 
-    def localizar(nome: str) -> tuple[EvidenceLevel, str | None, str | None]:
-        if contem_direto(secoes.get("experiencia_profissional", ""), nome):
-            return EvidenceLevel.PRATICA_FORTE, "experiência profissional", None
-        freela = secoes.get("freelas", "")
-        if contem_direto(freela, nome):
+    def localizar(name: str) -> tuple[EvidenceLevel, str | None, str | None]:
+        if contem_direto(sections.get("professional_experience", ""), name):
+            return EvidenceLevel.STRONG_PRACTICAL, "experiência profissional", None
+        freela = sections.get("freelance", "")
+        if contem_direto(freela, name):
             entrega = re.search(r"\b(entreg|cliente|contrat|publicad|deploy|implement|desenvolv|delivered|client|contract|released|built)\w*\b", normalize_for_comparison(freela))
-            return (EvidenceLevel.PRATICA_FORTE if entrega else EvidenceLevel.RELACIONADA), "freela", None
-        projeto = secoes.get("projetos", "")
-        if contem_direto(projeto, nome):
-            return EvidenceLevel.PRATICA_FORTE, "projeto", None
-        aberto = secoes.get("open_source", "")
-        if contem_direto(aberto, nome):
+            return (EvidenceLevel.STRONG_PRACTICAL if entrega else EvidenceLevel.RELATED), "freela", None
+        project = sections.get("projects", "")
+        if contem_direto(project, name):
+            return EvidenceLevel.STRONG_PRACTICAL, "project", None
+        aberto = sections.get("open_source", "")
+        if contem_direto(aberto, name):
             contribuicao = re.search(r"\b(contribu|commit|pull request|merged|aceit|corrig|implement|maintain|fixed)\w*\b", normalize_for_comparison(aberto))
-            return (EvidenceLevel.PRATICA_FORTE if contribuicao else EvidenceLevel.RELACIONADA), "open source", None
-        if any(contem_direto(secoes.get(s, ""), nome) for s in secoes_praticas_parciais):
-            fonte = "residência/laboratório prático" if contem_direto(secoes.get("residencias", ""), nome) else "projeto acadêmico"
-            return EvidenceLevel.PRATICA_PARCIAL, fonte, None
-        if any(contem_direto(secoes.get(s, ""), nome) for s in secoes_educacionais):
-            return EvidenceLevel.EDUCACIONAL, "curso/formação", None
-        for linha in curriculo.splitlines():
-            linha_normalizada = normalize_for_comparison(linha)
-            if contem_direto(linha, nome) and re.search(
+            return (EvidenceLevel.STRONG_PRACTICAL if contribuicao else EvidenceLevel.RELATED), "open source", None
+        if any(contem_direto(sections.get(s, ""), name) for s in sections_praticas_parciais):
+            source = "residência/laboratório prático" if contem_direto(sections.get("residencies", ""), name) else "project acadêmico"
+            return EvidenceLevel.PARTIAL_PRACTICAL, source, None
+        if any(contem_direto(sections.get(s, ""), name) for s in sections_educacionais):
+            return EvidenceLevel.EDUCATIONAL, "curso/formação", None
+        for line in resume.splitlines():
+            normalized_line = normalize_for_comparison(line)
+            if contem_direto(line, name) and re.search(
                 r"\b(curso|certifica|disciplina|formacao|bootcamp|treinamento)\b",
-                linha_normalizada,
+                normalized_line,
             ):
-                return EvidenceLevel.EDUCACIONAL, "curso/formação", None
-            if contem_direto(linha, nome) and re.search(
+                return EvidenceLevel.EDUCATIONAL, "curso/formação", None
+            if contem_direto(line, name) and re.search(
                 r"\b(residencia tecnologica|laboratorio pratico|lab pratico)\b",
-                linha_normalizada,
+                normalized_line,
             ):
-                return EvidenceLevel.PRATICA_PARCIAL, "residência/laboratório prático", None
-        if contem_direto(secoes.get("competencias_tecnicas", ""), nome) or contem_direto(curriculo, nome):
-            return EvidenceLevel.SKILL_SOLTA, "competências", None
+                return EvidenceLevel.PARTIAL_PRACTICAL, "residência/laboratório prático", None
+        if contem_direto(sections.get("technical_skills", ""), name) or contem_direto(resume, name):
+            return EvidenceLevel.STANDALONE_SKILL, "competências", None
 
-        corpus = normalize_for_comparison(curriculo)
-        for inferencia in inferences_for(nome):
+        corpus = normalize_for_comparison(resume)
+        for inference in inferences_for(name):
             try:
-                origem_presente = _contains(curriculo, inferencia.origem)
+                origin_present = _contains(resume, inference.origin)
             except StopIteration:
-                origem_presente = normalize_for_comparison(inferencia.origem) in corpus
-            contexto_ok = not inferencia.exige_contexto or any(
-                termo in corpus for termo in inferencia.exige_contexto
+                origin_present = normalize_for_comparison(inference.origin) in corpus
+            context_ok = not inference.requires_context or any(
+                term in corpus for term in inference.requires_context
             )
-            if origem_presente and contexto_ok:
-                return EvidenceLevel.RELACIONADA, inferencia.origem, inferencia.forca.value
-        return EvidenceLevel.AUSENTE, None, None
+            if origin_present and context_ok:
+                return EvidenceLevel.RELATED, inference.origin, inference.strength.value
+        return EvidenceLevel.ABSENT, None, None
 
-    for requisito in requisitos:
-        nivel_evidencia, fonte, forca = localizar(requisito.termo)
-        status = public_status(nivel_evidencia)
-        evidencia = (
-            f"{requisito.termo} aparece em {fonte}." if fonte and nivel_evidencia != EvidenceLevel.RELACIONADA
-            else (f"{fonte} fornece evidência técnica relacionada, sem comprovar {requisito.termo} diretamente." if fonte else None)
+    for requirement in requirements:
+        evidence_level, source, strength = localizar(requirement.term)
+        status = public_status(evidence_level)
+        evidence = (
+            f"{requirement.term} aparece em {source}." if source and evidence_level != EvidenceLevel.RELATED
+            else (f"{source} fornece evidência técnica relacionada, sem comprovar {requirement.term} diretamente." if source else None)
         )
-        if nivel_evidencia in {EvidenceLevel.PRATICA_FORTE, EvidenceLevel.PRATICA_PARCIAL}:
-            orientacao = "Mantenha a evidência objetiva e descreva uso, entrega e resultado alcançado."
-        elif nivel_evidencia == EvidenceLevel.EDUCACIONAL:
-            orientacao = "Mantenha como formação/conhecimento; associe a projeto real somente se essa aplicação existiu."
-        elif nivel_evidencia == EvidenceLevel.SKILL_SOLTA:
-            orientacao = "Associe a habilidade a projeto ou experiência real, se possível."
-        elif nivel_evidencia == EvidenceLevel.RELACIONADA:
-            orientacao = f"A relação com {fonte} é indício, não comprovação direta; explicite somente se tiver vivência real."
+        if evidence_level in {EvidenceLevel.STRONG_PRACTICAL, EvidenceLevel.PARTIAL_PRACTICAL}:
+            guidance = "Mantenha a evidência objetiva e descreva uso, entrega e resultado alcançado."
+        elif evidence_level == EvidenceLevel.EDUCATIONAL:
+            guidance = "Mantenha como formação/conhecimento; associe a project real somente se essa aplicação existiu."
+        elif evidence_level == EvidenceLevel.STANDALONE_SKILL:
+            guidance = "Associe a habilidade a project ou experiência real, se possível."
+        elif evidence_level == EvidenceLevel.RELATED:
+            guidance = f"A relação com {source} é indício, não comprovação direta; explicite somente se tiver vivência real."
         else:
-            orientacao = f"Não inclua {requisito.termo} como experiência se não tiver usado. Pode criar projeto prático para evidenciar."
+            guidance = f"Não inclua {requirement.term} como experiência se não tiver usado. Pode criar project prático para evidenciar."
 
-        itens.append(
+        items.append(
             RequirementAnalysisItem(
-                item=requisito.termo,
-                tipo="tecnologia" if requisito.tecnologia else "requisito",
-                categoria=requisito.grupo,
-                peso=requisito.peso,
+                item=requirement.term,
+                type="technology" if requirement.technology else "requirement",
+                category=requirement.grupo,
+                weight=requirement.weight,
                 status=status,
-                evidencia_no_curriculo=evidencia,
-                orientacao=orientacao,
-                nivel_evidencia=nivel_evidencia.value,
-                fonte_evidencia=fonte,
-                forca_inferencia=forca,
+                resume_evidence=evidence,
+                guidance=guidance,
+                evidence_level=evidence_level.value,
+                evidence_source=source,
+                inference_strength=strength,
             )
         )
 
-    return itens
+    return items
 
 
 def calculate_ats_score(
-    itens: list[RequirementAnalysisItem], analise_valida: bool,
-    nivel_vaga: JobLevel = JobLevel.NAO_INFORMADO,
+    items: list[RequirementAnalysisItem], valid_analysis: bool,
+    job_level: JobLevel = JobLevel.NOT_PROVIDED,
 ) -> int:
 
-    if not analise_valida or not itens:
+    if not valid_analysis or not items:
         return 0
 
     grupos: dict[str, list[RequirementAnalysisItem]] = {}
-    for item in itens:
-        chave = next(
-            (grupo for grupo, membros in GRUPOS_SUBREQUISITOS.items() if item.item in membros),
+    for item in items:
+        key = next(
+            (grupo for grupo, membros in SUBREQUIREMENT_GROUPS.items() if item.item in membros),
             item.item,
         )
-        grupos.setdefault(chave, []).append(item)
-    total = sum(max(item.peso for item in grupo) for grupo in grupos.values())
+        grupos.setdefault(key, []).append(item)
+    total = sum(max(item.weight for item in grupo) for grupo in grupos.values())
     pontos = sum(
-        max(item.peso for item in grupo)
-        * max(source_weight(nivel_vaga, EvidenceLevel(item.nivel_evidencia)) for item in grupo)
+        max(item.weight for item in grupo)
+        * max(source_weight(job_level, EvidenceLevel(item.evidence_level)) for item in grupo)
         for grupo in grupos.values()
     )
     score = round(pontos / total * 100)
 
-    # se tiver poucos itens e score 100, capa em 95 pra não dar falso positivo
-    return min(score, 95) if len(itens) < 5 and score == 100 else score
+    # Implementation note.
+    return min(score, 95) if len(items) < 5 and score == 100 else score
 
 
-def detect_possible_blockers(curriculo: str, vaga: str) -> list[str]:
+def detect_possible_blockers(resume: str, job: str) -> list[str]:
 
     cv, descricao = (
-        normalize_for_comparison(curriculo),
-        normalize_for_comparison(clean_job_text(vaga)),
+        normalize_for_comparison(resume),
+        normalize_for_comparison(clean_job_text(job)),
     )
 
-    saida: list[str] = []
+    output: list[str] = []
 
-    # graduaçãp em andamento vs completa
+    # Implementation note.
     if re.search(
-        r"graduacao completa|ensino superior completo", descricao
+        r"graduacao completa|ensino superior complete", descricao
     ) and re.search(r"graduacao.{0,40}cursando|cursando.{0,40}graduacao", cv):
-        saida.append(
+        output.append(
             "Vaga pede graduação completa; currículo indica graduação em andamento."
         )
 
-    # inglês tecnico vs avançado
+    # Implementation note.
     if (
         re.search(r"ingles avancado|advanced english", descricao)
         and "ingles tecnico" in cv
     ):
-        saida.append("Vaga pede inglês avançado; currículo indica inglês técnico.")
+        output.append("Vaga pede inglês avançado; currículo indica inglês técnico.")
 
-    # lista de cidades pra bater localidade
+    # Implementation note.
     cidades = (
         "Manaus",
         "Recife",
@@ -385,9 +385,9 @@ def detect_possible_blockers(curriculo: str, vaga: str) -> list[str]:
         "Salvador",
     )
 
-    # se for hibrido/presencial e cidades diferentes, alerta
+    # Implementation note.
     if re.search(r"\b(hibrid[oa]|presencial)\b", descricao):
-        cidade_vaga = next(
+        cidade_job = next(
             (c for c in cidades if normalize_for_comparison(c) in descricao), None
         )
 
@@ -395,24 +395,24 @@ def detect_possible_blockers(curriculo: str, vaga: str) -> list[str]:
             (c for c in cidades if normalize_for_comparison(c) in cv), None
         )
 
-        if cidade_vaga and cidade_cv and cidade_vaga != cidade_cv:
-            saida.append(
-                f"Vaga é híbrida/presencial em {cidade_vaga}; currículo indica {cidade_cv}."
+        if cidade_job and cidade_cv and cidade_job != cidade_cv:
+            output.append(
+                f"Vaga é híbrida/presencial em {cidade_job}; currículo indica {cidade_cv}."
             )
 
-    return saida
+    return output
 
 
-def _entrada_valida(curriculo: str, vaga: str) -> tuple[bool, list[str]]:
+def _is_valid_input(resume: str, job: str) -> tuple[bool, list[str]]:
 
     a, b = (
-        normalize_for_comparison(curriculo),
-        normalize_for_comparison(clean_job_text(vaga)),
+        normalize_for_comparison(resume),
+        normalize_for_comparison(clean_job_text(job)),
     )
 
     similaridade = SequenceMatcher(None, a, b).ratio() if a and b else 0
 
-    # se for parecido é inválidado
+    # Implementation note.
     if a == b or (min(len(a), len(b)) > 50 and similaridade >= 0.92):
         return False, [
             "Currículo e vaga são iguais ou muito parecidos; confirme os campos enviados."
@@ -422,17 +422,17 @@ def _entrada_valida(curriculo: str, vaga: str) -> tuple[bool, list[str]]:
 
 
 def generate_local_suggestions(
-    itens: list[RequirementAnalysisItem],
-    evidencias: dict[str, bool],
+    items: list[RequirementAnalysisItem],
+    evidence_items: dict[str, bool],
     impeditivos: list[str],
-    vaga: str,
+    job: str,
 ) -> DetailedSuggestions:
 
-    ajustes, lacunas, atencao, passos = [], [], list(impeditivos), []
+    adjustments, gaps, atencao, passos = [], [], list(impeditivos), []
 
-    # habilidades ausentes, mas sem penalidade
-    if not evidencias["secao_habilidades"]:
-        ajustes.append(
+    # Implementation note.
+    if not evidence_items["skills_section"]:
+        adjustments.append(
             "Crie uma seção 'Competências Técnicas' claramente identificada; ela é fortemente recomendada para ATS tech, mas sua ausência não reprova automaticamente."
         )
 
@@ -444,436 +444,436 @@ def generate_local_suggestions(
         "APIs": ({"APIs", "APIs REST", "Webhooks"}, "APIs REST e integrações: consumo, endpoints e webhooks"),
     }
 
-    for item in itens:
-        grupo = next((nome for nome, (membros, _) in grupos.items() if item.item in membros), None)
-        rotulo = grupos[grupo][1] if grupo else item.item
+    for item in items:
+        grupo = next((name for name, (membros, _) in grupos.items() if item.item in membros), None)
+        label = grupos[grupo][1] if grupo else item.item
         if grupo and grupo in grupos_processados:
             continue
         if grupo:
             grupos_processados.add(grupo)
-        if item.status == "encontrado_sem_contexto_claro":
-            ajustes.append(
-                f"Detalhe melhor {rotulo}, se você já usou em projetos ou experiência."
+        if item.status == "found_without_clear_context":
+            adjustments.append(
+                f"Detalhe best {label}, se você já usou em projects ou experiência."
             )
 
-        elif item.status == "faltando":
-            lacunas.append(
-                f"Se não tiver experiência com {rotulo}, trate como lacuna técnica da vaga."
+        elif item.status == "missing":
+            gaps.append(
+                f"Se não tiver experiência com {label}, trate como lacuna técnica da vaga."
             )
 
             passos.append(
-                f"Considere estudar e criar um projeto prático com {rotulo}, sem declarar experiência antes de utilizá-lo."
+                f"Considere estudar e criar um project prático com {label}, sem declarar experiência antes de utilizá-lo."
             )
 
-        elif item.status == "relacionado_mas_nao_explicito":
-            ajustes.append(item.orientacao)
+        elif item.status == "related_but_not_explicit":
+            adjustments.append(item.guidance)
 
-    # sem experiência profissional é recomendado compensar com projetos etc
-    if not evidencias["experiencia_profissional"]:
+    # Implementation note.
+    if not evidence_items["professional_experience"]:
         passos.append(
-            "Sem experiência profissional, evidencie projetos pessoais ou acadêmicos, labs, freelas, residência tecnológica e cursos práticos; isso não causa reprovação automática."
+            "Sem experiência profissional, evidencie projects pessoais ou acadêmicos, labs, freelance, residência tecnológica e courses práticos; isso não causa reprovação automática."
         )
 
-    vaga_normalizada = normalize_for_comparison(vaga)
+    job_normalizada = normalize_for_comparison(job)
 
-    if "portfolio" in vaga_normalizada and "portfólio" in [
-        i.item for i in itens if i.status == "faltando"
+    if "portfolio" in job_normalizada and "portfólio" in [
+        i.item for i in items if i.status == "missing"
     ]:
         passos.append(
-            "Monte um portfólio com projetos reais porque esta vaga o solicita."
+            "Monte um portfólio com projects reais porque esta vaga o solicita."
         )
 
-    ajustes = list(dict.fromkeys(ajustes))
-    lacunas = list(dict.fromkeys(lacunas))
+    adjustments = list(dict.fromkeys(adjustments))
+    gaps = list(dict.fromkeys(gaps))
     passos = list(dict.fromkeys(passos))
-    alertas_honestidade = ["Não inclua tecnologias, práticas ou resultados que você não possa comprovar."]
+    alerts_honestidade = ["Não inclua tecnologias, práticas ou resultados que você não possa comprovar."]
     return DetailedSuggestions(
-        ajustes_recomendados=ajustes,
-        lacunas_tecnicas=lacunas,
-        pontos_de_atencao=atencao,
-        proximos_passos=passos,
-        ajustes_no_curriculo=ajustes,
-        lacunas_reais=lacunas,
-        proximos_passos_de_estudo=passos,
-        alertas_contra_inventar=alertas_honestidade,
+        recommended_adjustments=adjustments,
+        technical_gaps=gaps,
+        attention_points=atencao,
+        next_steps=passos,
+        resume_adjustments=adjustments,
+        real_gaps=gaps,
+        study_next_steps=passos,
+        anti_fabrication_alerts=alerts_honestidade,
     )
 
 
-def _chave_requisito_ia(nome: str) -> str:
-    chave = normalize_for_comparison(nome)
+def _ai_requirement_key(name: str) -> str:
+    key = normalize_for_comparison(name)
     equivalentes = {
         "html5": "html", "css3": "css", "api rest": "apis rest",
         "consumo de apis rest": "apis rest", "desenvolvimento de apis rest": "apis rest",
         "integracao de apis rest": "apis rest", "integracao de apis": "apis rest",
         "ingles": "ingles tecnico",
     }
-    return normalize_for_comparison(equivalentes.get(nome, equivalentes.get(chave, chave)))
+    return normalize_for_comparison(equivalentes.get(name, equivalentes.get(key, key)))
 
 
 def post_validate_ai_analysis(
-    resposta: AIAnalysisResponse, resultado_local: AnalysisResult
+    response: AIAnalysisResponse, local_result: AnalysisResult
 ) -> tuple[AIAnalysisResponse, list[str]]:
-    """Concilia a opinião externa com o inventário local rastreável."""
-    locais = {_chave_requisito_ia(i.item): i for i in resultado_local.analise_por_requisito}
-    ajustes: list[str] = []
-    requisitos: list[AIRequirementAnalysis] = []
-    for req in resposta.requisitos_contextuais:
-        chave = _chave_requisito_ia(req.item)
-        local = locais.get(chave)
-        if local and req.status != local.status:
+    """Reconcile external output with the traceable local inventory."""
+    local_by_key = {_ai_requirement_key(i.item): i for i in local_result.requirement_analysis}
+    adjustments: list[str] = []
+    requirements: list[AIRequirementAnalysis] = []
+    for req in response.contextual_requirements:
+        key = _ai_requirement_key(req.item)
+        local_item = local_by_key.get(key)
+        if local_item and req.status != local_item.status:
             anterior = req.status
             req = req.model_copy(update={
-                "status": local.status,
-                "evidencia": local.evidencia_no_curriculo,
-                "justificativa": f"Classificação conciliada com evidência local: {local.nivel_evidencia}.",
+                "status": local_item.status,
+                "evidence": local_item.resume_evidence,
+                "rationale": f"Classification reconciled with local evidence: {local_item.evidence_level}.",
             })
-            rotulo = req.item
-            if local.nivel_evidencia == EvidenceLevel.EDUCACIONAL.value:
-                ajustes.append(f"{rotulo} rebaixado para evidência educacional")
-            elif anterior == "faltando":
-                ajustes.append(f"{rotulo} corrigido por evidência ou equivalência local")
+            label = req.item
+            if local_item.evidence_level == EvidenceLevel.EDUCATIONAL.value:
+                adjustments.append(f"{label} rebaixado para evidência educacional")
+            elif anterior == "missing":
+                adjustments.append(f"{label} corrigido por evidência ou equivalência local")
             else:
-                ajustes.append(f"{rotulo} conciliado com a força da evidência local")
-        requisitos.append(req)
-    nao_lacunas = {
-        _chave_requisito_ia(req.item)
-        for req in requisitos
-        if req.status in {"encontrado_com_evidencia", "encontrado_sem_contexto_claro", "relacionado_mas_nao_explicito"}
+                adjustments.append(f"{label} conciliado com a força da evidência local")
+        requirements.append(req)
+    nao_gaps = {
+        _ai_requirement_key(req.item)
+        for req in requirements
+        if req.status in {"found_with_evidence", "found_without_clear_context", "related_but_not_explicit"}
     }
-    lacunas = [item for item in resposta.lacunas if _chave_requisito_ia(item) not in nao_lacunas]
-    ausentes = {i.item for i in resultado_local.analise_por_requisito if i.nivel_evidencia == EvidenceLevel.AUSENTE.value}
-    pontos_fortes: list[str] = []
-    for ponto in resposta.pontos_fortes:
-        citadas = [item for item in ausentes if normalize_for_comparison(item) in normalize_for_comparison(ponto)]
-        if citadas:
-            ajustes.append(f"Ponto forte sem evidência removido: {', '.join(citadas)}")
+    gaps = [item for item in response.gaps if _ai_requirement_key(item) not in nao_gaps]
+    missing_items = {i.item for i in local_result.requirement_analysis if i.evidence_level == EvidenceLevel.ABSENT.value}
+    strengths: list[str] = []
+    for ponto in response.strengths:
+        cited = [item for item in missing_items if normalize_for_comparison(item) in normalize_for_comparison(ponto)]
+        if cited:
+            adjustments.append(f"Ponto forte sem evidência removido: {', '.join(cited)}")
         else:
-            pontos_fortes.append(ponto)
-    melhorias, passos = [], list(resposta.proximos_passos)
-    for sugestao in resposta.sugestoes_de_melhoria:
-        citadas = [item for item in ausentes if normalize_for_comparison(item) in normalize_for_comparison(sugestao)]
-        if citadas and re.search(r"\b(adicione|inclua|declare|destaque|reescreva)\b", normalize_for_comparison(sugestao)):
-            passos.append(f"Estude ou crie um projeto real com {', '.join(citadas)} antes de incluir como experiência.")
-            ajustes.append(f"Sugestão sem evidência para {', '.join(citadas)} movida para próximos passos")
+            strengths.append(ponto)
+    melhorias, passos = [], list(response.next_steps)
+    for suggestion in response.improvement_suggestions:
+        cited = [item for item in missing_items if normalize_for_comparison(item) in normalize_for_comparison(suggestion)]
+        if cited and re.search(r"\b(adicione|inclua|declare|destaque|reescreva)\b", normalize_for_comparison(suggestion)):
+            passos.append(f"Estude ou crie um project real com {', '.join(cited)} antes de incluir como experiência.")
+            adjustments.append(f"Sugestão sem evidência para {', '.join(cited)} movida para próximos passos")
         else:
-            melhorias.append(sugestao)
-    return resposta.model_copy(update={"requisitos_contextuais": requisitos, "lacunas": lacunas,
-        "pontos_fortes": pontos_fortes, "sugestoes_de_melhoria": melhorias,
-        "proximos_passos": list(dict.fromkeys(passos))}), list(dict.fromkeys(ajustes))
+            melhorias.append(suggestion)
+    return response.model_copy(update={"contextual_requirements": requirements, "gaps": gaps,
+        "strengths": strengths, "improvement_suggestions": melhorias,
+        "next_steps": list(dict.fromkeys(passos))}), list(dict.fromkeys(adjustments))
 
 
 def calculate_final_score(
-    local: int, ia: int | None, confianca: int | None, ajustes: int,
-    nivel: str, tem_experiencia: bool, keyword: int | None = None,
-    hard_filters_ausentes: int = 0, qualidade_contexto: int | None = None,
-    etapas_fallback: int = 0,
+    local: int, ia: int | None, confidence: int | None, adjustments: int,
+    level: str, tem_experiencia: bool, keyword: int | None = None,
+    hard_filters_ausentes: int = 0, qualidade_context: int | None = None,
+    steps_fallback: int = 0,
 ) -> tuple[int, str]:
-    if ia is None or (confianca or 0) < 70:
+    if ia is None or (confidence or 0) < 70:
         base = round(local * .8 + keyword * .2) if keyword is not None else local
         return base, "A IA não apresentou confiança suficiente; prevaleceram score local e cobertura ponderada de keywords."
-    peso_ia = .2 if ajustes >= 3 else .35
-    if (qualidade_contexto or 100) < 60:
-        peso_ia = min(peso_ia, .15)
-    if etapas_fallback:
-        peso_ia = max(.05, peso_ia - min(.2, etapas_fallback * .07))
-    peso_keyword = .2 if keyword is not None else 0
-    peso_local = 1 - peso_ia - peso_keyword
-    final = round(local * peso_local + ia * peso_ia + (keyword or 0) * peso_keyword)
+    weight_ia = .2 if adjustments >= 3 else .35
+    if (qualidade_context or 100) < 60:
+        weight_ia = min(weight_ia, .15)
+    if steps_fallback:
+        weight_ia = max(.05, weight_ia - min(.2, steps_fallback * .07))
+    weight_keyword = .2 if keyword is not None else 0
+    weight_local = 1 - weight_ia - weight_keyword
+    final = round(local * weight_local + ia * weight_ia + (keyword or 0) * weight_keyword)
     if local < 50 and ia > 80:
         final = min(final, 75)
-    if nivel in {JobLevel.PLENO.value, JobLevel.SENIOR.value} and not tem_experiencia:
+    if level in {JobLevel.MID_LEVEL.value, JobLevel.SENIOR.value} and not tem_experiencia:
         final = min(final, 65)
     if hard_filters_ausentes:
         final = min(final, max(35, 75 - hard_filters_ausentes * 10))
-    return final, f"Conciliação explicável: local {round(peso_local*100)}%, keywords {round(peso_keyword*100)}% e IA {round(peso_ia*100)}%; confiança {confianca}%, correções {ajustes}, etapas com fallback {etapas_fallback}, hard filters ausentes {hard_filters_ausentes}."
+    return final, f"Conciliação explicável: local {round(weight_local*100)}%, keywords {round(weight_keyword*100)}% e IA {round(weight_ia*100)}%; confiança {confidence}%, correções {adjustments}, etapas com fallback {steps_fallback}, hard filters missing_items {hard_filters_ausentes}."
 
 
-def analyze_resume(solicitacao: AnalysisRequest) -> AnalysisResult:
-    """nenhum texto é guardado, só executa pipeline"""
+def analyze_resume(request: AnalysisRequest) -> AnalysisResult:
+    """Run the pipeline without retaining source text."""
 
-    curriculo_texto_original = solicitacao.resume_text
-    vaga_texto_original = solicitacao.job_text
-    curriculo_normalizado = normalize_resume_text(curriculo_texto_original)
-    vaga_normalizada = normalize_resume_text(vaga_texto_original)
-    sanitizacao_curriculo = sanitize_personal_data(curriculo_normalizado)
-    sanitizacao_vaga = sanitize_personal_data(vaga_normalizada)
-    urls_fontes = "\n".join(fonte.url for fonte in solicitacao.resume_sources if fonte.url)
-    sanitizacao_fontes = sanitize_personal_data(urls_fontes) if urls_fontes else None
-    curriculo_texto_sanitizado = sanitizacao_curriculo.texto_sanitizado
-    vaga_texto_sanitizado = sanitizacao_vaga.texto_sanitizado
+    resume_text_original = request.resume_text
+    job_text_original = request.job_text
+    resume_normalizado = normalize_resume_text(resume_text_original)
+    job_normalizada = normalize_resume_text(job_text_original)
+    sanitization_resume = sanitize_personal_data(resume_normalizado)
+    sanitization_job = sanitize_personal_data(job_normalizada)
+    urls_sources = "\n".join(source.url for source in request.resume_sources if source.url)
+    sanitization_sources = sanitize_personal_data(urls_sources) if urls_sources else None
+    resume_text_sanitized = sanitization_resume.text_sanitized
+    job_text_sanitized = sanitization_job.text_sanitized
 
-    vaga = normalize_job_text(vaga_texto_sanitizado)
-    nivel_detectado = detect_job_level(vaga_texto_original)
+    job = normalize_job_text(job_text_sanitized)
+    level_detectado = detect_job_level(job_text_original)
     try:
-        nivel_vaga = JobLevel(normalize_for_comparison(solicitacao.job_level or "")) if solicitacao.job_level else nivel_detectado
+        job_level = JobLevel(normalize_for_comparison(request.job_level or "")) if request.job_level else level_detectado
     except ValueError:
-        nivel_vaga = nivel_detectado
+        job_level = level_detectado
 
-    parser_secoes = analyze_resume_sections(curriculo_texto_sanitizado)
-    secoes = parser_secoes.secoes
+    parser_sections = analyze_resume_sections(resume_text_sanitized)
+    sections = parser_sections.sections
 
-    inventario = extract_resume_inventory(curriculo_texto_sanitizado, secoes)
-    fact_bank = build_fact_bank(secoes)
+    inventario = extract_resume_inventory(resume_text_sanitized, sections)
+    fact_bank = build_fact_bank(sections)
 
-    requisitos = extract_job_requirements(vaga)
-    itens = compare_resume_to_job(curriculo_texto_sanitizado, secoes, requisitos)
-    grupos_requisitos, score_agrupado, score_por_grupo = build_requirement_groups(itens, nivel_vaga.value, vaga_texto_sanitizado)
+    requirements = extract_job_requirements(job)
+    items = compare_resume_to_job(resume_text_sanitized, sections, requirements)
+    requirement_groups, score_agrupado, score_by_group = build_requirement_groups(items, job_level.value, job_text_sanitized)
     keyword_report, score_keywords, keywords_presentes, keywords_ausentes = build_keyword_report(
-        itens, vaga_texto_sanitizado, curriculo_texto_sanitizado, str(vaga.get("titulo", "")))
-    analise_valida, alertas = _entrada_valida(curriculo_texto_sanitizado, vaga_texto_sanitizado)
-    impeditivos = detect_possible_blockers(curriculo_texto_sanitizado, vaga_texto_sanitizado)
-    impeditivos.extend(keyword_report.alertas_hard_filters)
-    evidencias_dict = detect_evidence(curriculo_texto_sanitizado, secoes)
-    sugestoes_det = generate_local_suggestions(
-        itens, evidencias_dict, impeditivos, vaga_texto_sanitizado
+        items, job_text_sanitized, resume_text_sanitized, str(job.get("title", "")))
+    valid_analysis, alerts = _is_valid_input(resume_text_sanitized, job_text_sanitized)
+    impeditivos = detect_possible_blockers(resume_text_sanitized, job_text_sanitized)
+    impeditivos.extend(keyword_report.hard_filter_alerts)
+    evidence_items_dict = detect_evidence(resume_text_sanitized, sections)
+    suggestions_det = generate_local_suggestions(
+        items, evidence_items_dict, impeditivos, job_text_sanitized
     )
 
-    encontrados = [
+    found_items = [
         i.item
-        for i in itens
-        if i.status in {"encontrado_com_evidencia", "encontrado_sem_contexto_claro"}
+        for i in items
+        if i.status in {"found_with_evidence", "found_without_clear_context"}
     ]
 
-    faltando = [
+    missing_items = [
         i.item
-        for i in itens
-        if i.status not in {"encontrado_com_evidencia", "encontrado_sem_contexto_claro"}
+        for i in items
+        if i.status not in {"found_with_evidence", "found_without_clear_context"}
     ]
 
-    inventario["habilidades_nao_exigidas_pela_vaga"] = [
+    inventario["habilidades_nao_exigidas_pela_job"] = [
         h
         for h in inventario["habilidades_detectadas"]
-        if h not in {i.item for i in itens}
+        if h not in {i.item for i in items}
     ]
 
-    detalhes = DetailedAnalysis(
-        requisitos_obrigatorios_encontrados=[
+    details = DetailedAnalysis(
+        found_required_requirements=[
             i.item
-            for i in itens
-            if i.categoria == "requisito_obrigatorio" and i.item in encontrados
+            for i in items
+            if i.category == "requirement_obrigatorio" and i.item in found_items
         ],
-        requisitos_obrigatorios_faltando=[
+        missing_required_requirements=[
             i.item
-            for i in itens
-            if i.categoria == "requisito_obrigatorio" and i.item in faltando
+            for i in items
+            if i.category == "requirement_obrigatorio" and i.item in missing_items
         ],
-        diferenciais_encontrados=[
+        found_differentials=[
             i.item
-            for i in itens
-            if i.categoria == "diferencial" and i.item in encontrados
+            for i in items
+            if i.category == "differential" and i.item in found_items
         ],
-        diferenciais_faltando=[
-            i.item for i in itens if i.categoria == "diferencial" and i.item in faltando
+        missing_differentials=[
+            i.item for i in items if i.category == "differential" and i.item in missing_items
         ],
-        tecnologias_encontradas=[
-            i.item for i in itens if i.tipo == "tecnologia" and i.item in encontrados
+        found_technologies=[
+            i.item for i in items if i.type == "technology" and i.item in found_items
         ],
-        tecnologias_faltando=[
-            i.item for i in itens if i.tipo == "tecnologia" and i.item in faltando
+        missing_technologies=[
+            i.item for i in items if i.type == "technology" and i.item in missing_items
         ],
-        possiveis_impeditivos=impeditivos,
+        possible_blockers=impeditivos,
     )
 
-    score = score_agrupado if analise_valida else 0
-    if parser_secoes.secoes_baixa_confianca and not any(
-        chave in secoes for chave in ("experiencia_profissional", "projetos", "projetos_academicos", "freelas", "open_source", "residencias")
+    score = score_agrupado if valid_analysis else 0
+    if parser_sections.sections_baixa_confidence and not any(
+        key in sections for key in ("professional_experience", "projects", "academic_projects", "freelance", "open_source", "residencies")
     ):
         score = min(score, 70)
 
-    problemas = detect_missing_sections(curriculo_texto_sanitizado)
-    vaga_longa_com_poucos_requisitos = len(vaga_texto_sanitizado) >= 300 and len(itens) < 3
-    if vaga_longa_com_poucos_requisitos:
-        alerta_extracao = "Poucos requisitos extraídos da vaga; a pontuação foi limitada por segurança."
-        alertas.append(alerta_extracao)
-        problemas.append(alerta_extracao)
+    issues = detect_missing_sections(resume_text_sanitized)
+    job_longa_com_poucos_requirements = len(job_text_sanitized) >= 300 and len(items) < 3
+    if job_longa_com_poucos_requirements:
+        alert_extracao = "Poucos requisitos extraídos da vaga; a pontuação foi limitada por segurança."
+        alerts.append(alert_extracao)
+        issues.append(alert_extracao)
         score = min(score, 60)
 
-    sugestoes = (
-        sugestoes_det.ajustes_recomendados
-        + sugestoes_det.lacunas_tecnicas
-        + sugestoes_det.pontos_de_atencao
-        + sugestoes_det.proximos_passos
+    suggestions = (
+        suggestions_det.recommended_adjustments
+        + suggestions_det.technical_gaps
+        + suggestions_det.attention_points
+        + suggestions_det.next_steps
     )
 
-    explicacao = "O inventário lista todas as habilidades detectadas; o matching e o score usam somente requisitos reais desta vaga, ponderados por categoria e força da evidência."
+    explanation = "O inventário lista todas as habilidades detectadas; o matching e o score usam somente requisitos reais desta vaga, ponderados por categoria e força da evidência."
 
     return AnalysisResult(
-        analise_valida=analise_valida,
-        alertas_entrada=alertas,
-        pontuacao_ats=score,
-        palavras_chave_encontradas=encontrados,
-        palavras_chave_faltando=faltando,
-        inventario_curriculo=inventario,
-        analise_por_requisito=itens,
-        analise_detalhada=detalhes,
-        evidencias=ResumeEvidence(**evidencias_dict),
-        problemas_detectados=problemas,
-        sugestoes=sugestoes,
-        sugestoes_detalhadas=sugestoes_det,
-        explicacao_matching=explicacao,
-        resumo_gerado=f"Análise {'válida' if analise_valida else 'inválida'}: {score}% de compatibilidade ponderada.",
-        provedor_ia="sem_ia",
-        modelo_ia=None,
-        nivel_vaga=nivel_vaga.value,
+        valid_analysis=valid_analysis,
+        input_alerts=alerts,
+        ats_score=score,
+        matched_keywords=found_items,
+        missing_keywords=missing_items,
+        resume_inventory=inventario,
+        requirement_analysis=items,
+        detailed_analysis=details,
+        evidence_items=ResumeEvidence(**evidence_items_dict),
+        detected_issues=issues,
+        suggestions=suggestions,
+        detailed_suggestions=suggestions_det,
+        matching_explanation=explanation,
+        generated_summary=f"Análise {'válida' if valid_analysis else 'inválida'}: {score}% de compatibilidade ponderada.",
+        ai_provider="sem_ia",
+        ai_model=None,
+        job_level=job_level.value,
         keyword_report=keyword_report,
         score_keyword_coverage=score_keywords,
-        keywords_presentes_ponderadas=keywords_presentes,
-        keywords_ausentes_ponderadas=keywords_ausentes,
-        explicacao_keyword_coverage="Cobertura ponderada por categoria; hard filters geram alertas fora do score.",
+        weighted_present_keywords=keywords_presentes,
+        weighted_missing_keywords=keywords_ausentes,
+        keyword_coverage_explanation="Cobertura ponderada por categoria; hard filters geram alertas fora do score.",
         fact_bank=fact_bank,
-        avaliacao_relevancia={"titulo_detectado": vaga.get("titulo", ""), "empresa": vaga.get("empresa", ""),
-                              "area": vaga.get("area", ""), "nivel": nivel_vaga.value,
-                              "modalidade": vaga.get("modalidade", ""), "localizacao": vaga.get("localidade", ""),
-                              "aceita_sem_experiencia": bool(vaga.get("aceita_sem_experiencia"))},
-        matriz_evidencia=[{"item": i.item, "fonte": i.fonte_evidencia, "nivel": i.nivel_evidencia} for i in itens],
-        lacunas_priorizadas=[{"item": i.item, "peso": i.peso} for i in itens if i.status == "faltando"],
-        diagnostico_ats={"score_local": score, "score_keyword_coverage": score_keywords},
-        fatores_score_final={"score_local": score, "score_keyword_coverage": score_keywords},
-        alertas_score_final=keyword_report.alertas_hard_filters,
-        grupos_requisitos=grupos_requisitos,
-        score_por_grupo=score_por_grupo,
-        score_semantico_agrupado=score_agrupado,
-        parser_warnings=parser_secoes.warnings,
-        secoes_detectadas=[x for x in secoes if x != "outros"],
-        secoes_com_baixa_confianca=parser_secoes.secoes_baixa_confianca,
-        fontes_evidencia_resumo=summarize_sources(fact_bank),
-        sanitizacao_resumo={
-            "dados_sensiveis_detectados": bool(sanitizacao_curriculo.itens_removidos or (sanitizacao_fontes and sanitizacao_fontes.itens_removidos)),
-            "categorias_removidas": list(dict.fromkeys(sanitizacao_curriculo.categorias_removidas + (sanitizacao_fontes.categorias_removidas if sanitizacao_fontes else []))),
-            "quantidade_categorias": len(set(sanitizacao_curriculo.categorias_removidas + (sanitizacao_fontes.categorias_removidas if sanitizacao_fontes else []))),
-            "links_detectados_por_tipo": {chave: sanitizacao_curriculo.links_detectados_por_tipo.get(chave, 0) + (sanitizacao_fontes.links_detectados_por_tipo.get(chave, 0) if sanitizacao_fontes else 0)
-                                          for chave in set(sanitizacao_curriculo.links_detectados_por_tipo) | set(sanitizacao_fontes.links_detectados_por_tipo if sanitizacao_fontes else {})},
-            "observacao_segura": "Valores sensíveis foram substituídos antes da análise externa e não são retornados.",
+        relevance_evaluation={"title_detectado": job.get("title", ""), "company": job.get("company", ""),
+                              "area": job.get("area", ""), "level": job_level.value,
+                              "modality": job.get("modality", ""), "location": job.get("localidade", ""),
+                              "accepts_no_experience": bool(job.get("accepts_no_experience"))},
+        evidence_matrix=[{"item": i.item, "source": i.evidence_source, "level": i.evidence_level} for i in items],
+        prioritized_gaps=[{"item": i.item, "weight": i.weight} for i in items if i.status == "missing"],
+        ats_diagnostics={"score_local": score, "score_keyword_coverage": score_keywords},
+        final_score_factors={"score_local": score, "score_keyword_coverage": score_keywords},
+        final_score_alerts=keyword_report.hard_filter_alerts,
+        requirement_groups=requirement_groups,
+        score_by_group=score_by_group,
+        grouped_semantic_score=score_agrupado,
+        parser_warnings=parser_sections.warnings,
+        detected_sections=[x for x in sections if x != "outros"],
+        low_confidence_sections=parser_sections.sections_baixa_confidence,
+        evidence_source_summary=summarize_sources(fact_bank),
+        sanitization_summary={
+            "sensitive_data_detected": bool(sanitization_resume.items_removidos or (sanitization_sources and sanitization_sources.items_removidos)),
+            "categories_removidas": list(dict.fromkeys(sanitization_resume.categories_removidas + (sanitization_sources.categories_removidas if sanitization_sources else []))),
+            "quantidade_categories": len(set(sanitization_resume.categories_removidas + (sanitization_sources.categories_removidas if sanitization_sources else []))),
+            "links_detectados_por_type": {key: sanitization_resume.links_detectados_por_type.get(key, 0) + (sanitization_sources.links_detectados_por_type.get(key, 0) if sanitization_sources else 0)
+                                          for key in set(sanitization_resume.links_detectados_por_type) | set(sanitization_sources.links_detectados_por_type if sanitization_sources else {})},
+            "observacao_safe": "Valores sensíveis foram substituídos antes da análise externa e não são retornados.",
         },
-        score_final_recomendado=score,
-        explicacao_score_final="Sem análise externa válida, o score final recomendado é igual à pontuação ATS local.",
+        recommended_final_score=score,
+        final_score_explanation="Sem análise externa válida, o score final recomendado é igual à pontuação ATS local.",
     )
 
 
 async def analyze_resume_with_ai(
-    solicitacao: AnalysisRequest,
-    provedor: AIProvider,
-    propagar_erro_provider: bool = False,
+    request: AnalysisRequest,
+    provider: AIProvider,
+    propagar_error_provider: bool = False,
 ) -> AnalysisResult:
 
     # roda primeiro
-    resultado = analyze_resume(solicitacao)
+    result = analyze_resume(request)
 
-    curriculo_sanitizado = sanitize_personal_data(solicitacao.resume_text)
-    vaga_sanitizada = sanitize_personal_data(solicitacao.job_text)
-    itens = list(dict.fromkeys(curriculo_sanitizado.itens_removidos + vaga_sanitizada.itens_removidos))
+    resume_sanitized = sanitize_personal_data(request.resume_text)
+    job_sanitized = sanitize_personal_data(request.job_text)
+    items = list(dict.fromkeys(resume_sanitized.items_removidos + job_sanitized.items_removidos))
 
-    segura = solicitacao.model_copy(
+    safe = request.model_copy(
         update={
 
-            "resume_text": curriculo_sanitizado.texto_sanitizado,
-            "job_text": vaga_sanitizada.texto_sanitizado,
+            "resume_text": resume_sanitized.text_sanitized,
+            "job_text": job_sanitized.text_sanitized,
             "resume_sources": [],
         }
     )
 
 
 
-    pipeline_ia = None
+    ai_pipeline = None
     try:
-        respostas_tarefa = getattr(provedor, "respostas_por_tarefa", None)
-        suporta_pipeline = respostas_tarefa is None or bool(respostas_tarefa)
+        responses_tarefa = getattr(provider, "task_responses", None)
+        suporta_pipeline = responses_tarefa is None or bool(responses_tarefa)
         if suporta_pipeline:
-            pipeline_ia, analise_ia = await run_ai_pipeline(segura, resultado, provedor)
-            if len(pipeline_ia.etapas_com_fallback) >= 3:
-                analise_ia = await run_structured_ai_analysis(segura, resultado, provedor)
+            ai_pipeline, ai_analysis = await run_ai_pipeline(safe, result, provider)
+            if len(ai_pipeline.fallback_steps) >= 3:
+                ai_analysis = await run_structured_ai_analysis(safe, result, provider)
         else:
-            analise_ia = await run_structured_ai_analysis(segura, resultado, provedor)
+            ai_analysis = await run_structured_ai_analysis(safe, result, provider)
     except Exception:
 
 
-        if propagar_erro_provider:
+        if propagar_error_provider:
             raise
 
-        analise_ia = None
+        ai_analysis = None
 
-    if analise_ia is None:
-        return resultado.model_copy(
+    if ai_analysis is None:
+        return result.model_copy(
             update={
-                "fallback_local_usado": True,
-                "score_final_recomendado": resultado.pontuacao_ats,
-                "explicacao_score_final": "A IA falhou ou retornou schema inválido; foi mantida a pontuação ATS local.",
-                "privacidade": PrivacyInformation(
-                    dados_sensiveis_detectados=bool(itens),
-                    itens_removidos_antes_ia=itens,
-                    texto_enviado_para_ia_foi_sanitizado=True,
+                "local_fallback_used": True,
+                "recommended_final_score": result.ats_score,
+                "final_score_explanation": "A IA falhou ou retornou schema inválido; foi mantida a pontuação ATS local.",
+                "privacy": PrivacyInformation(
+                    sensitive_data_detected=bool(items),
+                    items_removed_before_ai=items,
+                    ai_text_was_sanitized=True,
                 ),
             }
         )
 
-    analise_ia, ajustes_validacao = post_validate_ai_analysis(analise_ia, resultado)
-    candidatas = analise_ia.sugestoes_de_melhoria + analise_ia.proximos_passos
-    sugestoes_ia: list[str] = []
+    ai_analysis, ajustes_validacao = post_validate_ai_analysis(ai_analysis, result)
+    candidates = ai_analysis.improvement_suggestions + ai_analysis.next_steps
+    suggestions_ia: list[str] = []
     vistas: set[str] = set()
-    for sugestao in candidatas:
-        chave = re.sub(r"\b(select|join|where|insert|update|delete|branches?|pull requests?|code review)\b", "grupo", normalize_for_comparison(sugestao))
-        if chave not in vistas:
-            vistas.add(chave)
-            sugestoes_ia.append(sugestao)
-        if len(sugestoes_ia) == 10:
+    for suggestion in candidates:
+        key = re.sub(r"\b(select|join|where|insert|update|delete|branches?|pull requests?|code review)\b", "grupo", normalize_for_comparison(suggestion))
+        if key not in vistas:
+            vistas.add(key)
+            suggestions_ia.append(suggestion)
+        if len(suggestions_ia) == 10:
             break
-    score_final, explicacao_final = calculate_final_score(
-        resultado.pontuacao_ats,
-        analise_ia.score_sugerido_ia,
-        analise_ia.confianca,
+    score_final, explanation_final = calculate_final_score(
+        result.ats_score,
+        ai_analysis.ai_suggested_score,
+        ai_analysis.confidence,
         len(ajustes_validacao),
-        resultado.nivel_vaga,
-        bool(resultado.evidencias and resultado.evidencias.experiencia_profissional),
-        resultado.score_keyword_coverage,
-        len(resultado.keyword_report.alertas_hard_filters) if resultado.keyword_report else 0,
-        analise_ia.qualidade_contexto_ia,
-        len(pipeline_ia.etapas_com_fallback) if pipeline_ia else 0,
+        result.job_level,
+        bool(result.evidence_items and result.evidence_items.professional_experience),
+        result.score_keyword_coverage,
+        len(result.keyword_report.hard_filter_alerts) if result.keyword_report else 0,
+        ai_analysis.ai_context_quality,
+        len(ai_pipeline.fallback_steps) if ai_pipeline else 0,
     )
 
-    # merge do resultado local com que foi gerado pela IA
-    return resultado.model_copy(
+    # Technical note removed during English standardization.
+    return result.model_copy(
         update={
-            "resumo_gerado": analise_ia.resumo_contextual,
-            "sugestoes": sugestoes_ia or resultado.sugestoes,
-            "provedor_ia": provedor.nome,
-            "modelo_ia": provedor.modelo,
-            "analise_ia": analise_ia,
-            "score_sugerido_ia": analise_ia.score_sugerido_ia,
-            "justificativa_score_ia": analise_ia.justificativa_score_ia,
-            "confianca_ia": analise_ia.confianca,
-            "fallback_local_usado": False,
-            "validacao_ia_aplicada": True,
-            "ajustes_validacao_ia": ajustes_validacao,
-            "score_final_recomendado": score_final,
-            "explicacao_score_final": explicacao_final,
-            "requisitos_contextuais": analise_ia.requisitos_contextuais,
-            "lacunas_contextuais": analise_ia.lacunas,
-            "proximos_passos": analise_ia.proximos_passos,
-            "alertas_contra_inventar": analise_ia.alertas_contra_inventar,
-            "papel_ia": analise_ia.papel_ia or ["avaliadora contextual", "auditora de lacunas", "revisora anti-alucinação"],
-            "qualidade_contexto_ia": analise_ia.qualidade_contexto_ia,
-            "avaliacao_relevancia": analise_ia.avaliacao_relevancia or resultado.avaliacao_relevancia,
-            "matriz_evidencia": analise_ia.matriz_evidencia or resultado.matriz_evidencia,
-            "lacunas_priorizadas": analise_ia.lacunas_priorizadas or resultado.lacunas_priorizadas,
-            "sugestoes_de_reescrita_seguras": analise_ia.sugestoes_de_reescrita_seguras,
-            "diagnostico_ats": analise_ia.diagnostico_ats or resultado.diagnostico_ats,
-            "score_contextual_ia": analise_ia.score_contextual_ia,
-            "fatores_score_final": {"score_local": resultado.pontuacao_ats, "score_keywords": resultado.score_keyword_coverage or 0,
-                "score_ia": analise_ia.score_sugerido_ia or 0, "confianca_ia": analise_ia.confianca,
-                "correcoes_ia": len(ajustes_validacao), "etapas_com_fallback": len(pipeline_ia.etapas_com_fallback) if pipeline_ia else 0},
-            "pipeline_ia": pipeline_ia,
-            "etapas_ia_executadas": pipeline_ia.etapas_executadas if pipeline_ia else [],
-            "etapas_ia_com_fallback": pipeline_ia.etapas_com_fallback if pipeline_ia else [],
-            "evidencias_relevantes_para_vaga": pipeline_ia.evidencias_relevantes if pipeline_ia else [],
-            "classificacao_vaga_ia": pipeline_ia.classificacao_vaga if pipeline_ia else None,
-            "avaliacao_contextual_requisitos": pipeline_ia.avaliacao_requisitos if pipeline_ia else [],
-            "confianca_pipeline_ia": pipeline_ia.confianca_pipeline if pipeline_ia else None,
-            "erros_pipeline_ia_sanitizados": [x["mensagem_segura"] for x in pipeline_ia.detalhes_fallback] if pipeline_ia else [],
-            "detalhes_fallback_pipeline": pipeline_ia.detalhes_fallback if pipeline_ia else [],
-            "privacidade": PrivacyInformation(
-                dados_sensiveis_detectados=bool(itens),
-                itens_removidos_antes_ia=itens,
-                texto_enviado_para_ia_foi_sanitizado=True,
+            "generated_summary": ai_analysis.contextual_summary,
+            "suggestions": suggestions_ia or result.suggestions,
+            "ai_provider": provider.name,
+            "ai_model": provider.model,
+            "ai_analysis": ai_analysis,
+            "ai_suggested_score": ai_analysis.ai_suggested_score,
+            "ai_score_rationale": ai_analysis.ai_score_rationale,
+            "ai_confidence": ai_analysis.confidence,
+            "local_fallback_used": False,
+            "ai_validation_applied": True,
+            "ai_validation_adjustments": ajustes_validacao,
+            "recommended_final_score": score_final,
+            "final_score_explanation": explanation_final,
+            "contextual_requirements": ai_analysis.contextual_requirements,
+            "contextual_gaps": ai_analysis.gaps,
+            "next_steps": ai_analysis.next_steps,
+            "anti_fabrication_alerts": ai_analysis.anti_fabrication_alerts,
+            "ai_roles": ai_analysis.ai_roles or ["avaliadora contextual", "auditora de lacunas", "revisora anti-alucinação"],
+            "ai_context_quality": ai_analysis.ai_context_quality,
+            "relevance_evaluation": ai_analysis.relevance_evaluation or result.relevance_evaluation,
+            "evidence_matrix": ai_analysis.evidence_matrix or result.evidence_matrix,
+            "prioritized_gaps": ai_analysis.prioritized_gaps or result.prioritized_gaps,
+            "safe_rewrite_suggestions": ai_analysis.safe_rewrite_suggestions,
+            "ats_diagnostics": ai_analysis.ats_diagnostics or result.ats_diagnostics,
+            "contextual_ai_score": ai_analysis.contextual_ai_score,
+            "final_score_factors": {"score_local": result.ats_score, "score_keywords": result.score_keyword_coverage or 0,
+                "score_ia": ai_analysis.ai_suggested_score or 0, "ai_confidence": ai_analysis.confidence,
+                "correcoes_ia": len(ajustes_validacao), "fallback_steps": len(ai_pipeline.fallback_steps) if ai_pipeline else 0},
+            "ai_pipeline": ai_pipeline,
+            "executed_ai_steps": ai_pipeline.executed_steps if ai_pipeline else [],
+            "fallback_ai_steps": ai_pipeline.fallback_steps if ai_pipeline else [],
+            "job_relevant_evidence": ai_pipeline.relevant_evidence if ai_pipeline else [],
+            "ai_job_classification": ai_pipeline.job_classification if ai_pipeline else None,
+            "contextual_requirement_evaluations": ai_pipeline.requirement_evaluations if ai_pipeline else [],
+            "ai_pipeline_confidence": ai_pipeline.pipeline_confidence if ai_pipeline else None,
+            "sanitized_pipeline_errors": [x["safe_message"] for x in ai_pipeline.fallback_details] if ai_pipeline else [],
+            "pipeline_fallback_details": ai_pipeline.fallback_details if ai_pipeline else [],
+            "privacy": PrivacyInformation(
+                sensitive_data_detected=bool(items),
+                items_removed_before_ai=items,
+                ai_text_was_sanitized=True,
             ),
         }
     )

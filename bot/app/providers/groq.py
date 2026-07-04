@@ -2,11 +2,11 @@ from app.providers.openai_compatible import OpenAICompatibleProvider
 
 
 class GroqProvider(OpenAICompatibleProvider):
-    def __init__(self, chave_api: str, modelo: str) -> None:
+    def __init__(self, key_api: str, model: str) -> None:
         super().__init__(
-            nome="groq",
-            chave_api=chave_api,
-            variavel_chave="GROQ_API_KEY",
-            modelo=modelo,
+            name="groq",
+            key_api=key_api,
+            key_variable="GROQ_API_KEY",
+            model=model,
             url="https://api.groq.com/openai/v1/chat/completions",
         )

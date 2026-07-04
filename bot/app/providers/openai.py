@@ -2,11 +2,11 @@ from app.providers.openai_compatible import OpenAICompatibleProvider
 
 
 class OpenAIProvider(OpenAICompatibleProvider):
-    def __init__(self, chave_api: str, modelo: str) -> None:
+    def __init__(self, key_api: str, model: str) -> None:
         super().__init__(
-            nome="openai",
-            chave_api=chave_api,
-            variavel_chave="OPENAI_API_KEY",
-            modelo=modelo,
+            name="openai",
+            key_api=key_api,
+            key_variable="OPENAI_API_KEY",
+            model=model,
             url="https://api.openai.com/v1/chat/completions",
         )

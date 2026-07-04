@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import AliasChoices, BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.schemas.ai_analysis import AIRequirementAnalysis, AIAnalysisResponse
 from app.schemas.ai_pipeline import (
@@ -11,218 +11,216 @@ from app.schemas.ai_pipeline import (
 )
 
 
-ResumeSourceType = Literal["curriculo_texto", "curriculo_pdf", "linkedin_pdf", "linkedin_text",
-    "linkedin_url", "github_url", "portfolio_url", "portfolio_text", "vaga_texto", "vaga_url",
-    "informacoes_pessoais", "instrucoes_customizadas"]
+ResumeSourceType = Literal[
+    "resume_text", "resume_pdf", "linkedin_pdf", "linkedin_text", "linkedin_url",
+    "github_url", "portfolio_url", "portfolio_text", "job_text", "job_url",
+    "personal_information", "custom_instructions",
+    # Legacy public API compatibility.
+    "curriculo_texto", "curriculo_pdf", "vaga_texto", "vaga_url",
+    "informacoes_pessoais", "instrucoes_customizadas",
+]
 
 
 class ResumeSource(BaseModel):
-    tipo: ResumeSourceType
-    conteudo: str | None = None
+    type: ResumeSourceType
+    content: str | None = None
     url: str | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def map_legacy_fields(cls, data):
+        if not isinstance(data, dict):
+            return data
+        mapped = dict(data)
+        if "type" not in mapped and "tipo" in mapped:
+            mapped["type"] = mapped["tipo"]
+        if "content" not in mapped and "conteudo" in mapped:
+            mapped["content"] = mapped["conteudo"]
+        return mapped
 
 
 class AnalysisRequest(BaseModel):
     resume_text: str = Field(
         default="",
-        validation_alias=AliasChoices("resume_text", "curriculo_texto"),
-        serialization_alias="curriculo_texto",
         description="Full resume text",
     )
 
     job_text: str = Field(
         min_length=1,
-        validation_alias=AliasChoices("job_text", "vaga_texto"),
-        serialization_alias="vaga_texto",
         description="Full job description",
     )
 
     language: str = Field(
         default="pt-BR",
         min_length=2,
-        validation_alias=AliasChoices("language", "idioma"),
-        serialization_alias="idioma",
     )
 
-    # Retained as an optional switch for compatibility with existing clients.
+    # Implementation note.
     use_ai: bool | None = Field(
         default=None,
-        validation_alias=AliasChoices("use_ai", "usar_ia"),
-        serialization_alias="usar_ia",
     )
 
     job_level: str | None = Field(
         default=None,
-        validation_alias=AliasChoices("job_level", "nivel_vaga"),
-        serialization_alias="nivel_vaga",
     )
     resume_sources: list[ResumeSource] = Field(
         default_factory=list,
-        validation_alias=AliasChoices("resume_sources", "fontes_curriculo"),
-        serialization_alias="fontes_curriculo",
     )
+
+    @model_validator(mode="before")
+    @classmethod
+    def map_legacy_fields(cls, data):
+        if not isinstance(data, dict):
+            return data
+        mapped = dict(data)
+        legacy_fields = {
+            "curriculo_texto": "resume_text",
+            "vaga_texto": "job_text",
+            "idioma": "language",
+            "usar_ia": "use_ai",
+            "nivel_vaga": "job_level",
+            "fontes_curriculo": "resume_sources",
+        }
+        for legacy_name, field_name in legacy_fields.items():
+            if field_name not in mapped and legacy_name in mapped:
+                mapped[field_name] = mapped[legacy_name]
+        return mapped
 
     @model_validator(mode="after")
     def consolidate_text_sources(self):
         if not self.resume_text.strip():
-            text_source_types = {"curriculo_texto", "linkedin_text", "portfolio_text", "informacoes_pessoais", "instrucoes_customizadas"}
-            texts = [source.conteudo.strip() for source in self.resume_sources
-                     if source.tipo in text_source_types and source.conteudo and source.conteudo.strip()]
+            text_source_types = {"resume_text", "linkedin_text", "portfolio_text", "personal_information", "custom_instructions", "curriculo_texto", "informacoes_pessoais", "instrucoes_customizadas"}
+            texts = [source.content.strip() for source in self.resume_sources
+                     if source.type in text_source_types and source.content and source.content.strip()]
             if not texts:
-                raise ValueError("curriculo_texto ou uma fonte textual de currículo é obrigatório")
+                raise ValueError("resume_text or a textual resume source is required")
             self.resume_text = "\n\n".join(texts)
         return self
 
-    # Python attribute compatibility during the deprecation window.
-    @property
-    def curriculo_texto(self) -> str:
-        return self.resume_text
-
-    @property
-    def vaga_texto(self) -> str:
-        return self.job_text
-
-    @property
-    def idioma(self) -> str:
-        return self.language
-
-    @property
-    def usar_ia(self) -> bool | None:
-        return self.use_ai
-
-    @property
-    def nivel_vaga(self) -> str | None:
-        return self.job_level
-
-    @property
-    def fontes_curriculo(self) -> list[ResumeSource]:
-        return self.resume_sources
-
     model_config = ConfigDict(
-        populate_by_name=True,
         json_schema_extra={
             "example": {
-                "curriculo_texto": "texto do currículo",
-                "vaga_texto": "texto da vaga",
-                "idioma": "pt-BR",
+                "resume_text": "resume text",
+                "job_text": "job description",
+                "language": "en-US",
             }
         }
     )
 
 
 class PrivacyInformation(BaseModel):
-    """Metadados seguros sobre o tratamento anterior à chamada de IA."""
+    """Safe metadata describing preprocessing before an AI call."""
 
-    dados_sensiveis_detectados: bool = False
+    sensitive_data_detected: bool = False
 
-    itens_removidos_antes_ia: list[str] = Field(default_factory=list)
+    items_removed_before_ai: list[str] = Field(default_factory=list)
 
-    texto_enviado_para_ia_foi_sanitizado: bool = False
+    ai_text_was_sanitized: bool = False
 
 
 class DetailedAnalysis(BaseModel):
-    """Classificação das correspondências pra vaga"""
+    """Detailed classification of job matches."""
 
-    requisitos_obrigatorios_encontrados: list[str] = Field(default_factory=list)
+    found_required_requirements: list[str] = Field(default_factory=list)
 
-    requisitos_obrigatorios_faltando: list[str] = Field(default_factory=list)
+    missing_required_requirements: list[str] = Field(default_factory=list)
 
-    diferenciais_encontrados: list[str] = Field(default_factory=list)
+    found_differentials: list[str] = Field(default_factory=list)
 
-    diferenciais_faltando: list[str] = Field(default_factory=list)
+    missing_differentials: list[str] = Field(default_factory=list)
 
-    tecnologias_encontradas: list[str] = Field(default_factory=list)
+    found_technologies: list[str] = Field(default_factory=list)
 
-    tecnologias_faltando: list[str] = Field(default_factory=list)
+    missing_technologies: list[str] = Field(default_factory=list)
 
-    possiveis_impeditivos: list[str] = Field(default_factory=list)
+    possible_blockers: list[str] = Field(default_factory=list)
 
 
 class DetailedSuggestions(BaseModel):
-    """separa sem pressupor experiência."""
+    """Suggestions separated without assuming experience."""
 
-    ajustes_recomendados: list[str] = Field(default_factory=list)
+    recommended_adjustments: list[str] = Field(default_factory=list)
 
-    lacunas_tecnicas: list[str] = Field(default_factory=list)
+    technical_gaps: list[str] = Field(default_factory=list)
 
-    pontos_de_atencao: list[str] = Field(default_factory=list)
+    attention_points: list[str] = Field(default_factory=list)
 
-    proximos_passos: list[str] = Field(default_factory=list)
+    next_steps: list[str] = Field(default_factory=list)
 
-    ajustes_no_curriculo: list[str] = Field(default_factory=list)
-    lacunas_reais: list[str] = Field(default_factory=list)
-    proximos_passos_de_estudo: list[str] = Field(default_factory=list)
-    alertas_contra_inventar: list[str] = Field(default_factory=list)
+    resume_adjustments: list[str] = Field(default_factory=list)
+    real_gaps: list[str] = Field(default_factory=list)
+    study_next_steps: list[str] = Field(default_factory=list)
+    anti_fabrication_alerts: list[str] = Field(default_factory=list)
 
 
 class RequirementAnalysisItem(BaseModel):
-    """para cada item da vaga é uma solução"""
+    """Analysis and guidance for one job requirement."""
 
     item: str
 
-    tipo: str
+    type: str
 
-    categoria: str
+    category: str
 
-    peso: int
+    weight: int
 
     status: str
 
-    evidencia_no_curriculo: str | None = None
+    resume_evidence: str | None = None
 
-    orientacao: str
+    guidance: str
 
-    nivel_evidencia: str = "sem_evidencia"
+    evidence_level: str = "no_evidence"
 
-    fonte_evidencia: str | None = None
+    evidence_source: str | None = None
 
-    forca_inferencia: str | None = None
+    inference_strength: str | None = None
 
 
 class ResumeEvidence(BaseModel):
-    experiencia_profissional: bool = False
+    professional_experience: bool = False
 
-    projetos_pessoais: bool = False
+    personal_projects: bool = False
 
-    projetos_academicos: bool = False
+    academic_projects: bool = False
 
     open_source: bool = False
 
-    cursos: bool = False
+    courses: bool = False
 
-    residencia_tecnologica: bool = False
+    technology_residency: bool = False
 
-    secao_habilidades: bool = False
+    skills_section: bool = False
 
 
 class AIFallback(BaseModel):
-    """tentativas de provedores"""
+    """Sanitized provider-attempt metadata."""
 
-    fallback_usado: bool = False
+    fallback_used: bool = False
 
-    provedores_tentados: list[str] = Field(default_factory=list)
+    attempted_providers: list[str] = Field(default_factory=list)
 
-    provedores_ignorados_por_configuracao: list[str] = Field(default_factory=list)
+    providers_skipped_by_configuration: list[str] = Field(default_factory=list)
 
-    ultimo_erro_sanitizado: str | None = None
+    last_sanitized_error: str | None = None
 
-    erros_provedores_sanitizados: list[str] = Field(default_factory=list)
+    sanitized_provider_errors: list[str] = Field(default_factory=list)
 
 
 class SanitizedProviderError(BaseModel):
     provider: str
-    modelo: str | None = None
-    categoria_erro: str
+    model: str | None = None
+    error_category: str
     status_http: int | None = None
-    mensagem_segura: str
+    safe_message: str
 
 
 class ItemKeyword(BaseModel):
-    termo: str
-    categoria: str
-    peso: float
-    presente: bool
-    fonte: str | None = None
+    term: str
+    category: str
+    weight: float
+    present: bool
+    source: str | None = None
 
 
 class KeywordReport(BaseModel):
@@ -232,130 +230,130 @@ class KeywordReport(BaseModel):
     action_keywords: list[ItemKeyword] = Field(default_factory=list)
     domain_keywords: list[ItemKeyword] = Field(default_factory=list)
     hard_filters: list[ItemKeyword] = Field(default_factory=list)
-    alertas_hard_filters: list[str] = Field(default_factory=list)
+    hard_filter_alerts: list[str] = Field(default_factory=list)
 
 
 class FactBank(BaseModel):
-    experiencias: list[dict] = Field(default_factory=list)
-    projetos: list[dict] = Field(default_factory=list)
-    cursos: list[dict] = Field(default_factory=list)
+    experiences: list[dict] = Field(default_factory=list)
+    projects: list[dict] = Field(default_factory=list)
+    courses: list[dict] = Field(default_factory=list)
     skills: list[dict] = Field(default_factory=list)
-    idiomas: list[dict] = Field(default_factory=list)
-    projetos_academicos: list[dict] = Field(default_factory=list)
-    freelas: list[dict] = Field(default_factory=list)
+    languages: list[dict] = Field(default_factory=list)
+    academic_projects: list[dict] = Field(default_factory=list)
+    freelance: list[dict] = Field(default_factory=list)
     open_source: list[dict] = Field(default_factory=list)
-    residencias: list[dict] = Field(default_factory=list)
-    certificacoes: list[dict] = Field(default_factory=list)
-    conquistas: list[dict] = Field(default_factory=list)
-    tecnologias_por_fonte: dict[str, list[str]] = Field(default_factory=dict)
-    evidencias: list[dict] = Field(default_factory=list)
+    residencies: list[dict] = Field(default_factory=list)
+    certifications: list[dict] = Field(default_factory=list)
+    achievements: list[dict] = Field(default_factory=list)
+    technologies_by_source: dict[str, list[str]] = Field(default_factory=dict)
+    evidence_items: list[dict] = Field(default_factory=list)
 
 
 class RequirementGroup(BaseModel):
-    nome: str
-    tipo: str
-    modo: str
-    itens: list[str] = Field(default_factory=list)
-    status_grupo: str
-    evidencia_resumida: str | None = None
-    impacto_score: float = 0
-    justificativa: str | None = None
+    name: str
+    type: str
+    mode: str
+    items: list[str] = Field(default_factory=list)
+    group_status: str
+    summarized_evidence: str | None = None
+    score_impact: float = 0
+    rationale: str | None = None
 
 
 class AnalysisResult(BaseModel):
-    """resu8ltado que é consumido"""
+    """Complete internal analysis result."""
 
-    pontuacao_ats: int = Field(ge=0, le=100)
+    ats_score: int = Field(ge=0, le=100, serialization_alias="pontuacao_ats")
 
-    palavras_chave_encontradas: list[str]
+    matched_keywords: list[str] = Field(serialization_alias="palavras_chave_encontradas")
 
-    palavras_chave_faltando: list[str]
+    missing_keywords: list[str] = Field(serialization_alias="palavras_chave_faltando")
 
-    problemas_detectados: list[str]
+    detected_issues: list[str] = Field(serialization_alias="problemas_detectados")
 
-    sugestoes: list[str]
+    suggestions: list[str]
 
-    resumo_gerado: str
+    generated_summary: str = Field(serialization_alias="resumo_gerado")
 
-    provedor_ia: str = "sem_ia"
+    ai_provider: str = Field(default="sem_ia", serialization_alias="provedor_ia")
 
-    modelo_ia: str | None = None
+    ai_model: str | None = Field(default=None, serialization_alias="modelo_ia")
 
-    privacidade: PrivacyInformation | None = None
+    privacy: PrivacyInformation | None = None
 
-    analise_detalhada: DetailedAnalysis | None = None
+    detailed_analysis: DetailedAnalysis | None = None
 
-    sugestoes_detalhadas: DetailedSuggestions | None = None
+    detailed_suggestions: DetailedSuggestions | None = None
 
-    analise_valida: bool = True
+    valid_analysis: bool = True
 
-    alertas_entrada: list[str] = Field(default_factory=list)
+    input_alerts: list[str] = Field(default_factory=list)
 
-    inventario_curriculo: dict[str, list[str]] | None = None
+    resume_inventory: dict[str, list[str]] | None = None
 
-    analise_por_requisito: list[RequirementAnalysisItem] = Field(default_factory=list)
+    requirement_analysis: list[RequirementAnalysisItem] = Field(default_factory=list)
 
-    evidencias: ResumeEvidence | None = None
+    evidence_items: ResumeEvidence | None = None
 
-    explicacao_matching: str = ""
+    matching_explanation: str = ""
 
-    fallback_ia: AIFallback | None = None
+    ai_fallback: AIFallback | None = None
 
-    analise_ia: AIAnalysisResponse | None = None
-    score_sugerido_ia: int | None = Field(default=None, ge=0, le=100)
-    justificativa_score_ia: str | None = None
-    confianca_ia: int | None = Field(default=None, ge=0, le=100)
-    fallback_local_usado: bool = False
-    requisitos_contextuais: list[AIRequirementAnalysis] = Field(default_factory=list)
-    lacunas_contextuais: list[str] = Field(default_factory=list)
-    proximos_passos: list[str] = Field(default_factory=list)
-    alertas_contra_inventar: list[str] = Field(default_factory=list)
-    provedores_tentados: list[str] = Field(default_factory=list)
-    erros_provedores_sanitizados: list[str] = Field(default_factory=list)
-    detalhes_erros_provedores: list[SanitizedProviderError] = Field(default_factory=list)
-    nivel_vaga: str = "nao_informado"
-    validacao_ia_aplicada: bool = False
-    ajustes_validacao_ia: list[str] = Field(default_factory=list)
-    score_final_recomendado: int | None = Field(default=None, ge=0, le=100)
-    explicacao_score_final: str | None = None
+    ai_analysis: AIAnalysisResponse | None = None
+    ai_suggested_score: int | None = Field(default=None, ge=0, le=100)
+    ai_score_rationale: str | None = None
+    ai_confidence: int | None = Field(default=None, ge=0, le=100)
+    local_fallback_used: bool = Field(default=False, serialization_alias="fallback_local_usado")
+    contextual_requirements: list[AIRequirementAnalysis] = Field(default_factory=list)
+    contextual_gaps: list[str] = Field(default_factory=list)
+    next_steps: list[str] = Field(default_factory=list)
+    anti_fabrication_alerts: list[str] = Field(default_factory=list)
+    attempted_providers: list[str] = Field(default_factory=list)
+    sanitized_provider_errors: list[str] = Field(default_factory=list)
+    provider_error_details: list[SanitizedProviderError] = Field(default_factory=list)
+    job_level: str = "not_provided"
+    ai_validation_applied: bool = False
+    ai_validation_adjustments: list[str] = Field(default_factory=list)
+    recommended_final_score: int | None = Field(default=None, ge=0, le=100)
+    final_score_explanation: str | None = None
     keyword_report: KeywordReport | None = None
     score_keyword_coverage: int | None = Field(default=None, ge=0, le=100)
-    keywords_presentes_ponderadas: list[ItemKeyword] = Field(default_factory=list)
-    keywords_ausentes_ponderadas: list[ItemKeyword] = Field(default_factory=list)
-    explicacao_keyword_coverage: str | None = None
+    weighted_present_keywords: list[ItemKeyword] = Field(default_factory=list)
+    weighted_missing_keywords: list[ItemKeyword] = Field(default_factory=list)
+    keyword_coverage_explanation: str | None = None
     fact_bank: FactBank | None = None
-    papel_ia: list[str] = Field(default_factory=list)
-    qualidade_contexto_ia: int | None = Field(default=None, ge=0, le=100)
-    avaliacao_relevancia: dict | None = None
-    matriz_evidencia: list[dict] = Field(default_factory=list)
-    lacunas_priorizadas: list[dict] = Field(default_factory=list)
-    sugestoes_de_reescrita_seguras: list[str] = Field(default_factory=list)
-    diagnostico_ats: dict | None = None
-    score_contextual_ia: int | None = Field(default=None, ge=0, le=100)
-    fatores_score_final: dict[str, float | int | str | bool] = Field(default_factory=dict)
-    alertas_score_final: list[str] = Field(default_factory=list)
-    pipeline_ia: AIPipelineResult | None = None
-    etapas_ia_executadas: list[str] = Field(default_factory=list)
-    etapas_ia_com_fallback: list[str] = Field(default_factory=list)
-    evidencias_relevantes_para_vaga: list[SelectedEvidence] = Field(default_factory=list)
-    classificacao_vaga_ia: AIJobClassification | None = None
-    avaliacao_contextual_requisitos: list[ContextualRequirementEvaluation] = Field(default_factory=list)
-    confianca_pipeline_ia: int | None = Field(default=None, ge=0, le=100)
-    grupos_requisitos: list[RequirementGroup] = Field(default_factory=list)
-    score_por_grupo: dict[str, int] = Field(default_factory=dict)
-    score_semantico_agrupado: int | None = Field(default=None, ge=0, le=100)
-    erros_pipeline_ia_sanitizados: list[str] = Field(default_factory=list)
-    detalhes_fallback_pipeline: list[dict] = Field(default_factory=list)
+    ai_roles: list[str] = Field(default_factory=list)
+    ai_context_quality: int | None = Field(default=None, ge=0, le=100)
+    relevance_evaluation: dict | None = None
+    evidence_matrix: list[dict] = Field(default_factory=list)
+    prioritized_gaps: list[dict] = Field(default_factory=list)
+    safe_rewrite_suggestions: list[str] = Field(default_factory=list)
+    ats_diagnostics: dict | None = None
+    contextual_ai_score: int | None = Field(default=None, ge=0, le=100)
+    final_score_factors: dict[str, float | int | str | bool] = Field(default_factory=dict)
+    final_score_alerts: list[str] = Field(default_factory=list)
+    ai_pipeline: AIPipelineResult | None = None
+    executed_ai_steps: list[str] = Field(default_factory=list)
+    fallback_ai_steps: list[str] = Field(default_factory=list)
+    job_relevant_evidence: list[SelectedEvidence] = Field(default_factory=list)
+    ai_job_classification: AIJobClassification | None = None
+    contextual_requirement_evaluations: list[ContextualRequirementEvaluation] = Field(default_factory=list)
+    ai_pipeline_confidence: int | None = Field(default=None, ge=0, le=100)
+    requirement_groups: list[RequirementGroup] = Field(default_factory=list)
+    score_by_group: dict[str, int] = Field(default_factory=dict)
+    grouped_semantic_score: int | None = Field(default=None, ge=0, le=100)
+    sanitized_pipeline_errors: list[str] = Field(default_factory=list)
+    pipeline_fallback_details: list[dict] = Field(default_factory=list)
     parser_warnings: list[str] = Field(default_factory=list)
-    secoes_detectadas: list[str] = Field(default_factory=list)
-    secoes_com_baixa_confianca: list[str] = Field(default_factory=list)
-    fontes_evidencia_resumo: dict[str, int] = Field(default_factory=dict)
-    sanitizacao_resumo: dict[str, object] = Field(default_factory=dict)
+    detected_sections: list[str] = Field(default_factory=list)
+    low_confidence_sections: list[str] = Field(default_factory=list)
+    evidence_source_summary: dict[str, int] = Field(default_factory=dict)
+    sanitization_summary: dict[str, object] = Field(default_factory=dict)
 
 
 class AIComplement(BaseModel):
-    """reaproveitado por um provedor IA"""
+    """Minimal AI-provider complement."""
 
-    resumo_gerado: str = Field(min_length=1)
+    generated_summary: str = Field(min_length=1)
 
-    sugestoes: list[str] = Field(min_length=1)
+    suggestions: list[str] = Field(min_length=1)

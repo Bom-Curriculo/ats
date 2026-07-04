@@ -1,212 +1,132 @@
-##até agr
-análise local de currículo e vaga;
-extração e classificação de requisitos;inventário técnico e Fact Bank rastreável;
-keyword coverage ponderado;
-grupos de requisitos e alternativas;
-score semântico agrupado;
-pipeline de IA em etapas;
-sugestões condicionadas a evidências reais;
-fallback local entre providers;
-sanitização de dados pessoais;
-- observabilidade segura do parser e do pipeline.
+# ATS Resume Builder Bot
 
+Python service for deterministic ATS analysis with optional AI enrichment.
 
-# fluxco basicamente
-Currículo + Vaga
-  1 Sanitização
-  2 Parser de currículo
-  -3Fact Bank
-  4 Extração/classificação da vaga
-  5 Keyword report e grupos
-  6 Seleção de evidências
-  7 Pipeline IA em etapas
-  8 Validação anti-alucinação
-  9 Score final
-  10 JSON de resposta
-```
+## Processing flow
 
-## Fluxo da IA
+1. Normalize resume and job text.
+2. Remove personal data and sensitive URLs.
+3. Extract resume sections and build a traceable fact bank.
+4. Extract and classify job requirements.
+5. Match requirements against local evidence.
+6. Calculate the deterministic ATS score.
+7. Optionally run the structured AI pipeline using sanitized context only.
+8. Reconcile AI output against local evidence and return the final result.
 
-1. `preparar_contexto_ia`: cria contexto compacto e sanitizado
-2. `classificar_vaga`: identifica função, senioridade, requisitos e filtros
-3. `selecionar_evidencias_relevantes`: seleciona localmente até 20 provas
-4. `avaliar_requisitos_contextualmente`: avalia requisitos sem elevar a força local
-5. `priorizar_lacunas`: separa lacuna real de falta de descrição
-6. `gerar_sugestoes_seguras`: propõe ajustes, estudo ou projeto real
-7. `consolidar_resposta_ia`: valida schema e aplica conciliação final
+Local analysis remains authoritative. AI output cannot promote unsupported claims,
+turn education into professional experience, or increase evidence strength beyond
+what the deterministic engine found.
 
-Parser, Fact Bank, matching, seleção de evidências, validação e score possuem implementação local.
-Se uma etapa externa falhar o pipeline registra fallback e continua. Se todos os providers falharem proi algum motivo a API retornao fallback
+## HTTP API
 
-## Segurança contra alucinação
-
-experiência profissional possui a maior força;
-freela exige sinal de entrega real;
-projeto é prática de projeto, não emprego;
-open source exige sinal de contribuição;
-residência tecnológica é prática orientada, não emprego formal;
-projeto acadêmico é prática parcial;
-curso e certificação são evidências educacionais;
-skill isolada não comprova prática;
-evidência local prevalece sobre a IA;
-tecnologia ausente gera lacuna ou sugestão de estudo/projeto.
-
-A pós-validação remove evidência inventada, rebaixa fontes promovidas incorretamente, rejeita dados pessoais reintroduzidos e reduz o peso
-da IA quando há correções
-
-## Fact Bank
-
-O campo `fact_bank` separa:
-
-- `experiencias`;
-- `projetos`;
-- `projetos_academicos`;
-- `freelas`;
-- `open_source`;
-- `residencias`;
-- `cursos`;
-- `certificacoes`;
-- `skills`;
-- `idiomas`;
-- `conquistas`;
-- `evidencias`;
-- `tecnologias_por_fonte`.
-
-
-Providers suportados:
-
-- Gemini;
-- Groq, DeepSeek e OpenAI por endpoint OpenAI-compatible;
-- Ollama local;
-- `MockProvider` para testes.
-
-Variáveis principais de `.env.example` (rewcomendações do gepeto (gpt)):
-
-| Variável | Uso |
-|---|---|
-| `IA_PROVIDER` | Provider explícito ou `auto`. |
-| `IA_PROVIDER_CHAIN` | Ordem de fallback. |
-| `USAR_IA_PADRAO` | Habilita IA por padrão. |
-| `GEMINI_MODEL` | Modelo Gemini. |
-| `GROQ_MODEL` | Modelo Groq. |
-| `DEEPSEEK_MODEL` | Modelo DeepSeek. |
-| `OPENAI_MODEL` | Modelo OpenAI. |
-| `OLLAMA_MODEL` | Modelo Ollama. |
-| `OLLAMA_BASE_URL` | Endpoint local do Ollama. |
-| `IA_TASK_PROVIDER_POLICY` | Perfis lógicos por tarefa. |
-
-
-pra rodar dale:
-
-```bash
-cd bot
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-python -m uvicorn app.main:app --reload --port 8000
-```
-
-Swagger: `http://127.0.0.1:8000/docs`.
-
-Esse é o conjunto recomendado para revisão do PR.
-
-## Como testar o endpoint manualmente
-
-
-Rotas:
+Routes:
 
 - `GET /health`
-- `POST /api/v1/analisar`
+- `POST /api/v1/analyze` — primary English endpoint
+- `POST /api/v1/analisar` — deprecated legacy compatibility endpoint
 
-Exemplo sem dados pessoais:
+Primary payload:
 
+```json
+{
+  "resume_text": "Junior developer with a React project and FastAPI API.",
+  "job_text": "Junior full-stack role requiring React, FastAPI, and SQL.",
+  "language": "en-US",
+  "job_level": "junior",
+  "resume_sources": [],
+  "use_ai": false
+}
+```
 
+During the deprecation window, `AnalysisRequest` also accepts the legacy public
+aliases `curriculo_texto`, `vaga_texto`, `idioma`, `nivel_vaga`, and
+`fontes_curriculo`. These names must remain at the API boundary only.
+
+Example:
 
 ```bash
-curl -sS http://127.0.0.1:8000/api/v1/analisar \
+curl -sS http://127.0.0.1:8000/api/v1/analyze \
   -H 'Content-Type: application/json' \
   -d '{
-    "curriculo_texto": "Desenvolvedor júnior com projeto React e API FastAPI.",
-    "vaga_texto": "Vaga júnior full stack com React, FastAPI e SQL.",
-    "idioma": "pt-BR",
-    "nivel_vaga": "junior",
-    "usar_ia": false
+    "resume_text": "Python and FastAPI project experience.",
+    "job_text": "Python and FastAPI are required.",
+    "language": "en-US",
+    "job_level": "junior",
+    "resume_sources": [],
+    "use_ai": false
   }'
 ```
 
-## Worker RabbitMQ (MVP)
+Primary response fields include `ats_score`, `matched_keywords`,
+`missing_keywords`, `requirement_analysis`, `resume_inventory`, `fact_bank`,
+`requirement_groups`, `evidence_source_summary`, and `sanitization_summary`.
+The legacy endpoint may serialize deprecated Portuguese aliases for compatibility.
 
-O consumer roda separado do FastAPI e usa `RABBITMQ_HOST`, `RABBITMQ_PORT`,
-`RABBITMQ_USER`, `RABBITMQ_PASSWORD`, `RABBITMQ_VHOST`,
-`RABBITMQ_INPUT_QUEUE` (padrão `resumes_queue`) e `RABBITMQ_OUTPUT_QUEUE`
-(padrão `resumes_results_queue`). A partir da pasta `bot`, execute:
+## AI providers
+
+Supported providers are Groq, Gemini, DeepSeek, OpenAI, Ollama, and Mock. Configure
+selection through `IA_PROVIDER`; automatic fallback order is configured with
+`IA_PROVIDER_CHAIN`. Provider failures are sanitized before logging or returning
+diagnostics.
+
+The external AI boundary receives only sanitized, compact context. Full resume
+text, email addresses, phone numbers, CPF values, tokens, addresses, and sensitive
+URLs must never be logged or sent to external providers.
+
+## RabbitMQ worker
+
+Run the worker from `bot/`:
 
 ```bash
 python -m app.workers.rabbitmq_consumer
 ```
 
-Exemplo para publicar uma entrada JSON limpa com `rabbitmqadmin`:
+The default queues remain stable for Laravel/front-end compatibility:
 
-```bash
-rabbitmqadmin publish exchange=amq.default routing_key=resumes_queue \
-  payload='{"analysis_request_id":"uuid","user_id":12,"resume_cv_url":"http://backend:8000/storage/uploads/resumes/cvs/arquivo.docx","resume_linkedin_url":"http://backend:8000/storage/uploads/resumes/linkedins/arquivo.docx","vaga_texto":"descrição da vaga","callback_queue":"resumes_results_queue"}' \
-  properties='{"content_type":"application/json","delivery_mode":2}'
+- input: `resumes_queue`
+- output: `resumes_results_queue`
+
+Clean English JSON is preferred:
+
+```json
+{
+  "analysis_request_id": "uuid",
+  "resume_text": "Python developer",
+  "job_text": "Python role",
+  "language": "en-US",
+  "use_ai": false,
+  "callback_queue": "resumes_results_queue"
+}
 ```
 
-URLs entre containers devem usar o nome do serviço (por exemplo,
-`http://backend:8000`) ou uma URL externa; `localhost` aponta para o próprio
-container do worker. Enquanto não houver extração de PDF/DOCX, mensagens que
-tenham somente arquivo recebem `received_pending_extraction`.
+Legacy Portuguese payload keys are accepted temporarily by the RabbitMQ parser.
+File-only messages return `received_pending_extraction` until document extraction
+is available.
 
-## Campos importantes da resposta
+## Main modules
 
-- `pontuacao_ats`;
-- `palavras_chave_encontradas`;
-- `palavras_chave_faltando`;
-- `analise_por_requisito`;
-- `fact_bank`;
-- `keyword_report`;
-- `grupos_requisitos`;
-- `score_por_grupo`;
-- `pipeline_ia`;
-- `parser_warnings`;
-- `secoes_detectadas`;
-- `secoes_com_baixa_confianca`;
-- `fontes_evidencia_resumo`;
-- `sanitizacao_resumo`;
-- `score_final_recomendado`;
-- `explicacao_score_final`.
-
-## Arquivos principais (formataçãofeita pelo gepeto)
-
-| Arquivo/pasta | Responsabilidade |
+| Module | Responsibility |
 |---|---|
-| `app/main.py` | Aplicação e rotas FastAPI. |
-| `app/services/ats_analyzer.py` | Pipeline local e conciliação final. |
-| `app/services/section_extractor.py` | Parser bilíngue e confiança das seções. |
-| `app/services/resume_entity_parser.py` | Extração genérica de projetos. |
-| `app/services/fact_bank.py` | Fonte de verdade e prioridade das evidências. |
-| `app/services/technical_matching.py` | Matching técnico com limites léxicos. |
-| `app/services/requirement_groups.py` | Alternativas e subrequisitos agrupados. |
-| `app/services/evidence_selection.py` | Recuperação limitada e sanitizada. |
-| `app/services/ai_orchestrator.py` | Etapas e fallback do pipeline. |
-| `app/services/ai_pipeline_prompts.py` | Prompts pequenos com schema. |
-| `app/services/ai_manager.py` | Cadeia de providers e erros seguros. |
-| `app/services/privacy_sanitizer.py` | Remoção conservadora de PII e segredos. |
-| `app/schemas/ai_pipeline.py` | Schemas das etapas. |
-| `app/providers/base.py` | Interface comum dos providers. |
-| `app/providers/gemini.py` | Adapter Gemini. |
-| `app/providers/openai_compatible.py` | Adapter OpenAI-compatible. |
-| `app/providers/ollama.py` | Adapter local Ollama. |
-| `app/providers/mock.py` | Provider determinístico para testes. |
-| `tests/` | Testes locais e providers mockados. |
+| `app/main.py` | FastAPI application and HTTP compatibility boundary. |
+| `app/services/ats_analyzer.py` | Deterministic pipeline and final reconciliation. |
+| `app/services/section_extractor.py` | Bilingual section extraction. |
+| `app/services/resume_entity_parser.py` | Generic project and entity parsing. |
+| `app/services/fact_bank.py` | Traceable evidence source of truth. |
+| `app/services/technical_matching.py` | Boundary-aware technical matching. |
+| `app/services/requirement_groups.py` | Alternative and grouped requirements. |
+| `app/services/evidence_selection.py` | Sanitized evidence selection. |
+| `app/services/ai_orchestrator.py` | Structured AI stages and fallbacks. |
+| `app/services/ai_pipeline_prompts.py` | Compact structured prompts. |
+| `app/services/ai_manager.py` | Provider selection and safe failures. |
+| `app/services/privacy_sanitizer.py` | Conservative PII and secret removal. |
+| `app/schemas/` | Internal English Pydantic contracts. |
+| `app/providers/` | Provider adapters. |
+| `tests/` | Deterministic and mocked-provider tests. |
 
-Os módulos antigos em português permanecem como wrappers temporários de compatibilidade.
-`AnalysisRequest` aceita tanto os nomes internos em inglês (`resume_text`, `job_text`,
-`job_level`, `language`, `resume_sources`) quanto os campos públicos legados em português.
+## Validation
 
-## referencias
-
-usei de base:
-- [srbhr/Resume-Matcher](https://github.com/srbhr/Resume-Matcher)
-- [JaimeYeung/Resume-Tailor-AI](https://github.com/JaimeYeung/Resume-Tailor-AI)
+```bash
+python -m compileall -q bot/app bot/tests
+python -m pytest -q bot/tests
+git diff --check -- bot
+```

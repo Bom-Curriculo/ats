@@ -7,7 +7,7 @@ from app.services.ats_analyzer import analyze_resume, analyze_resume_with_ai
 from app.services.privacy_sanitizer import sanitize_personal_data
 
 
-CURRICULO_FAKE = """Pessoa Exemplo
+FAKE_RESUME = """Pessoa Exemplo
 E-mail: pessoa.teste@gmail.example
 Telefone: (81) 99999-1234
 CPF: 123.456.789-09
@@ -26,78 +26,78 @@ Curso Superior | 2020 - 2023
 """
 
 
-def test_sanitizacao_classifica_links_sem_retornar_valores():
-    resultado = sanitize_personal_data(CURRICULO_FAKE)
+def test_sanitization_classifies_links_without_returning_values():
+    result = sanitize_personal_data(FAKE_RESUME)
     assert {"email", "telefone", "cpf", "linkedin_url", "github_profile_url",
-            "portfolio_url", "github_repo_url", "deploy_url", "endereco"} <= set(resultado.itens_removidos)
-    assert resultado.links_detectados_por_tipo == {
+            "portfolio_url", "github_repo_url", "deploy_url", "endereco"} <= set(result.items_removidos)
+    assert result.links_detectados_por_type == {
         "linkedin_url": 1, "github_profile_url": 1, "portfolio_url": 1,
         "github_repo_url": 1, "deploy_url": 1,
     }
-    for valor in ("pessoa.teste@gmail.example", "99999-1234", "123.456.789-09",
+    for value in ("pessoa.teste@gmail.example", "99999-1234", "123.456.789-09",
                   "linkedin.com", "github.com", "portfolio.example.dev", "vercel.app", "Rua Exemplo"):
-        assert valor not in resultado.texto_sanitizado
-    assert "[EMAIL_REMOVIDO]" in resultado.texto_sanitizado
-    assert "[PORTFOLIO_REMOVIDO]" in resultado.texto_sanitizado
-    assert "[URL_REMOVIDA]" in resultado.texto_sanitizado
+        assert value not in result.text_sanitized
+    assert "[EMAIL_REMOVIDO]" in result.text_sanitized
+    assert "[PORTFOLIO_REMOVIDO]" in result.text_sanitized
+    assert "[URL_REMOVIDA]" in result.text_sanitized
 
 
-def test_sanitizacao_preserva_datas_versoes_e_tecnologias():
-    seguro = sanitize_personal_data(CURRICULO_FAKE).texto_sanitizado
-    for valor in ("2020 - 2023", ".NET 9", "Java 17", "Python 3.12", "FastAPI"):
-        assert valor in seguro
+def test_synthetic_resume_privacy_behavior_02():
+    safe = sanitize_personal_data(FAKE_RESUME).text_sanitized
+    for value in ("2020 - 2023", ".NET 9", "Java 17", "Python 3.12", "FastAPI"):
+        assert value in safe
 
 
 class MockCapturaSeguro(MockProvider):
-    recebida = None
+    received = None
 
-    async def gerar_analise_estruturada(self, solicitacao_segura, resultado_local):
-        self.recebida = solicitacao_segura
+    async def generate_structured_analysis(self, safe_request, local_result):
+        self.received = safe_request
         return {
-            "resumo_contextual": "Análise segura.", "requisitos_contextuais": [],
-            "pontos_fortes": ["Python"], "lacunas": [], "possiveis_impeditivos": [],
-            "sugestoes_de_melhoria": ["Detalhe o projeto real."], "proximos_passos": [],
-            "alertas_contra_inventar": ["Não invente."], "confianca": 80,
+            "contextual_summary": "Análise segura.", "contextual_requirements": [],
+            "strengths": ["Python"], "gaps": [], "possible_blockers": [],
+            "improvement_suggestions": ["Detalhe o project real."], "next_steps": [],
+            "anti_fabrication_alerts": ["Não invente."], "confidence": 80,
         }
 
 
-def test_provider_recebe_somente_texto_sanitizado_e_sem_fontes_brutas():
-    provedor = MockCapturaSeguro()
-    entrada = AnalysisRequest(
-        curriculo_texto=CURRICULO_FAKE,
-        vaga_texto="Contato: recrutador@example.com\nRequisitos: Python e FastAPI",
-        fontes_curriculo=[{"tipo": "github_url", "url": "https://github.com/pessoa-exemplo"}],
+def test_synthetic_resume_privacy_behavior_03():
+    provider = MockCapturaSeguro()
+    input_request = AnalysisRequest(
+        resume_text=FAKE_RESUME,
+        job_text="Contato: recrutador@example.com\nRequisitos: Python e FastAPI",
+        resume_sources=[{"type": "github_url", "url": "https://github.com/pessoa-exemplo"}],
     )
-    resultado = asyncio.run(analyze_resume_with_ai(entrada, provedor))
-    enviado = provedor.recebida.curriculo_texto + provedor.recebida.vaga_texto
-    assert provedor.recebida.fontes_curriculo == []
-    for valor in ("pessoa.teste@gmail.example", "99999-1234", "123.456.789-09",
+    result = asyncio.run(analyze_resume_with_ai(input_request, provider))
+    sent = provider.received.resume_text + provider.received.job_text
+    assert provider.received.resume_sources == []
+    for value in ("pessoa.teste@gmail.example", "99999-1234", "123.456.789-09",
                   "linkedin.com", "github.com", "recrutador@example.com"):
-        assert valor not in enviado
-    assert resultado.privacidade.texto_enviado_para_ia_foi_sanitizado is True
+        assert value not in sent
+    assert result.privacy.ai_text_was_sanitized is True
 
 
-def test_resposta_local_nao_devolve_pii_e_mantem_analise_tecnica():
-    resultado = analyze_resume(AnalysisRequest(
-        curriculo_texto=CURRICULO_FAKE, vaga_texto="Requisitos: Python, FastAPI, .NET e Java"
+def test_synthetic_resume_privacy_behavior_04():
+    result = analyze_resume(AnalysisRequest(
+        resume_text=FAKE_RESUME, job_text="Requisitos: Python, FastAPI, .NET e Java"
     ))
-    serializado = json.dumps(resultado.model_dump(), ensure_ascii=False)
-    for valor in ("pessoa.teste@gmail.example", "99999-1234", "123.456.789-09",
+    serialized = json.dumps(result.model_dump(), ensure_ascii=False)
+    for value in ("pessoa.teste@gmail.example", "99999-1234", "123.456.789-09",
                   "linkedin.com", "github.com", "portfolio.example.dev", "Rua Exemplo"):
-        assert valor not in serializado
-    assert {"Python", "FastAPI", ".NET", "Java"} <= set(resultado.palavras_chave_encontradas)
-    resumo = resultado.sanitizacao_resumo
-    assert resumo["dados_sensiveis_detectados"] is True
-    assert resumo["quantidade_categorias"] >= 5
-    assert resumo["links_detectados_por_tipo"]["github_repo_url"] == 1
-    assert "pessoa" not in resumo["observacao_segura"].casefold()
+        assert value not in serialized
+    assert {"Python", "FastAPI", ".NET", "Java"} <= set(result.matched_keywords)
+    summary = result.sanitization_summary
+    assert summary["sensitive_data_detected"] is True
+    assert summary["quantidade_categories"] >= 5
+    assert summary["links_detectados_por_type"]["github_repo_url"] == 1
+    assert "pessoa" not in summary["observacao_safe"].casefold()
 
 
-def test_fontes_textuais_futuras_mantem_contrato_aditivo():
-    entrada = AnalysisRequest(
-        fontes_curriculo=[{"tipo": "curriculo_texto", "conteudo": "PROJETOS\nAPI\nStack: Python"}],
-        vaga_texto="Requisitos: Python",
+def test_synthetic_resume_privacy_behavior_05():
+    input_request = AnalysisRequest(
+        resume_sources=[{"type": "curriculo_texto", "content": "PROJETOS\nAPI\nStack: Python"}],
+        job_text="Requisitos: Python",
     )
-    assert "Python" in entrada.curriculo_texto
-    resultado = analyze_resume(entrada)
-    assert "Python" in resultado.palavras_chave_encontradas
+    assert "Python" in input_request.resume_text
+    result = analyze_resume(input_request)
+    assert "Python" in result.matched_keywords

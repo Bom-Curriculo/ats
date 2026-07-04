@@ -4,7 +4,7 @@ import sys
 from pythonjsonlogger import jsonlogger
 
 
-def configure_logging(nivel: str = "INFO") -> None:
+def configure_logging(level: str = "INFO") -> None:
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(
         jsonlogger.JsonFormatter(
@@ -15,7 +15,7 @@ def configure_logging(nivel: str = "INFO") -> None:
 
     root = logging.getLogger()
     root.handlers = [handler]
-    root.setLevel(nivel)
+    root.setLevel(level)
 
-    for nome_logger in ("uvicorn", "uvicorn.access", "uvicorn.error"):
-        logging.getLogger(nome_logger).handlers = [handler]
+    for name_logger in ("uvicorn", "uvicorn.access", "uvicorn.error"):
+        logging.getLogger(name_logger).handlers = [handler]

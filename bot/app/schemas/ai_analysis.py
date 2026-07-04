@@ -5,41 +5,41 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 
-# literal pra não deixar passar qualquer string nos status
-StatusRequisitoIA = Literal[
-    "encontrado_com_evidencia",
-    "encontrado_sem_contexto_claro",
+# Restrict status values to the supported contract.
+AIRequirementStatus = Literal[
+    "found_with_evidence",
+    "found_without_clear_context",
 
-    "relacionado_mas_nao_explicito",
+    "related_but_not_explicit",
 
-    "faltando",
-    "nao_avaliado",
-    "possivel_impeditivo",
+    "missing",
+    "not_evaluated",
+    "possible_blocker",
 
 ]
 
 
 
-ImportanciaRequisitoIA = Literal[
-    "obrigatorio", "desejavel", "diferencial", "contextual", "nao_informado"
+AIRequirementImportance = Literal[
+    "required", "desired", "differential", "contextual", "not_provided"
 ]
 
 
 
-CategoriaRequisitoIA = Literal[
-    "habilidade_tecnica",
-    "ferramenta",
-    "experiencia",
-    "formacao",
-    "idioma",
+AIRequirementCategory = Literal[
+    "technical_skill",
+    "tool",
+    "experience",
+    "education",
+    "language",
 
 
     "soft_skill",
-    "dominio_de_negocio",
-    "certificacao",
-    "disponibilidade",
-    "localizacao",
-    "outro",
+    "business_domain",
+    "certification",
+    "availability",
+    "location",
+    "other",
 
 
 ]
@@ -48,51 +48,51 @@ CategoriaRequisitoIA = Literal[
 
 class AIRequirementAnalysis(BaseModel):
     item: str = Field(min_length=1)
-    categoria: CategoriaRequisitoIA
-    importancia: ImportanciaRequisitoIA
-    status: StatusRequisitoIA
+    category: AIRequirementCategory
+    importance: AIRequirementImportance
+    status: AIRequirementStatus
 
 
-    evidencia: str | None = None
-    justificativa: str = Field(min_length=1)
-    recomendacao: str = Field(min_length=1)
-    # n aceita campo extra, se vier quebra
+    evidence: str | None = None
+    rationale: str = Field(min_length=1)
+    recommendation: str = Field(min_length=1)
+    # Reject unknown fields to keep provider output strict.
     model_config = ConfigDict(extra="forbid")
 
 
 
 class AIAnalysisResponse(BaseModel):
-    resumo_contextual: str = Field(min_length=1)
-    requisitos_contextuais: list[AIRequirementAnalysis]
-    pontos_fortes: list[str]
-    lacunas: list[str]
-    possiveis_impeditivos: list[str]
-    sugestoes_de_melhoria: list[str]
-    proximos_passos: list[str]
+    contextual_summary: str = Field(min_length=1)
+    contextual_requirements: list[AIRequirementAnalysis]
+    strengths: list[str]
+    gaps: list[str]
+    possible_blockers: list[str]
+    improvement_suggestions: list[str]
+    next_steps: list[str]
 
-    # alertas anti alucinação
-    alertas_contra_inventar: list[str]
+    # Implementation note.
+    anti_fabrication_alerts: list[str]
 
-    confianca: int = Field(ge=0, le=100)
-    score_sugerido_ia: int | None = Field(default=None, ge=0, le=100)
-    justificativa_score_ia: str | None = None
+    confidence: int = Field(ge=0, le=100)
+    ai_suggested_score: int | None = Field(default=None, ge=0, le=100)
+    ai_score_rationale: str | None = None
 
-    papel_ia: list[str] = Field(default_factory=list)
-
-
-    qualidade_contexto_ia: int | None = Field(default=None, ge=0, le=100)
+    ai_roles: list[str] = Field(default_factory=list)
 
 
-    avaliacao_relevancia: dict | None = None
+    ai_context_quality: int | None = Field(default=None, ge=0, le=100)
 
 
-    matriz_evidencia: list[dict] = Field(default_factory=list)
+    relevance_evaluation: dict | None = None
 
 
-    lacunas_priorizadas: list[dict] = Field(default_factory=list)
-    sugestoes_de_reescrita_seguras: list[str] = Field(default_factory=list)
-    diagnostico_ats: dict | None = None
-    score_contextual_ia: int | None = Field(default=None, ge=0, le=100)
+    evidence_matrix: list[dict] = Field(default_factory=list)
+
+
+    prioritized_gaps: list[dict] = Field(default_factory=list)
+    safe_rewrite_suggestions: list[str] = Field(default_factory=list)
+    ats_diagnostics: dict | None = None
+    contextual_ai_score: int | None = Field(default=None, ge=0, le=100)
 
 
     model_config = ConfigDict(extra="forbid")

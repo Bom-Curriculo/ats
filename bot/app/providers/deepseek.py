@@ -3,11 +3,11 @@ from app.providers.openai_compatible import OpenAICompatibleProvider
 
 class DeepSeekProvider(OpenAICompatibleProvider):
 
-    def __init__(self, chave_api: str, modelo: str) -> None:
+    def __init__(self, key_api: str, model: str) -> None:
         super().__init__(
-            nome="deepseek",
-            chave_api=chave_api,
-            variavel_chave="DEEPSEEK_API_KEY",
-            modelo=modelo,
+            name="deepseek",
+            key_api=key_api,
+            key_variable="DEEPSEEK_API_KEY",
+            model=model,
             url="https://api.deepseek.com/chat/completions",
         )

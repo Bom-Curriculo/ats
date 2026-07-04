@@ -1,4 +1,4 @@
-"""Testes dos endpoints públicos da aplicação."""
+"""Tests for the application's public endpoints."""
 
 import asyncio
 
@@ -6,90 +6,106 @@ from app.main import app
 from httpx import ASGITransport, AsyncClient
 
 
-async def requisitar(metodo: str, caminho: str, **parametros):
-    """Chama a aplicação ASGI sem depender de um servidor externo."""
-
-    # usa transport asgi pra não precisar subir servidor de vdd
-    transporte = ASGITransport(app=app)
-
-    async with AsyncClient(transport=transporte, base_url="http://teste") as cliente:
-        return await cliente.request(metodo, caminho, **parametros)
+async def request_app(method: str, path: str, **parameters):
+    """Call the ASGI application without an external server."""
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        return await client.request(method, path, **parameters)
 
 
-def test_health_informa_que_servico_esta_online() -> None:
+def test_health_behavior_01() -> None:
 
-    # olhar se tá no ar
-    resposta = asyncio.run(requisitar("GET", "/health"))
+    # Implementation note.
+    response = asyncio.run(request_app("GET", "/health"))
 
-    assert resposta.status_code == 200
+    assert response.status_code == 200
 
-    assert resposta.json() == {"status": "online"}
+    assert response.json() == {"status": "online"}
 
 
-def test_endpoint_analisar_respeita_contrato(monkeypatch) -> None:
+def test_legacy_analyze_endpoint_accepts_portuguese_payload(monkeypatch) -> None:
 
-    # forca provider mock pra não bater em api externa
+    # Implementation note.
     monkeypatch.setenv("IA_PROVIDER", "mock")
 
-    resposta = asyncio.run(
-        requisitar(
+    response = asyncio.run(
+        request_app(
             "POST",
             "/api/v1/analisar",
             json={
                 "curriculo_texto": "Experiência com Python. Formação em Sistemas. Projetos, habilidades e tecnologias: FastAPI.",
                 "vaga_texto": "Buscamos pessoa com Python e FastAPI.",
                 "idioma": "pt-BR",
+                "usar_ia": True,
+                "nivel_vaga": "junior",
+                "fontes_curriculo": [],
             },
         )
     )
 
-    assert resposta.status_code == 200
+    assert response.status_code == 200
 
-    resultado = resposta.json()
+    result = response.json()
 
-    # score tem que ser positivo pq não tem match
-    assert resultado["pontuacao_ats"] > 0
+    # Implementation note.
+    assert result["pontuacao_ats"] > 0
 
-    assert "Python" in resultado["palavras_chave_encontradas"]
+    assert "Python" in result["palavras_chave_encontradas"]
 
     # ceonferir mock
-    assert resultado["provedor_ia"] == "mock"
+    assert result["provedor_ia"] == "mock"
 
-    assert resultado["modelo_ia"] == "modelo-mock"
+    assert result["modelo_ia"] == "modelo-mock"
 
-    # privacidade tem q ta true pois antes de mandar pra IA
-    assert resultado["privacidade"]["texto_enviado_para_ia_foi_sanitizado"] is True
+    # Technical note removed during English standardization.
+    assert result["privacy"]["ai_text_was_sanitized"] is True
 
-    assert resultado["fallback_ia"]["provedores_tentados"] == ["mock"]
+    assert result["ai_fallback"]["attempted_providers"] == ["mock"]
 
-    assert "analise_detalhada" in resultado
+    assert "detailed_analysis" in result
 
-    assert "sugestoes_detalhadas" in resultado
+    assert "detailed_suggestions" in result
 
 
-def test_endpoint_getronics_com_categoria_processos_retorna_200(monkeypatch) -> None:
+def test_analyze_endpoint_accepts_english_payload(monkeypatch) -> None:
     monkeypatch.setenv("IA_PROVIDER", "mock")
-    curriculo = """HABILIDADES
+    response = asyncio.run(request_app("POST", "/api/v1/analyze", json={
+        "resume_text": "Python and FastAPI project experience.",
+        "job_text": "Python and FastAPI are required.",
+        "language": "en-US",
+        "job_level": "junior",
+        "resume_sources": [],
+        "use_ai": True,
+    }))
+    assert response.status_code == 200
+    result = response.json()
+    assert result["ats_score"] > 0
+    assert result["ai_provider"] == "mock"
+
+
+def test_health_behavior_04(monkeypatch) -> None:
+    monkeypatch.setenv("IA_PROVIDER", "mock")
+    resume = """HABILIDADES
 Python, JavaScript, TypeScript, React, FastAPI, SQL, Docker, Git e testes automatizados.
 PROJETOS
 API REST em Python e FastAPI com SQL, Docker, Git e testes automatizados.
 """
-    vaga = """Getronics
+    job = """Getronics
 Requisitos: Angular, React, HTML5, CSS3, JavaScript, TypeScript, APIs REST, Java, Spring Boot, Python, FastAPI, Flask, MVC, SQL e Docker.
 Desejáveis: Kubernetes, CI/CD, Git, branches, pull requests, code review, testes unitários, testes de integração, metodologias ágeis, inglês técnico, LLMs e Prompt Engineering.
 """
 
-    resposta = asyncio.run(
-        requisitar(
+    response = asyncio.run(
+        request_app(
             "POST",
             "/api/v1/analisar",
-            json={"curriculo_texto": curriculo, "vaga_texto": vaga},
+            json={"curriculo_texto": resume, "vaga_texto": job},
         )
     )
 
-    assert resposta.status_code == 200
-    resultado = resposta.json()
-    assert "processos" in resultado["inventario_curriculo"]
-    assert "metodologias ágeis" in resultado["palavras_chave_faltando"]
-    assert "pontuacao_ats" in resultado
-    assert "provedor_ia" in resultado
+    assert response.status_code == 200
+    result = response.json()
+    assert "processos" in result["resume_inventory"]
+    assert "metodologias ágeis" in result["palavras_chave_faltando"]
+    assert "pontuacao_ats" in result
+    assert "provedor_ia" in result

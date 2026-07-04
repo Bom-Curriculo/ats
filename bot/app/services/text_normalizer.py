@@ -1,7 +1,7 @@
 import re
 import unicodedata
 
-TITULOS_CONHECIDOS = (
+KNOWN_TITLES = (
     "RESUMO",
     "COMPETÊNCIAS",
     "PROJETOS",
@@ -27,34 +27,34 @@ TITULOS_CONHECIDOS = (
 )
 
 
-def normalize_for_comparison(texto: str) -> str:
-    """representação sem acento"""
+def normalize_for_comparison(text: str) -> str:
+    """Return a lowercase, accent-free comparison form."""
 
     return "".join(
         caractere
-        for caractere in unicodedata.normalize("NFD", texto)
+        for caractere in unicodedata.normalize("NFD", text)
         if unicodedata.category(caractere) != "Mn"
     ).lower()
 
 
-# titulos de seção que o pdf as vezes separa letra por letra
-def _corrigir_titulos_espacados(texto: str) -> str:
+# Technical note removed during English standardization.
+def _corrigir_titles_espacados(text: str) -> str:
 
-    for titulo in TITULOS_CONHECIDOS:
-        letras = r"\s+".join(re.escape(letra) for letra in titulo)
+    for title in KNOWN_TITLES:
+        letras = r"\s+".join(re.escape(letra) for letra in title)
 
-        texto = re.sub(rf"(?<!\w){letras}(?!\w)", titulo, texto, flags=re.IGNORECASE)
+        text = re.sub(rf"(?<!\w){letras}(?!\w)", title, text, flags=re.IGNORECASE)
 
-    return texto
+    return text
 
 
-def normalize_resume_text(texto: str) -> str:
-    """ruido de pdf"""
+def normalize_resume_text(text: str) -> str:
+    """Normalize noise introduced by PDF extraction."""
 
-    # troca nbsp por espaço normal
-    texto = _corrigir_titulos_espacados(texto.replace("\u00a0", " "))
+    # Implementation note.
+    text = _corrigir_titles_espacados(text.replace("\u00a0", " "))
 
-    # padroniza nomes de libs/frameworks q vem feio do pdf
+    # Normalize library and framework names distorted by PDF extraction.
     substituicoes = (
         (r"(?i)\bnext\s*\.?\s*js\b", "Next.js"),
         (r"(?i)\btailwind(?:\s+css)?\b", "Tailwind CSS"),
@@ -62,10 +62,10 @@ def normalize_resume_text(texto: str) -> str:
         (r"(?i)\bradix(?:\s+ui)?\b", "Radix UI"),
     )
 
-    for padrao, forma_padrao in substituicoes:
-        texto = re.sub(padrao, forma_padrao, texto)
+    for pattern, default_form in substituicoes:
+        text = re.sub(pattern, default_form, text)
 
-    # tira espaços extras e linhas vazias
-    linhas = [re.sub(r"[ \t]+", " ", linha).strip() for linha in texto.splitlines()]
+    # Implementation note.
+    lines = [re.sub(r"[ \t]+", " ", line).strip() for line in text.splitlines()]
 
-    return "\n".join(linha for linha in linhas if linha)
+    return "\n".join(line for line in lines if line)

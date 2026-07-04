@@ -6,47 +6,47 @@ from app.services.ats_analyzer import (
 )
 
 
-def test_identifies_palavras_encontradas_e_faltantes() -> None:
+def test_ats_analyzer_behavior_01() -> None:
 
-    solicitacao = AnalysisRequest(
-        curriculo_texto="Experiência com Python e APIs REST.",
-        vaga_texto="Desenvolvimento Python com FastAPI e Docker.",
+    request = AnalysisRequest(
+        resume_text="Experiência com Python e APIs REST.",
+        job_text="Desenvolvimento Python com FastAPI e Docker.",
     )
 
-    resultado = analyze_resume(solicitacao)
+    result = analyze_resume(request)
 
-    assert "Python" in resultado.palavras_chave_encontradas
-    assert "FastAPI" in resultado.palavras_chave_faltando
+    assert "Python" in result.matched_keywords
+    assert "FastAPI" in result.missing_keywords
 
-    assert "Docker" in resultado.palavras_chave_faltando
-    assert 0 <= resultado.pontuacao_ats <= 100
+    assert "Docker" in result.missing_keywords
+    assert 0 <= result.ats_score <= 100
 
 
-def test_rejects_curriculo_e_vaga_iguais() -> None:
+def test_ats_analyzer_behavior_02() -> None:
 
-    solicitacao = AnalysisRequest(
-        curriculo_texto="Python FastAPI Docker",
-        vaga_texto="Python FastAPI Docker",
+    request = AnalysisRequest(
+        resume_text="Python FastAPI Docker",
+        job_text="Python FastAPI Docker",
     )
 
-    resultado = analyze_resume(solicitacao)
+    result = analyze_resume(request)
 
-    assert resultado.analise_valida is False
-    assert resultado.pontuacao_ats == 0
-    assert resultado.alertas_entrada
-
-
-def test_detects_secoes_ausentes() -> None:
-
-    problemas = detect_missing_sections("Experiência profissional com Python.")
-
-    assert "Seção de experiência não identificada no currículo." not in problemas
-
-    assert "Seção de formação não identificada no currículo." in problemas
-    assert "Seção de projetos não identificada no currículo." in problemas
+    assert result.valid_analysis is False
+    assert result.ats_score == 0
+    assert result.input_alerts
 
 
-def test_ignores_termos_genericos_da_vaga() -> None:
+def test_ats_analyzer_behavior_03() -> None:
+
+    issues = detect_missing_sections("Experiência profissional com Python.")
+
+    assert "Seção de experiência não identificada no currículo." not in issues
+
+    assert "Seção de formação não identificada no currículo." in issues
+    assert "Seção de projects não identificada no currículo." in issues
+
+
+def test_ats_analyzer_behavior_04() -> None:
 
     palavras = extract_relevant_keywords("Qualificações user system React")
     assert "qualificacoes" not in palavras
@@ -55,7 +55,7 @@ def test_ignores_termos_genericos_da_vaga() -> None:
     assert "React" in palavras
 
 
-def test_prioritizes_palavras_compostas_e_tecnologias() -> None:
+def test_ats_analyzer_behavior_05() -> None:
 
     palavras = extract_relevant_keywords(
         "Next.js, Tailwind CSS, Radix UI, shadcn/ui e design system"
@@ -66,19 +66,19 @@ def test_prioritizes_palavras_compostas_e_tecnologias() -> None:
     )
 
 
-def test_requisitos_obrigatorios_pesam_mais_que_diferenciais() -> None:
+def test_requirements_required_weigh_more_than_differentials() -> None:
 
-    resultado = analyze_resume(
+    result = analyze_resume(
         AnalysisRequest(
-            curriculo_texto="React",
-            vaga_texto="Requisitos obrigatórios:\nReact\nDiferenciais:\nFigma",
+            resume_text="React",
+            job_text="Requisitos obrigatórios:\nReact\nDiferenciais:\nFigma",
         )
     )
 
-    assert resultado.pontuacao_ats == 56
+    assert result.ats_score == 56
 
 
-def test_ignores_metadados_de_agregadores() -> None:
+def test_ats_analyzer_behavior_07() -> None:
 
     palavras = extract_relevant_keywords(
         "Job description via LinkedIn. Apply on Indeed. Glassdoor. 3 days ago. NestJS"
@@ -87,7 +87,7 @@ def test_ignores_metadados_de_agregadores() -> None:
     assert palavras == ["NestJS"]
 
 
-def test_extracts_catalogo_tecnico_backend_e_frontend() -> None:
+def test_ats_analyzer_behavior_08() -> None:
 
     palavras = extract_relevant_keywords(
         "NestJS, AWS-SDK, Angular, Jest, Mocha, MongoDB e DynamoDB"
@@ -104,46 +104,46 @@ def test_extracts_catalogo_tecnico_backend_e_frontend() -> None:
     } <= set(palavras)
 
 
-def test_detects_graduacao_completa_contra_cursando() -> None:
+def test_ats_analyzer_behavior_09() -> None:
 
-    resultado = analyze_resume(
+    result = analyze_resume(
         AnalysisRequest(
-            curriculo_texto="Formação: graduação em Sistemas, cursando.",
-            vaga_texto="Requisitos obrigatórios:\nGraduação completa",
+            resume_text="Formação: graduação em Sistemas, cursando.",
+            job_text="Requisitos obrigatórios:\nGraduação completa",
         )
     )
 
     assert (
         "Vaga pede graduação completa; currículo indica graduação em andamento."
-        in resultado.analise_detalhada.possiveis_impeditivos
+        in result.detailed_analysis.possible_blockers
     )
 
 
-def test_detects_ingles_avancado_contra_tecnico() -> None:
+def test_ats_analyzer_behavior_10() -> None:
 
-    resultado = analyze_resume(
+    result = analyze_resume(
         AnalysisRequest(
-            curriculo_texto="Idiomas: inglês técnico.",
-            vaga_texto="Requisitos obrigatórios:\nInglês avançado",
+            resume_text="Idiomas: inglês técnico.",
+            job_text="Requisitos obrigatórios:\nInglês avançado",
         )
     )
 
     assert (
         "Vaga pede inglês avançado; currículo indica inglês técnico."
-        in resultado.analise_detalhada.possiveis_impeditivos
+        in result.detailed_analysis.possible_blockers
     )
 
 
-def test_detects_localidade_hibrida_incompativel() -> None:
+def test_ats_analyzer_behavior_11() -> None:
 
-    resultado = analyze_resume(
+    result = analyze_resume(
         AnalysisRequest(
-            curriculo_texto="Localização: Recife.",
-            vaga_texto="Trabalho híbrido em Manaus. Requisitos: Python.",
+            resume_text="Localização: Recife.",
+            job_text="Trabalho híbrido em Manaus. Requisitos: Python.",
         )
     )
 
     assert (
         "Vaga é híbrida/presencial em Manaus; currículo indica Recife."
-        in resultado.analise_detalhada.possiveis_impeditivos
+        in result.detailed_analysis.possible_blockers
     )

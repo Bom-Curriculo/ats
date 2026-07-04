@@ -9,49 +9,49 @@ from app.schemas.ai_analysis import AIAnalysisResponse
 
 
 class OpenAICompatibleProvider(AIProvider):
-    """Compartilha aut, requisição e validação entre APIs compatíveis."""
+    """Share authentication, requests, and validation across compatible APIs."""
 
     def __init__(
         self,
-        nome: str,
-        chave_api: str,
-        variavel_chave: str,
-        modelo: str,
+        name: str,
+        key_api: str,
+        key_variable: str,
+        model: str,
         url: str,
         timeout: float = 30.0,
     ) -> None:
 
-        if not chave_api.strip():
+        if not key_api.strip():
             raise AIProviderError(
-                f"A variável {variavel_chave} não foi configurada.",
-                categoria="missing_api_key",
+                f"A variável {key_variable} não foi configurada.",
+                category="missing_api_key",
             )
 
-        self.nome = nome
-        self.chave_api = chave_api
-        self.modelo = modelo
+        self.name = name
+        self.key_api = key_api
+        self.model = model
         self.url = url
         self.timeout = timeout
 
-    async def gerar_complemento(
+    async def generate_completion(
         self,
-        solicitacao: AnalysisRequest,
-        resultado_base: AnalysisResult,
+        request: AnalysisRequest,
+        base_result: AnalysisResult,
     ) -> AIComplement:
 
-        analise = await self.gerar_analise_estruturada(solicitacao, resultado_base)
+        analysis = await self.generate_structured_analysis(request, base_result)
         return AIComplement(
-            resumo_gerado=analise.resumo_contextual,
-            sugestoes=analise.sugestoes_de_melhoria + analise.proximos_passos,
+            generated_summary=analysis.contextual_summary,
+            suggestions=analysis.improvement_suggestions + analysis.next_steps,
         )
 
-    async def gerar_analise_estruturada(self, solicitacao, resultado_base):
-        # monta o corpo da req
+    async def generate_structured_analysis(self, request, base_result):
+        # Implementation note.
         corpo = {
-            "model": self.modelo,
+            "model": self.model,
             "messages": [
                 {"role": "system", "content": "Responda somente com JSON válido."},
-                {"role": "user", "content": create_prompt(solicitacao, resultado_base)},
+                {"role": "user", "content": create_prompt(request, base_result)},
             ],
             "response_format": {"type": "json_object"},
             "temperature": 0.2,
@@ -59,26 +59,26 @@ class OpenAICompatibleProvider(AIProvider):
 
         # cabecalho padraozao
         cabecalhos = {
-            "Authorization": f"Bearer {self.chave_api}",
+            "Authorization": f"Bearer {self.key_api}",
             "Content-Type": "application/json",
         }
 
         try:
-            # tenta conectar e msg
+            # Implementation note.
             async with httpx.AsyncClient(timeout=self.timeout) as cliente:
-                resposta = await cliente.post(self.url, headers=cabecalhos, json=corpo)
+                response = await cliente.post(self.url, headers=cabecalhos, json=corpo)
 
-                resposta.raise_for_status()
+                response.raise_for_status()
 
-            conteudo = resposta.json()["choices"][0]["message"]["content"]
+            content = response.json()["choices"][0]["message"]["content"]
 
-            # valida e retorna
+            # Implementation note.
             #
-            return AIAnalysisResponse.model_validate(json.loads(conteudo))
+            return AIAnalysisResponse.model_validate(json.loads(content))
 
-        except httpx.HTTPStatusError as erro:
-            status = erro.response.status_code
-            categoria = {
+        except httpx.HTTPStatusError as error:
+            status = error.response.status_code
+            category = {
                 400: "invalid_request",
                 401: "auth_error_401",
                 403: "permission_error_403",
@@ -86,73 +86,73 @@ class OpenAICompatibleProvider(AIProvider):
                 429: "rate_limit_429",
             }.get(status, "provider_unavailable" if status >= 500 else "invalid_request")
             raise AIProviderError(
-                f"O provedor {self.nome} recusou a requisição com status "
+                f"O provedor {self.name} recusou a requisição com status "
                 f"{status}.",
-                categoria=categoria,
+                category=category,
                 status_http=status,
-            ) from erro
+            ) from error
 
-        except httpx.TimeoutException as erro:
+        except httpx.TimeoutException as error:
             raise AIProviderError(
-                f"O provedor {self.nome} excedeu o tempo limite.",
-                categoria="timeout",
-            ) from erro
+                f"O provedor {self.name} excedeu o tempo limite.",
+                category="timeout",
+            ) from error
 
-        except httpx.HTTPError as erro:
+        except httpx.HTTPError as error:
             raise AIProviderError(
-                f"Não foi possível conectar ao provedor {self.nome}.",
-                categoria="network_error",
-            ) from erro
+                f"Não foi possível conectar ao provedor {self.name}.",
+                category="network_error",
+            ) from error
 
-        except json.JSONDecodeError as erro:
+        except json.JSONDecodeError as error:
             raise AIProviderError(
-                f"O provedor {self.nome} retornou JSON inválido.",
-                categoria="invalid_json",
-            ) from erro
+                f"O provedor {self.name} retornou JSON inválido.",
+                category="invalid_json",
+            ) from error
 
-        except ValidationError as erro:
+        except ValidationError as error:
             raise AIProviderError(
-                f"O provedor {self.nome} retornou dados fora do schema.",
-                categoria="schema_validation_error",
-            ) from erro
+                f"O provedor {self.name} retornou dados fora do schema.",
+                category="schema_validation_error",
+            ) from error
 
-        except (KeyError, TypeError) as erro:
+        except (KeyError, TypeError) as error:
             raise AIProviderError(
-                f"O provedor {self.nome} retornou uma resposta vazia ou inválida.",
-                categoria="invalid_json",
-            ) from erro
+                f"O provedor {self.name} retornou uma resposta vazia ou inválida.",
+                category="invalid_json",
+            ) from error
 
-    async def executar_tarefa_estruturada(self, tarefa, prompt, schema, temperatura=0.1):
-        corpo = {"model": self.modelo, "messages": [
+    async def run_structured_task(self, task, prompt, schema, temperature=0.1):
+        corpo = {"model": self.model, "messages": [
             {"role": "system", "content": "Responda somente com JSON válido."},
             {"role": "user", "content": prompt}],
-            "response_format": {"type": "json_object"}, "temperature": temperatura}
+            "response_format": {"type": "json_object"}, "temperature": temperature}
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as cliente:
-                resposta = await cliente.post(self.url, headers={
-                    "Authorization": f"Bearer {self.chave_api}", "Content-Type": "application/json"}, json=corpo)
-                if resposta.status_code == 400:
-                    # Endpoints OpenAI-compatible podem não implementar JSON mode.
+                response = await cliente.post(self.url, headers={
+                    "Authorization": f"Bearer {self.key_api}", "Content-Type": "application/json"}, json=corpo)
+                if response.status_code == 400:
+                    # Implementation note.
                     corpo.pop("response_format", None)
-                    resposta = await cliente.post(self.url, headers={
-                        "Authorization": f"Bearer {self.chave_api}", "Content-Type": "application/json"}, json=corpo)
-                resposta.raise_for_status()
-            conteudo = resposta.json()["choices"][0]["message"]["content"]
-            if not conteudo or not conteudo.strip():
-                raise AIProviderError("Resposta vazia.", categoria="empty_response")
-            return schema.model_validate(json.loads(conteudo)).model_dump()
+                    response = await cliente.post(self.url, headers={
+                        "Authorization": f"Bearer {self.key_api}", "Content-Type": "application/json"}, json=corpo)
+                response.raise_for_status()
+            content = response.json()["choices"][0]["message"]["content"]
+            if not content or not content.strip():
+                raise AIProviderError("Resposta vazia.", category="empty_response")
+            return schema.model_validate(json.loads(content)).model_dump()
         except AIProviderError:
             raise
-        except httpx.TimeoutException as erro:
-            raise AIProviderError("Tempo limite da etapa excedido.", categoria="timeout") from erro
-        except httpx.HTTPStatusError as erro:
-            status = erro.response.status_code
-            categoria = {413: "request_too_large", 429: "rate_limit_429"}.get(status, "provider_unavailable" if status >= 500 else "invalid_request")
-            raise AIProviderError("Falha HTTP na etapa.", categoria=categoria, status_http=status) from erro
-        except json.JSONDecodeError as erro:
-            categoria = "json_truncated" if conteudo.lstrip().startswith(("{", "[")) and not conteudo.rstrip().endswith(("}", "]")) else "invalid_json"
-            raise AIProviderError("JSON inválido na etapa.", categoria=categoria) from erro
-        except ValidationError as erro:
-            raise AIProviderError("Schema inválido na etapa.", categoria="schema_validation_error") from erro
-        except (httpx.HTTPError, KeyError, TypeError, ValueError) as erro:
-            raise AIProviderError("Resposta inválida na etapa.", categoria="invalid_json") from erro
+        except httpx.TimeoutException as error:
+            raise AIProviderError("Tempo limite da etapa excedido.", category="timeout") from error
+        except httpx.HTTPStatusError as error:
+            status = error.response.status_code
+            category = {413: "request_too_large", 429: "rate_limit_429"}.get(status, "provider_unavailable" if status >= 500 else "invalid_request")
+            raise AIProviderError("Falha HTTP na etapa.", category=category, status_http=status) from error
+        except json.JSONDecodeError as error:
+            category = "json_truncated" if content.lstrip().startswith(("{", "[")) and not content.rstrip().endswith(("}", "]")) else "invalid_json"
+            raise AIProviderError("JSON inválido na etapa.", category=category) from error
+        except ValidationError as error:
+            raise AIProviderError("Schema inválido na etapa.", category="schema_validation_error") from error
+        except (httpx.HTTPError, KeyError, TypeError, ValueError) as error:
+            raise AIProviderError("Resposta inválida na etapa.", category="invalid_json") from error

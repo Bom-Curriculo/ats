@@ -3,150 +3,150 @@ import re
 
 from app.schemas.analysis import RequirementGroup, RequirementAnalysisItem
 from app.services.technical_equivalences import EvidenceLevel, JobLevel, source_weight
-from app.services.technology_catalog import CATALOGO
+from app.services.technology_catalog import TECHNOLOGY_CATALOG
 from app.services.technical_matching import contains_alias
 from app.services.text_normalizer import normalize_for_comparison
 
 
-# grupos de subrequisitos conhecidos
+# Technical note removed during English standardization.
 SQL = {"SQL", "SELECT", "JOIN", "WHERE", "INSERT", "UPDATE", "DELETE"}
 GIT = {"Git", "branches", "pull requests", "code review"}
 IA = {"LLMs", "APIs de IA", "Prompt Engineering"}
 
 
-def _valor(item: RequirementAnalysisItem | None, nivel: JobLevel) -> float:
+def _value(item: RequirementAnalysisItem | None, level: JobLevel) -> float:
     if not item:
         return 0
-    return source_weight(nivel, EvidenceLevel(item.nivel_evidencia))
+    return source_weight(level, EvidenceLevel(item.evidence_level))
 
 
-def _status(valor: float) -> str:
-    return "atendido" if valor >= .75 else ("parcialmente_atendido" if valor > 0 else "nao_atendido")
+def _status(value: float) -> str:
+    return "atendido" if value >= .75 else ("parcialmente_atendido" if value > 0 else "nao_atendido")
 
 
-def _fonte(itens: list[RequirementAnalysisItem]) -> str | None:
-    fontes = list(dict.fromkeys(x.fonte_evidencia for x in itens if x.fonte_evidencia))
-    return "; ".join(fontes) if fontes else None
+def _source(items: list[RequirementAnalysisItem]) -> str | None:
+    sources = list(dict.fromkeys(x.evidence_source for x in items if x.evidence_source))
+    return "; ".join(sources) if sources else None
 
 
-# acha "X ou Y" explicito na descricao da vaga
-def _alternativas_explicitas(vaga: str, disponiveis: set[str]) -> list[list[str]]:
+# Technical note removed during English standardization.
+def _explicit_alternatives(job: str, disponiveis: set[str]) -> list[list[str]]:
 
     grupos = []
 
-    for linha in vaga.splitlines():
-        partes = re.split(r"\s+(?:ou|or)\s+", normalize_for_comparison(linha))
+    for line in job.splitlines():
+        partes = re.split(r"\s+(?:ou|or)\s+", normalize_for_comparison(line))
         if len(partes) < 2:
             continue
-        encontrados = []
+        found_items = []
 
         for parte in partes:
-            candidatos = [t.nome for t in CATALOGO if t.nome in disponiveis and contains_alias(parte, t.aliases, t.nome)]
+            candidatos = [t.name for t in TECHNOLOGY_CATALOG if t.name in disponiveis and contains_alias(parte, t.aliases, t.name)]
             if candidatos:
-                encontrados.append(candidatos[-1])
+                found_items.append(candidatos[-1])
 
-        encontrados = list(dict.fromkeys(encontrados))
+        found_items = list(dict.fromkeys(found_items))
 
-        if len(encontrados) >= 2:
-            grupos.append(encontrados)
+        if len(found_items) >= 2:
+            grupos.append(found_items)
     return grupos
 
 
-def build_requirement_groups(itens: list[RequirementAnalysisItem], nivel_texto: str, vaga_texto: str = "") -> tuple[list[RequirementGroup], int, dict[str, int]]:
+def build_requirement_groups(items: list[RequirementAnalysisItem], level_text: str, job_text: str = "") -> tuple[list[RequirementGroup], int, dict[str, int]]:
     try:
-        nivel = JobLevel(nivel_texto)
+        level = JobLevel(level_text)
 
 
     except ValueError:
-        nivel = JobLevel.NAO_INFORMADO
-    mapa = {x.item: x for x in itens}
+        level = JobLevel.NOT_PROVIDED
+    alias_to_section = {x.item: x for x in items}
 
     grupos: list[RequirementGroup] = []
-    usados: set[str] = set()
+    used: set[str] = set()
 
-    def adicionar(nome: str, nomes: list[str], modo: str, tipo: str, valor: float):
+    def adicionar(name: str, names: list[str], mode: str, type: str, value: float):
 
 
-        existentes = [mapa[n] for n in nomes if n in mapa]
+        existentes = [alias_to_section[n] for n in names if n in alias_to_section]
         if not existentes:
 
 
             return
-        usados.update(x.item for x in existentes)
-        grupos.append(RequirementGroup(nome=nome, tipo=tipo, modo=modo,
-            itens=[x.item for x in existentes], status_grupo=_status(valor),
+        used.update(x.item for x in existentes)
+        grupos.append(RequirementGroup(name=name, type=type, mode=mode,
+            items=[x.item for x in existentes], group_status=_status(value),
 
-            evidencia_resumida=_fonte(existentes), impacto_score=round(valor * 100, 1),
+            summarized_evidence=_source(existentes), score_impact=round(value * 100, 1),
 
-            justificativa=("Uma alternativa comprovada atende o grupo." if modo == "any" else
-                           "Itens complementares são ponderados sem multiplicar penalidades." if modo == "weighted" else
+            rationale=("Uma alternativa comprovada atende o grupo." if mode == "any" else
+                           "Itens complementares são ponderados sem multiplicar penalidades." if mode == "weighted" else
                            "Todos os itens do grupo contribuem para o atendimento.")))
 
 
 
-    for alternativas in _alternativas_explicitas(vaga_texto, set(mapa)):
-        # Ramos de framework Python já são avaliados dentro do grupo backend composto.
+    for alternativas in _explicit_alternatives(job_text, set(alias_to_section)):
+        # Implementation note.
         if set(alternativas) <= {"FastAPI", "Flask", "Django"}:
             continue
-        tipo_alternativa = "diferencial" if all(mapa[x].categoria == "diferencial" for x in alternativas) else "obrigatorio"
-        adicionar("Alternativas: " + " ou ".join(alternativas), alternativas, "any", tipo_alternativa,
-                  max(_valor(mapa[x], nivel) for x in alternativas))
+        type_alternativa = "differential" if all(alias_to_section[x].category == "differential" for x in alternativas) else "required"
+        adicionar("Alternativas: " + " ou ".join(alternativas), alternativas, "any", type_alternativa,
+                  max(_value(alias_to_section[x], level) for x in alternativas))
 
 
 
-    # Stacks de front-end são alternativas válidas no matching, mesmo quando listadas lado a lado.
-    front = [x for x in ("Angular", "React") if x in mapa and x not in usados]
-    adicionar("Stack front-end", front, "any", "obrigatorio",
-              max((_valor(mapa[x], nivel) for x in front), default=0))
+    # Implementation note.
+    front = [x for x in ("Angular", "React") if x in alias_to_section and x not in used]
+    adicionar("Stack front-end", front, "any", "required",
+              max((_value(alias_to_section[x], level) for x in front), default=0))
 
-    java = [_valor(mapa.get(x), nivel) for x in ("Java", "Spring Boot") if x in mapa]
-    python = [_valor(mapa.get(x), nivel) for x in ("Python", "FastAPI", "Flask") if x in mapa]
-    backend_nomes = [x for x in ("Java", "Spring Boot", "Python", "FastAPI", "Flask") if x in mapa]
+    java = [_value(alias_to_section.get(x), level) for x in ("Java", "Spring Boot") if x in alias_to_section]
+    python = [_value(alias_to_section.get(x), level) for x in ("Python", "FastAPI", "Flask") if x in alias_to_section]
+    backend_names = [x for x in ("Java", "Spring Boot", "Python", "FastAPI", "Flask") if x in alias_to_section]
 
 
-    if backend_nomes:
+    if backend_names:
         ramo_java = sum(java) / len(java) if java else 0
-        # FastAPI/Flask são alternativas; Python + melhor framework compõem o ramo.
-        linguagem = _valor(mapa.get("Python"), nivel)
-        framework = max(_valor(mapa.get("FastAPI"), nivel), _valor(mapa.get("Flask"), nivel))
+        # Implementation note.
+        linguagem = _value(alias_to_section.get("Python"), level)
+        framework = max(_value(alias_to_section.get("FastAPI"), level), _value(alias_to_section.get("Flask"), level))
         ramo_python = (linguagem + framework) / 2 if linguagem or framework else 0
-        adicionar("Backend Java ou Python", backend_nomes, "any", "obrigatorio", max(ramo_java, ramo_python))
+        adicionar("Backend Java ou Python", backend_names, "any", "required", max(ramo_java, ramo_python))
 
 
 
-    sql_itens = [x for x in SQL if x in mapa]
-    if sql_itens:
-        base = _valor(mapa.get("SQL"), nivel)
-        comandos = [_valor(mapa[x], nivel) for x in sql_itens if x != "SQL"]
-        valor = base * .7 + (max(comandos) if comandos else base) * .3
-        adicionar("SQL e operações CRUD", sorted(sql_itens, key=lambda x: (x != "SQL", x)), "weighted", "obrigatorio", valor)
+    sql_items = [x for x in SQL if x in alias_to_section]
+    if sql_items:
+        base = _value(alias_to_section.get("SQL"), level)
+        comandos = [_value(alias_to_section[x], level) for x in sql_items if x != "SQL"]
+        value = base * .7 + (max(comandos) if comandos else base) * .3
+        adicionar("SQL e operações CRUD", sorted(sql_items, key=lambda x: (x != "SQL", x)), "weighted", "required", value)
 
 
 
-    devops = [x for x in ("Docker", "Kubernetes") if x in mapa]
-    adicionar("Contêineres e orquestração", devops, "all", "obrigatorio",
-              sum(_valor(mapa[x], nivel) for x in devops) / len(devops) if devops else 0)
+    devops = [x for x in ("Docker", "Kubernetes") if x in alias_to_section]
+    adicionar("Contêineres e orquestração", devops, "all", "required",
+              sum(_value(alias_to_section[x], level) for x in devops) / len(devops) if devops else 0)
 
 
 
-    git = [x for x in GIT if x in mapa]
-    adicionar("Git e fluxo colaborativo", git, "weighted", "obrigatorio",
-              sum(_valor(mapa[x], nivel) for x in git) / len(git) if git else 0)
+    git = [x for x in GIT if x in alias_to_section]
+    adicionar("Git e fluxo colaborativo", git, "weighted", "required",
+              sum(_value(alias_to_section[x], level) for x in git) / len(git) if git else 0)
 
-    ia = [x for x in IA if x in mapa]
-    adicionar("Experiência com IA", ia, "weighted", "diferencial",
-              sum(_valor(mapa[x], nivel) for x in ia) / len(ia) if ia else 0)
+    ia = [x for x in IA if x in alias_to_section]
+    adicionar("Experiência com IA", ia, "weighted", "differential",
+              sum(_value(alias_to_section[x], level) for x in ia) / len(ia) if ia else 0)
 
-    # itens q não entraram em nenhum grupo
-    for item in itens:
-        if item.item in usados:
+    # Implementation note.
+    for item in items:
+        if item.item in used:
             continue
-        tipo = "diferencial" if item.categoria == "diferencial" else ("contexto" if item.categoria == "contexto" else "obrigatorio")
-        adicionar(item.item, [item.item], "all", tipo, _valor(item, nivel))
+        type = "differential" if item.category == "differential" else ("context" if item.category == "context" else "required")
+        adicionar(item.item, [item.item], "all", type, _value(item, level))
 
 
-    pesos = {"obrigatorio": 3.0, "desejavel": 2.0, "diferencial": 1.0, "contexto": .5}
-    total = sum(pesos.get(g.tipo, 1) for g in grupos)
-    pontos = sum(pesos.get(g.tipo, 1) * g.impacto_score / 100 for g in grupos)
+    weights = {"required": 3.0, "desired": 2.0, "differential": 1.0, "context": .5}
+    total = sum(weights.get(g.type, 1) for g in grupos)
+    pontos = sum(weights.get(g.type, 1) * g.score_impact / 100 for g in grupos)
     score = round(pontos / total * 100) if total else 0
-    return grupos, score, {g.nome: round(g.impacto_score) for g in grupos}
+    return grupos, score, {g.name: round(g.score_impact) for g in grupos}

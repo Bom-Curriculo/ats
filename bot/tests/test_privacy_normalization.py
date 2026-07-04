@@ -7,93 +7,93 @@ from app.services.ats_analyzer import analyze_resume_with_ai
 from app.services.text_normalizer import normalize_resume_text
 from app.services.privacy_sanitizer import sanitize_personal_data
 
-"""Casos de privacidade e limpeza de texto extraído de PDF"""
+"""Privacy and PDF-extracted text-cleaning cases."""
 
 
-def test_sanitizer_remove_email_e_telefone_sem_devolver_originais() -> None:
+def test_privacy_normalization_behavior_01() -> None:
 
     email = "ana.teste@example.com"
 
     telefone = "(81) 99999-1234"
 
-    resultado = sanitize_personal_data(f"Contato: {email} ou {telefone}")
+    result = sanitize_personal_data(f"Contato: {email} ou {telefone}")
 
     # trocou corretamente pelos marcadores
     assert (
-        resultado.texto_sanitizado == "Contato: [EMAIL_REMOVIDO] ou [TELEFONE_REMOVIDO]"
+        result.text_sanitized == "Contato: [EMAIL_REMOVIDO] ou [TELEFONE_REMOVIDO]"
     )
 
-    assert resultado.itens_removidos == ["email", "telefone"]
+    assert result.items_removidos == ["email", "telefone"]
 
-    # garante q os dados originais não
-    assert email not in repr(resultado)
+    # Implementation note.
+    assert email not in repr(result)
 
-    assert telefone not in repr(resultado)
+    assert telefone not in repr(result)
 
 
-def test_normalizer_corrige_titulo_espacado() -> None:
+def test_normalizer_corrects_spaced_title() -> None:
 
     assert normalize_resume_text("C O M P E T Ê N C I A S") == "COMPETÊNCIAS"
 
 
-class ProvedorCaptura(MockProvider):
-    solicitacao_recebida: AnalysisRequest | None = None
+class CaptureProvider(MockProvider):
+    received_request: AnalysisRequest | None = None
 
-    async def gerar_complemento(self, solicitacao, resultado_base):
+    async def generate_completion(self, request, base_result):
 
-        # captura a solicitação recebida para inspecionar depois
-        self.solicitacao_recebida = solicitacao
+        # Implementation note.
+        self.received_request = request
 
-        return await super().gerar_complemento(solicitacao, resultado_base)
+        return await super().generate_completion(request, base_result)
 
 
-def test_ai_receives_apenas_curriculo_sanitizado() -> None:
+def test_privacy_normalization_behavior_03() -> None:
 
-    provedor = ProvedorCaptura()
+    provider = CaptureProvider()
 
-    solicitacao = AnalysisRequest(
-        curriculo_texto="Ana, ana@example.com, (81) 99999-1234. Experiência: React.",
-        vaga_texto="Requisitos obrigatórios:\nReact",
-        usar_ia=True,
+    request = AnalysisRequest(
+        resume_text="Ana, ana@example.com, (81) 99999-1234. Experiência: React.",
+        job_text="Requisitos obrigatórios:\nReact",
+        use_ai=True,
     )
 
-    resultado = asyncio.run(analyze_resume_with_ai(solicitacao, provedor))
+    result = asyncio.run(analyze_resume_with_ai(request, provider))
 
-    assert provedor.solicitacao_recebida is not None
+    assert provider.received_request is not None
 
-    # provedor nunca pode ver dados reais
-    assert "ana@example.com" not in provedor.solicitacao_recebida.curriculo_texto
+    # Technical note removed during English standardization.
+    assert "ana@example.com" not in provider.received_request.resume_text
 
-    assert "99999-1234" not in provedor.solicitacao_recebida.curriculo_texto
+    assert "99999-1234" not in provider.received_request.resume_text
 
-    assert resultado.privacidade is not None
+    assert result.privacy is not None
 
-    assert resultado.privacidade.texto_enviado_para_ia_foi_sanitizado is True
+    assert result.privacy.ai_text_was_sanitized is True
 
-    assert resultado.privacidade.itens_removidos_antes_ia == ["email", "telefone"]
+    assert result.privacy.items_removed_before_ai == ["email", "telefone"]
 
 
-def test_prompt_applies_defesa_em_profundidade() -> None:
+def test_privacy_normalization_behavior_04() -> None:
 
-    solicitacao = AnalysisRequest(
-        curriculo_texto="Contato ana@example.com e experiência com React.",
-        vaga_texto="React",
+    request = AnalysisRequest(
+        resume_text="Contato ana@example.com e experiência com React.",
+        job_text="React",
     )
 
     from app.services.ats_analyzer import analyze_resume
 
-    prompt = create_prompt(solicitacao, analyze_resume(solicitacao))
+    prompt = create_prompt(request, analyze_resume(request))
 
-    # msm q alguem chame o builder direto, o prompt sanitiza dnv
+    # Technical note removed during English standardization.
     assert "ana@example.com" not in prompt
 
     assert "[EMAIL_REMOVIDO]" in prompt
 
-    # garantir que a instrução do prompt está lá
+    # Implementation note.
     assert "Não invente experiências" in prompt
 
 
-def test_prompt_removes_todos_identificadores_ficticios() -> None:
+def test_privacy_normalization_behavior_05() -> None:
     pessoais = (
         "teste@example.com",
         "(81) 99999-1234",
@@ -101,12 +101,12 @@ def test_prompt_removes_todos_identificadores_ficticios() -> None:
         "https://github.com/teste",
         "https://portfolio-teste.example.com",
     )
-    solicitacao = AnalysisRequest(
-        curriculo_texto="Contato: " + " ".join(pessoais) + " HABILIDADES: Python",
-        vaga_texto="Requisitos: Python",
+    request = AnalysisRequest(
+        resume_text="Contato: " + " ".join(pessoais) + " HABILIDADES: Python",
+        job_text="Requisitos: Python",
     )
     from app.services.ats_analyzer import analyze_resume
 
-    prompt = create_prompt(solicitacao, analyze_resume(solicitacao))
+    prompt = create_prompt(request, analyze_resume(request))
 
-    assert not any(valor in prompt for valor in pessoais)
+    assert not any(value in prompt for value in pessoais)

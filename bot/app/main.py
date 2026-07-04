@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Bot ATS Resume Builder",
-    description="API para análise inicial de currículos compatíveis com ATS.",
+    description="API for initial ATS-compatible resume analysis.",
     version="0.9.0",
 )
 
@@ -28,13 +28,22 @@ async def health_check() -> dict[str, str]:
     return {"status": "online"}
 
 
-@app.post("/api/v1/analisar", response_model=AnalysisResult)
-
-async def analyze(solicitacao: AnalysisRequest) -> AnalysisResult:
-    """fall back (recomendação da IA, para os IA hater)"""
+async def _analyze_request(request: AnalysisRequest) -> AnalysisResult:
+    """Run the shared analysis flow for both endpoint versions."""
 
     try:
-        return await run_analysis_with_fallback(solicitacao)
+        return await run_analysis_with_fallback(request)
 
-    except AIProviderError as erro:
-        raise HTTPException(status_code=503, detail=str(erro)) from erro
+    except AIProviderError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
+
+
+@app.post("/api/v1/analyze", response_model=AnalysisResult, response_model_by_alias=False)
+async def analyze(request: AnalysisRequest) -> AnalysisResult:
+    return await _analyze_request(request)
+
+
+@app.post("/api/v1/analisar", response_model=AnalysisResult, deprecated=True)
+async def analyze_legacy(request: AnalysisRequest) -> AnalysisResult:
+    """Legacy public API compatibility; remove after client migration."""
+    return await _analyze_request(request)

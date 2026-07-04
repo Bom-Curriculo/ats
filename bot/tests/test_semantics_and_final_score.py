@@ -8,119 +8,119 @@ from app.services.ats_analyzer import analyze_resume, analyze_resume_with_ai
 from app.services.technical_equivalences import JobLevel, detect_job_level
 
 
-def analisar(cv: str, vaga: str):
-    return analyze_resume(AnalysisRequest(curriculo_texto=cv, vaga_texto=vaga))
+def analyze(cv: str, job: str):
+    return analyze_resume(AnalysisRequest(resume_text=cv, job_text=job))
 
 
 @pytest.mark.parametrize(
-    ("origem", "requisito"),
+    ("origin", "requirement"),
     [("Next.js", "React"), ("Spring Boot", "Java"), ("FastAPI", "Python"),
      ("Laravel", "PHP"), ("NestJS", "TypeScript"), ("ASP.NET Core", "C#"),
      ("Docker Compose", "Docker")],
 )
-def test_inferencias_fortes_nao_inventam_pratica(origem, requisito):
-    resultado = analisar(f"COMPETÊNCIAS\n{origem}", f"Requisitos:\n{requisito}")
-    item = resultado.analise_por_requisito[0]
-    assert item.status == "relacionado_mas_nao_explicito"
-    assert item.forca_inferencia == "implicacao_forte"
+def test_inferences_strong_not_invent_practice(origin, requirement):
+    result = analyze(f"COMPETÊNCIAS\n{origin}", f"Requisitos:\n{requirement}")
+    item = result.requirement_analysis[0]
+    assert item.status == "related_but_not_explicit"
+    assert item.inference_strength == "implicacao_forte"
 
 
-def test_html_e_css_cobrem_aliases_html5_css3():
-    resultado = analisar("PROJETOS\nSite feito com HTML e CSS", "Requisitos:\nHTML5 e CSS3")
-    assert {i.item: i.status for i in resultado.analise_por_requisito} == {
-        "HTML": "encontrado_com_evidencia", "CSS": "encontrado_com_evidencia"
+def test_semantics_and_final_score_behavior_02():
+    result = analyze("PROJETOS\nSite feito com HTML e CSS", "Requisitos:\nHTML5 e CSS3")
+    assert {i.item: i.status for i in result.requirement_analysis} == {
+        "HTML": "found_with_evidence", "CSS": "found_with_evidence"
     }
 
 
-def test_framework_em_curso_e_educacional_e_em_projeto_e_pratico():
-    curso = analisar("CURSOS\nJava Moderno com Spring Boot", "Vaga júnior\nSpring Boot")
-    projeto = analisar("PROJETOS\nAPI construída com Spring Boot", "Vaga júnior\nSpring Boot")
-    assert curso.analise_por_requisito[0].nivel_evidencia == "evidencia_educacional"
-    assert curso.analise_por_requisito[0].status == "encontrado_sem_contexto_claro"
-    assert projeto.analise_por_requisito[0].status == "encontrado_com_evidencia"
+def test_semantics_and_final_score_behavior_03():
+    course = analyze("CURSOS\nJava Moderno com Spring Boot", "Vaga júnior\nSpring Boot")
+    project = analyze("PROJETOS\nAPI construída com Spring Boot", "Vaga júnior\nSpring Boot")
+    assert course.requirement_analysis[0].evidence_level == "educational_evidence"
+    assert course.requirement_analysis[0].status == "found_without_clear_context"
+    assert project.requirement_analysis[0].status == "found_with_evidence"
 
 
-def test_sql_subitens_nao_multiplicam_score_e_sugestoes():
-    resultado = analisar(
+def test_semantics_and_final_score_behavior_04():
+    result = analyze(
         "COMPETÊNCIAS\nSQL", "Requisitos:\nSQL, SELECT, JOIN, WHERE, INSERT, UPDATE e DELETE"
     )
-    assert all(i.status != "faltando" for i in resultado.analise_por_requisito)
-    texto = " ".join(resultado.sugestoes).lower()
-    assert texto.count("select") <= 1
-    assert texto.count("join") <= 1
+    assert all(i.status != "missing" for i in result.requirement_analysis)
+    text = " ".join(result.suggestions).lower()
+    assert text.count("select") <= 1
+    assert text.count("join") <= 1
 
 
-def test_inferencias_conservadoras():
-    docker = analisar("PROJETOS\nDocker", "Requisitos:\nKubernetes")
-    tailwind = analisar("PROJETOS\nTailwind", "Requisitos:\nCSS")
-    chatgpt = analisar("Uso ChatGPT", "Requisitos:\nAPIs de IA")
-    assert docker.analise_por_requisito[0].status == "faltando"
-    assert tailwind.analise_por_requisito[0].status == "relacionado_mas_nao_explicito"
-    assert chatgpt.analise_por_requisito[0].status == "faltando"
+def test_semantics_and_final_score_behavior_05():
+    docker = analyze("PROJETOS\nDocker", "Requisitos:\nKubernetes")
+    tailwind = analyze("PROJETOS\nTailwind", "Requisitos:\nCSS")
+    chatgpt = analyze("Uso ChatGPT", "Requisitos:\nAPIs de IA")
+    assert docker.requirement_analysis[0].status == "missing"
+    assert tailwind.requirement_analysis[0].status == "related_but_not_explicit"
+    assert chatgpt.requirement_analysis[0].status == "missing"
 
 
-def test_api_de_ia_em_projeto_e_relacionada_sem_confundir_chatgpt_web():
-    resultado = analisar("PROJETOS\nIntegração feita com OpenAI API", "Requisitos:\nAPIs de IA")
-    item = next(i for i in resultado.analise_por_requisito if i.item == "APIs de IA")
-    assert item.status == "relacionado_mas_nao_explicito"
-    assert item.forca_inferencia == "implicacao_forte"
+def test_semantics_and_final_score_behavior_06():
+    result = analyze("PROJETOS\nIntegração feita com OpenAI API", "Requisitos:\nAPIs de IA")
+    item = next(i for i in result.requirement_analysis if i.item == "APIs de IA")
+    assert item.status == "related_but_not_explicit"
+    assert item.inference_strength == "implicacao_forte"
 
 
-def test_idioma_reconhece_leitura_de_documentacao():
-    resultado = analisar("IDIOMAS\nInglês para leitura de documentação", "Inglês técnico")
-    assert resultado.analise_por_requisito[0].status != "faltando"
+def test_semantics_and_final_score_behavior_07():
+    result = analyze("IDIOMAS\nInglês para leitura de documentação", "Inglês técnico")
+    assert result.requirement_analysis[0].status != "missing"
 
 
-def test_nivel_e_peso_educacional_diferem():
-    assert detect_job_level("Estágio em desenvolvimento") == JobLevel.ESTAGIO
-    estagio = analisar("CURSOS\nSpring Boot", "Estágio\nSpring Boot")
-    senior = analisar("CURSOS\nSpring Boot", "Desenvolvedor sênior\nSpring Boot")
-    assert estagio.pontuacao_ats > senior.pontuacao_ats
-    assert estagio.analise_valida is True
+def test_semantics_and_final_score_behavior_08():
+    assert detect_job_level("Estágio em desenvolvimento") == JobLevel.INTERNSHIP
+    estagio = analyze("CURSOS\nSpring Boot", "Estágio\nSpring Boot")
+    senior = analyze("CURSOS\nSpring Boot", "Desenvolvedor sênior\nSpring Boot")
+    assert estagio.ats_score > senior.ats_score
+    assert estagio.valid_analysis is True
 
 
-def test_nivel_pode_ser_informado_explicitamente():
-    resultado = analyze_resume(AnalysisRequest(
-        curriculo_texto="CURSOS\nSpring Boot", vaga_texto="Spring Boot", nivel_vaga="sênior"
+def test_semantics_and_final_score_behavior_09():
+    result = analyze_resume(AnalysisRequest(
+        resume_text="CURSOS\nSpring Boot", job_text="Spring Boot", job_level="sênior"
     ))
-    assert resultado.nivel_vaga == "senior"
-    assert resultado.pontuacao_ats == 15
+    assert result.job_level == "senior"
+    assert result.ats_score == 15
 
 
-def resposta_ia(status_html="faltando", status_spring="encontrado_com_evidencia", score=90):
+def ai_response(status_html="missing", status_spring="found_with_evidence", score=90):
     def req(item, status):
-        return {"item": item, "categoria": "habilidade_tecnica", "importancia": "obrigatorio",
-                "status": status, "evidencia": item, "justificativa": "Avaliação externa.",
-                "recomendacao": "Descreva apenas evidência real."}
-    return {"resumo_contextual": "Análise concluída.",
-            "requisitos_contextuais": [req("HTML5", status_html), req("Spring Boot", status_spring)],
-            "pontos_fortes": [], "lacunas": ["HTML5"], "possiveis_impeditivos": [],
-            "sugestoes_de_melhoria": ["Detalhe as tecnologias usadas."], "proximos_passos": [],
-            "alertas_contra_inventar": ["Não invente."], "confianca": 95,
-            "score_sugerido_ia": score, "justificativa_score_ia": "Boa aderência."}
+        return {"item": item, "category": "technical_skill", "importance": "required",
+                "status": status, "evidence": item, "rationale": "Avaliação externa.",
+                "recommendation": "Descreva apenas evidência real."}
+    return {"contextual_summary": "Análise concluída.",
+            "contextual_requirements": [req("HTML5", status_html), req("Spring Boot", status_spring)],
+            "strengths": [], "gaps": ["HTML5"], "possible_blockers": [],
+            "improvement_suggestions": ["Detalhe as tecnologias usadas."], "next_steps": [],
+            "anti_fabrication_alerts": ["Não invente."], "confidence": 95,
+            "ai_suggested_score": score, "ai_score_rationale": "Boa aderência."}
 
 
-def test_pos_validacao_corrige_equivalencia_e_rebaixa_curso():
-    entrada = AnalysisRequest(
-        curriculo_texto="PROJETOS\nSite com HTML\nCURSOS\nSpring Boot",
-        vaga_texto="Vaga júnior\nHTML5 e Spring Boot",
+def test_semantics_and_final_score_behavior_10():
+    input_request = AnalysisRequest(
+        resume_text="PROJETOS\nSite com HTML\nCURSOS\nSpring Boot",
+        job_text="Vaga júnior\nHTML5 e Spring Boot",
     )
-    resultado = asyncio.run(analyze_resume_with_ai(
-        entrada, MockProvider(resposta_estruturada=resposta_ia())
+    result = asyncio.run(analyze_resume_with_ai(
+        input_request, MockProvider(structured_response=ai_response())
     ))
-    status = {i.item: i.status for i in resultado.requisitos_contextuais}
-    assert status["HTML5"] == "encontrado_com_evidencia"
-    assert status["Spring Boot"] == "encontrado_sem_contexto_claro"
-    assert resultado.validacao_ia_aplicada is True
-    assert len(resultado.ajustes_validacao_ia) == 2
-    assert resultado.score_final_recomendado is not None
-    assert resultado.explicacao_score_final
+    status = {i.item: i.status for i in result.contextual_requirements}
+    assert status["HTML5"] == "found_with_evidence"
+    assert status["Spring Boot"] == "found_without_clear_context"
+    assert result.ai_validation_applied is True
+    assert len(result.ai_validation_adjustments) == 2
+    assert result.recommended_final_score is not None
+    assert result.final_score_explanation
 
 
-def test_fallback_mantem_score_local():
-    entrada = AnalysisRequest(curriculo_texto="Python", vaga_texto="Python")
-    resultado = asyncio.run(analyze_resume_with_ai(
-        entrada, MockProvider(erro_simulado=RuntimeError("falha"))
+def test_semantics_and_final_score_behavior_11():
+    input_request = AnalysisRequest(resume_text="Python", job_text="Python")
+    result = asyncio.run(analyze_resume_with_ai(
+        input_request, MockProvider(simulated_error=RuntimeError("falha"))
     ))
-    assert resultado.fallback_local_usado is True
-    assert resultado.score_final_recomendado == resultado.pontuacao_ats
+    assert result.local_fallback_used is True
+    assert result.recommended_final_score == result.ats_score

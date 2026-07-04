@@ -11,28 +11,28 @@ from app.services.ai_manager import run_analysis_with_fallback
 from app.schemas.ai_pipeline import AIJobClassification
 
 
-def resposta_estruturada() -> dict:
+def structured_response() -> dict:
     return {
-        "resumo_contextual": "Compatibilidade analisada sem inventar experiência.",
-        "requisitos_contextuais": [],
-        "pontos_fortes": ["Python aparece no currículo."],
-        "lacunas": ["FastAPI não aparece no currículo."],
-        "possiveis_impeditivos": [],
-        "sugestoes_de_melhoria": ["Detalhe projetos reais."],
-        "proximos_passos": ["Estude FastAPI antes de declarar experiência."],
-        "alertas_contra_inventar": ["Não declarar habilidades ausentes."],
-        "confianca": 85,
-        "score_sugerido_ia": None,
-        "justificativa_score_ia": None,
+        "contextual_summary": "Compatibilidade analisada sem inventar experiência.",
+        "contextual_requirements": [],
+        "strengths": ["Python aparece no currículo."],
+        "gaps": ["FastAPI não aparece no currículo."],
+        "possible_blockers": [],
+        "improvement_suggestions": ["Detalhe projects reais."],
+        "next_steps": ["Estude FastAPI antes de declarar experiência."],
+        "anti_fabrication_alerts": ["Não declarar habilidades missing_items."],
+        "confidence": 85,
+        "ai_suggested_score": None,
+        "ai_score_rationale": None,
     }
 
 
-def envelope_gemini(texto: str) -> dict:
+def envelope_gemini(text: str) -> dict:
     return {
         "candidates": [
             {
                 "content": {
-                    "parts": [{"text": texto}],
+                    "parts": [{"text": text}],
                     "role": "model",
                 }
             }
@@ -51,17 +51,17 @@ class RespostaHTTPFake:
 
     def raise_for_status(self):
         if self.status_code >= 400:
-            resposta = httpx.Response(
+            response = httpx.Response(
                 self.status_code, request=self.request, json=self.corpo
             )
             raise httpx.HTTPStatusError(
-                "erro HTTP simulado", request=self.request, response=resposta
+                "erro HTTP simulado", request=self.request, response=response
             )
 
 
 class ClienteHTTPFake:
-    resposta: RespostaHTTPFake
-    ultima_chamada: dict | None = None
+    response: RespostaHTTPFake
+    last_call: dict | None = None
 
     def __init__(self, **kwargs):
         pass
@@ -73,119 +73,119 @@ class ClienteHTTPFake:
         return None
 
     async def post(self, url, **kwargs):
-        type(self).ultima_chamada = {"url": url, **kwargs}
-        return type(self).resposta
+        type(self).last_call = {"url": url, **kwargs}
+        return type(self).response
 
 
 def provider() -> GeminiProvider:
     return GeminiProvider("chave-ficticia-para-teste", "gemini-2.5-flash")
 
 
-def base_local():
-    solicitacao = AnalysisRequest(
-        curriculo_texto="HABILIDADES\nPython",
-        vaga_texto="Requisitos:\nPython e FastAPI",
+def local_base():
+    request = AnalysisRequest(
+        resume_text="HABILIDADES\nPython",
+        job_text="Requisitos:\nPython e FastAPI",
     )
-    return solicitacao, analyze_resume(solicitacao)
+    return request, analyze_resume(request)
 
 
-def test_extracts_texto_do_formato_nativo_gemini() -> None:
-    resposta = envelope_gemini('{"resumo_analise":"ok"}')
+def test_gemini_provider_behavior_01() -> None:
+    response = envelope_gemini('{"resumo_analise":"ok"}')
 
-    assert extract_gemini_text(resposta) == '{"resumo_analise":"ok"}'
+    assert extract_gemini_text(response) == '{"resumo_analise":"ok"}'
 
 
-def test_gemini_parseia_json_estruturado_com_fences(monkeypatch) -> None:
+def test_gemini_provider_behavior_02(monkeypatch) -> None:
     monkeypatch.setattr("app.providers.gemini.httpx.AsyncClient", ClienteHTTPFake)
-    ClienteHTTPFake.resposta = RespostaHTTPFake(
-        200, envelope_gemini("```json\n" + json.dumps(resposta_estruturada()) + "\n```")
+    ClienteHTTPFake.response = RespostaHTTPFake(
+        200, envelope_gemini("```json\n" + json.dumps(structured_response()) + "\n```")
     )
-    solicitacao, resultado = base_local()
+    request, result = local_base()
 
-    analise = asyncio.run(provider().gerar_analise_estruturada(solicitacao, resultado))
+    analysis = asyncio.run(provider().generate_structured_analysis(request, result))
 
-    assert analise.confianca == 85
-    chamada = ClienteHTTPFake.ultima_chamada
-    assert chamada["params"] == {"key": "chave-ficticia-para-teste"}
-    assert "response_format" not in chamada["json"]
-    assert chamada["json"]["generationConfig"] == {"temperature": 0.2}
+    assert analysis.confidence == 85
+    call = ClienteHTTPFake.last_call
+    assert call["params"] == {"key": "chave-ficticia-para-teste"}
+    assert "response_format" not in call["json"]
+    assert call["json"]["generationConfig"] == {"temperature": 0.2}
 
 
 @pytest.mark.parametrize(
-    "status,categoria",
+    "status,category",
     [(429, "rate_limit_429"), (413, "request_too_large")],
 )
-def test_gemini_classifica_erros_http(monkeypatch, status, categoria) -> None:
+def test_gemini_classifies_errors_http(monkeypatch, status, category) -> None:
     monkeypatch.setattr("app.providers.gemini.httpx.AsyncClient", ClienteHTTPFake)
-    ClienteHTTPFake.resposta = RespostaHTTPFake(
+    ClienteHTTPFake.response = RespostaHTTPFake(
         status, {"error": {"status": "simulado"}}
     )
-    solicitacao, resultado = base_local()
+    request, result = local_base()
 
-    with pytest.raises(AIProviderError) as capturado:
-        asyncio.run(provider().gerar_analise_estruturada(solicitacao, resultado))
+    with pytest.raises(AIProviderError) as captured:
+        asyncio.run(provider().generate_structured_analysis(request, result))
 
-    assert capturado.value.categoria == categoria
-    assert capturado.value.status_http == status
+    assert captured.value.category == category
+    assert captured.value.status_http == status
 
 
-def test_fluxo_completo_gemini_valido_nao_usa_fallback(monkeypatch) -> None:
+def test_gemini_provider_behavior_04(monkeypatch) -> None:
     monkeypatch.setattr("app.providers.gemini.httpx.AsyncClient", ClienteHTTPFake)
     monkeypatch.setenv("IA_PROVIDER", "gemini")
     monkeypatch.setenv("GEMINI_API_KEY", "chave-ficticia-para-teste")
     monkeypatch.setenv("GEMINI_MODEL", "gemini-2.5-flash")
-    ClienteHTTPFake.resposta = RespostaHTTPFake(
-        200, envelope_gemini(json.dumps(resposta_estruturada()))
+    ClienteHTTPFake.response = RespostaHTTPFake(
+        200, envelope_gemini(json.dumps(structured_response()))
     )
-    solicitacao, _ = base_local()
+    request, _ = local_base()
 
-    resultado = asyncio.run(run_analysis_with_fallback(solicitacao))
+    result = asyncio.run(run_analysis_with_fallback(request))
 
-    assert resultado.fallback_local_usado is False
-    assert resultado.provedor_ia == "gemini"
-    assert resultado.modelo_ia == "gemini-2.5-flash"
-    assert resultado.analise_ia is not None
+    assert result.local_fallback_used is False
+    assert result.ai_provider == "gemini"
+    assert result.ai_model == "gemini-2.5-flash"
+    assert result.ai_analysis is not None
 
 
-def test_fluxo_completo_gemini_falha_e_preserva_fallback(monkeypatch) -> None:
+def test_gemini_provider_behavior_05(monkeypatch) -> None:
     monkeypatch.setattr("app.providers.gemini.httpx.AsyncClient", ClienteHTTPFake)
     monkeypatch.setenv("IA_PROVIDER", "gemini")
     monkeypatch.setenv("GEMINI_API_KEY", "chave-ficticia-para-teste")
-    ClienteHTTPFake.resposta = RespostaHTTPFake(429, {"error": {}})
-    solicitacao, local = base_local()
+    ClienteHTTPFake.response = RespostaHTTPFake(429, {"error": {}})
+    request, local = local_base()
 
-    resultado = asyncio.run(run_analysis_with_fallback(solicitacao))
+    result = asyncio.run(run_analysis_with_fallback(request))
 
-    assert resultado.fallback_local_usado is True
-    assert resultado.pontuacao_ats == local.pontuacao_ats
-    assert resultado.detalhes_erros_provedores[0].categoria_erro == "rate_limit_429"
+    assert result.local_fallback_used is True
+    assert result.ats_score == local.ats_score
+    assert result.provider_error_details[0].error_category == "rate_limit_429"
 
 
 @pytest.mark.parametrize(
-    "texto,categoria",
+    "text,category",
     [
         ("não-json", "invalid_json"),
         ('{"titulo":"Backend"', "json_truncated"),
         ("", "empty_response"),
-        ('{"confianca": 999}', "schema_validation_error"),
+        ('{"confidence": 999}', "schema_validation_error"),
     ],
 )
-def test_tarefa_gemini_classifica_respostas_invalidas(monkeypatch, texto, categoria):
+def test_gemini_provider_behavior_06(monkeypatch, text, category):
     monkeypatch.setattr("app.providers.gemini.httpx.AsyncClient", ClienteHTTPFake)
-    ClienteHTTPFake.resposta = RespostaHTTPFake(200, envelope_gemini(texto))
-    with pytest.raises(AIProviderError) as capturado:
-        asyncio.run(provider().executar_tarefa_estruturada(
-            "classificacao_vaga", "prompt curto", AIJobClassification, 0.1
+    ClienteHTTPFake.response = RespostaHTTPFake(200, envelope_gemini(text))
+    with pytest.raises(AIProviderError) as captured:
+        asyncio.run(provider().run_structured_task(
+            "job_classification", "prompt curto", AIJobClassification, 0.1
         ))
-    assert capturado.value.categoria == categoria
+    assert captured.value.category == category
 
 
-def test_tarefa_gemini_valida_schema(monkeypatch):
+def test_gemini_provider_behavior_07(monkeypatch):
     monkeypatch.setattr("app.providers.gemini.httpx.AsyncClient", ClienteHTTPFake)
-    ClienteHTTPFake.resposta = RespostaHTTPFake(200, envelope_gemini(json.dumps({
-        "titulo": "Backend", "senioridade": "junior", "requisitos_centrais": ["Python"], "confianca": 90
+    ClienteHTTPFake.response = RespostaHTTPFake(200, envelope_gemini(json.dumps({
+        "title": "Backend", "seniority": "junior", "core_requirements": ["Python"], "confidence": 90
     })))
-    resposta = asyncio.run(provider().executar_tarefa_estruturada(
-        "classificacao_vaga", "prompt curto", AIJobClassification, 0.1
+    response = asyncio.run(provider().run_structured_task(
+        "job_classification", "prompt curto", AIJobClassification, 0.1
     ))
-    assert resposta["titulo"] == "Backend" and resposta["confianca"] == 90
+    assert response["title"] == "Backend" and response["confidence"] == 90

@@ -2,61 +2,61 @@ from app.schemas.analysis import AnalysisRequest
 from app.services.ats_analyzer import analyze_resume
 
 
-def analisar(cv: str, vaga: str):
-    return analyze_resume(AnalysisRequest(curriculo_texto=cv, vaga_texto=vaga, nivel_vaga="junior"))
+def analyze(cv: str, job: str):
+    return analyze_resume(AnalysisRequest(resume_text=cv, job_text=job, job_level="junior"))
 
 
-def item(resultado, nome):
-    return next(x for x in resultado.analise_por_requisito if x.item == nome)
+def item(result, name):
+    return next(x for x in result.requirement_analysis if x.item == name)
 
 
-def test_limites_tecnicos_java_rag_e_apis():
-    java = analisar("PROJETOS\nJavaScript", "Requisitos:\nJava")
-    rag = analisar("PROJETOS\nInterface com drag and drop", "Diferenciais:\nRAG")
-    ia = analisar("PROJETOS\nAPI REST em FastAPI", "Diferenciais:\nAPIs de IA")
-    assert item(java, "Java").status == "faltando"
-    assert item(rag, "RAG").status == "faltando"
-    assert item(ia, "APIs de IA").status == "faltando"
+def test_matching_group_accuracy_behavior_01():
+    java = analyze("PROJETOS\nJavaScript", "Requisitos:\nJava")
+    rag = analyze("PROJETOS\nInterface com drag and drop", "Diferenciais:\nRAG")
+    ia = analyze("PROJETOS\nAPI REST em FastAPI", "Diferenciais:\nAPIs de IA")
+    assert item(java, "Java").status == "missing"
+    assert item(rag, "RAG").status == "missing"
+    assert item(ia, "APIs de IA").status == "missing"
 
 
-def test_typescript_relaciona_javascript_apenas_no_sentido_correto():
-    ts = analisar("PROJETOS\nTypeScript", "Requisitos:\nJavaScript")
-    js = analisar("PROJETOS\nJavaScript", "Requisitos:\nTypeScript")
-    assert item(ts, "JavaScript").status == "relacionado_mas_nao_explicito"
-    assert item(js, "TypeScript").status == "faltando"
+def test_matching_group_accuracy_behavior_02():
+    ts = analyze("PROJETOS\nTypeScript", "Requisitos:\nJavaScript")
+    js = analyze("PROJETOS\nJavaScript", "Requisitos:\nTypeScript")
+    assert item(ts, "JavaScript").status == "related_but_not_explicit"
+    assert item(js, "TypeScript").status == "missing"
 
 
-def test_fonte_pratica_vence_curso_para_docker_python_sql():
-    resultado = analisar(
+def test_matching_group_accuracy_behavior_03():
+    result = analyze(
         "PROJETOS\nAPI Python com SQL executada em Docker\nCURSOS\nPython, SQL e Docker",
         "Requisitos:\nPython, SQL e Docker",
     )
-    for nome in ("Docker", "Python", "SQL"):
-        assert item(resultado, nome).fonte_evidencia == "projeto"
-        assert item(resultado, nome).nivel_evidencia == "evidencia_pratica_forte"
+    for name in ("Docker", "Python", "SQL"):
+        assert item(result, name).evidence_source == "project"
+        assert item(result, name).evidence_level == "strong_practical_evidence"
 
 
-def test_curso_e_skill_nao_viram_pratica():
-    resultado = analisar("CURSOS\nSpring Boot e Java\nCOMPETÊNCIAS\nSpring Boot, Java", "Requisitos:\nSpring Boot e Java")
-    assert item(resultado, "Spring Boot").nivel_evidencia == "evidencia_educacional"
-    assert item(resultado, "Java").nivel_evidencia == "evidencia_educacional"
+def test_matching_group_accuracy_behavior_04():
+    result = analyze("CURSOS\nSpring Boot e Java\nCOMPETÊNCIAS\nSpring Boot, Java", "Requisitos:\nSpring Boot e Java")
+    assert item(result, "Spring Boot").evidence_level == "educational_evidence"
+    assert item(result, "Java").evidence_level == "educational_evidence"
 
 
-def test_grupos_alternativos_e_sql_crud():
-    resultado = analisar(
+def test_matching_group_accuracy_behavior_05():
+    result = analyze(
         "PROJETOS\nReact, Python, FastAPI e SQL com SELECT em Docker",
         "Front-end:\nAngular e React\nBack-end:\nJava com Spring Boot ou Python com FastAPI ou Flask\nBanco de dados:\nSQL, SELECT, JOIN, WHERE, INSERT, UPDATE e DELETE",
     )
-    grupos = {x.nome: x for x in resultado.grupos_requisitos}
-    assert grupos["Stack front-end"].modo == "any"
-    assert grupos["Stack front-end"].status_grupo == "atendido"
-    assert grupos["Backend Java ou Python"].status_grupo == "atendido"
-    assert grupos["SQL e operações CRUD"].modo == "weighted"
-    assert set(grupos["SQL e operações CRUD"].itens) >= {"SQL", "SELECT", "JOIN"}
+    grupos = {x.name: x for x in result.requirement_groups}
+    assert grupos["Stack front-end"].mode == "any"
+    assert grupos["Stack front-end"].group_status == "atendido"
+    assert grupos["Backend Java ou Python"].group_status == "atendido"
+    assert grupos["SQL e operações CRUD"].mode == "weighted"
+    assert set(grupos["SQL e operações CRUD"].items) >= {"SQL", "SELECT", "JOIN"}
 
 
-def test_getronics_headings_geram_centrais_e_diferenciais_separados():
-    vaga = """Desenvolvedor Full Stack - Getronics
+def test_matching_group_accuracy_behavior_06():
+    job = """Desenvolvedor Full Stack - Getronics
 Front-end:
 Angular e React
 HTML5, CSS3, JavaScript e TypeScript
@@ -72,8 +72,8 @@ Git, branches, pull requests e code review
 Diferenciais:
 Testes unitários, testes de integração, metodologias ágeis, inglês técnico, LLMs, APIs de IA e Prompt Engineering
 """
-    resultado = analisar("PROJETOS\nReact, Python, FastAPI, SQL e Docker", vaga)
-    assert any(x.peso >= 2 for x in resultado.analise_por_requisito)
-    diferenciais = {x.item for x in resultado.analise_por_requisito if x.categoria == "diferencial"}
-    assert {"testes unitários", "metodologias ágeis", "inglês técnico", "LLMs", "APIs de IA", "Prompt Engineering"} <= diferenciais
-    assert resultado.score_semantico_agrupado == resultado.pontuacao_ats
+    result = analyze("PROJETOS\nReact, Python, FastAPI, SQL e Docker", job)
+    assert any(x.weight >= 2 for x in result.requirement_analysis)
+    differentials = {x.item for x in result.requirement_analysis if x.category == "differential"}
+    assert {"testes unitários", "metodologias ágeis", "inglês técnico", "LLMs", "APIs de IA", "Prompt Engineering"} <= differentials
+    assert result.grouped_semantic_score == result.ats_score

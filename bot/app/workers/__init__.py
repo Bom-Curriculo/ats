@@ -1,1 +1,1 @@
-"""Workers executados separadamente da aplicação HTTP."""
+"""Workers executed separately from the HTTP application."""

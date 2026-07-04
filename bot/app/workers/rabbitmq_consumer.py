@@ -1,4 +1,4 @@
-"""Worker RabbitMQ do bot ATS. Execute com ``python -m app.workers.rabbitmq_consumer``."""
+"""ATS bot RabbitMQ worker. Run with ``python -m app.workers.rabbitmq_consumer``."""
 
 from __future__ import annotations
 
@@ -30,10 +30,10 @@ def _output(data: dict[str, Any], status: str, result: dict[str, Any] | None = N
 
 
 def process_payload(data: dict[str, Any]) -> dict[str, Any]:
-    curriculo = data.get("curriculo_texto")
-    vaga = data.get("vaga_texto")
-    if isinstance(curriculo, str) and curriculo.strip() and isinstance(vaga, str) and vaga.strip():
-        request = AnalysisRequest(resume_text=curriculo, job_text=vaga)
+    resume = data.get("resume_text", data.get("curriculo_texto"))
+    job = data.get("job_text", data.get("vaga_texto"))
+    if isinstance(resume, str) and resume.strip() and isinstance(job, str) and job.strip():
+        request = AnalysisRequest.model_validate({**data, "resume_text": resume, "job_text": job})
         result = asyncio.run(run_analysis_with_fallback(request))
         return _output(data, "completed", result.model_dump(mode="json"))
 
@@ -43,7 +43,7 @@ def process_payload(data: dict[str, Any]) -> dict[str, Any]:
     )
     if has_file_reference:
         return _output(data, "received_pending_extraction")
-    raise InvalidRabbitMQPayload("mensagem não contém textos analisáveis nem referência de arquivo")
+    raise InvalidRabbitMQPayload("message contains neither analyzable text nor a file reference")
 
 
 class RabbitMQWorker:
@@ -84,7 +84,7 @@ class RabbitMQWorker:
         except InvalidRabbitMQPayload as exc:
             channel.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
             logger.warning("rabbitmq_message_rejected", extra={"reason": str(exc)})
-        except Exception as exc:  # mantém o loop vivo e não expõe dados da mensagem
+        except Exception as exc:  # Keep the loop alive without exposing message data.
             if parsed is not None:
                 try:
                     queue = parsed.data.get("callback_queue") or self.default_output_queue
@@ -95,8 +95,8 @@ class RabbitMQWorker:
                         extra={"error_type": type(publish_exc).__name__},
                     )
             channel.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
-            # Não incluir traceback/mensagem: exceções de validação podem conter
-            # trechos do currículo ou outros valores originais.
+            # Implementation note.
+            # resume excerpts or other original values.
             logger.error("rabbitmq_message_processing_failed", extra={"error_type": type(exc).__name__})
 
     def consume(self) -> None:

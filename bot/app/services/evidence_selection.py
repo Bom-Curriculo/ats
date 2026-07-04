@@ -1,4 +1,4 @@
-"""Recuperação local limitada de evidências relevantes para a vaga."""
+"""Bounded local retrieval of job-relevant evidence."""
 
 from app.schemas.analysis import FactBank, KeywordReport
 from app.schemas.ai_pipeline import SelectedEvidence
@@ -6,54 +6,54 @@ from app.services.text_normalizer import normalize_for_comparison
 from app.services.privacy_sanitizer import sanitize_personal_data
 
 
-FORCA_FONTE = {"experiência profissional": 5, "projeto": 4, "residência/laboratório prático": 3,
-               "curso/formação": 2, "competências": 1, "idiomas": 1}
+SOURCE_STRENGTH = {"experiência profissional": 5, "project": 4, "residência/laboratório prático": 3,
+               "curso/formação": 2, "competências": 1, "languages": 1}
 
 
 def select_relevant_evidence_for_job(
-    fact_bank: FactBank | None, requisitos: list, keyword_report: KeywordReport | None,
-    senioridade: str = "nao_informado", limite: int = 20,
+    fact_bank: FactBank | None, requirements: list, keyword_report: KeywordReport | None,
+    seniority: str = "not_provided", limite: int = 20,
 ) -> list[SelectedEvidence]:
     if not fact_bank:
         return []
 
-    nomes = [getattr(r, "item", str(r)) for r in requisitos]
+    names = [getattr(r, "item", str(r)) for r in requirements]
 
-    hard_filters = [x.termo for x in keyword_report.hard_filters] if keyword_report else []
-    alvos = {normalize_for_comparison(x): x for x in nomes + hard_filters}
-
-
-    candidatas: list[tuple[int, SelectedEvidence]] = []
-    for evidencia in fact_bank.evidencias:
-        item = str(evidencia.get("item", ""))
-        fonte = evidencia.get("fonte")
+    hard_filters = [x.term for x in keyword_report.hard_filters] if keyword_report else []
+    alvos = {normalize_for_comparison(x): x for x in names + hard_filters}
 
 
-        relacionados = [original for chave, original in alvos.items() if chave in normalize_for_comparison(item) or normalize_for_comparison(item) in chave]
+    candidates: list[tuple[int, SelectedEvidence]] = []
+    for evidence in fact_bank.evidence_items:
+        item = str(evidence.get("item", ""))
+        source = evidence.get("source")
+
+
+        relacionados = [original for key, original in alvos.items() if key in normalize_for_comparison(item) or normalize_for_comparison(item) in key]
         if not relacionados:
             continue
-        trecho = sanitize_personal_data(str(evidencia.get("evidencia", ""))).texto_sanitizado[:500]
-        nivel = {"experiência profissional": "pratica_forte", "projeto": "pratica_projeto",
-                 "curso/formação": "educacional", "competências": "skill_solta"}.get(fonte, "relacionada")
-        bonus = 2 if senioridade in {"pleno", "senior"} and fonte == "experiência profissional" else 0
-        score = FORCA_FONTE.get(fonte, 0) + bonus + len(relacionados)
+        excerpt = sanitize_personal_data(str(evidence.get("evidence", ""))).text_sanitized[:500]
+        level = {"experiência profissional": "pratica_forte", "project": "pratica_projeto",
+                 "curso/formação": "educacional", "competências": "skill_solta"}.get(source, "relacionada")
+        bonus = 2 if seniority in {"pleno", "senior"} and source == "experiência profissional" else 0
+        score = SOURCE_STRENGTH.get(source, 0) + bonus + len(relacionados)
 
 
-        candidatas.append((score, SelectedEvidence(item=item, fonte=fonte, tipo_fonte=fonte,
-            trecho=trecho, nivel_evidencia=nivel, confianca=min(95, 55 + score * 5), relacionado_a=relacionados)))
-    candidatas.sort(key=lambda x: (-x[0], x[1].item.casefold()))
+        candidates.append((score, SelectedEvidence(item=item, source=source, source_type=source,
+            excerpt=excerpt, evidence_level=level, confidence=min(95, 55 + score * 5), related_to=relacionados)))
+    candidates.sort(key=lambda x: (-x[0], x[1].item.casefold()))
 
-    saida, vistos = [], set()
+    output, vistos = [], set()
 
-    for _, evidencia in candidatas:
+    for _, evidence in candidates:
 
-        # Uma tecnologia usa somente sua fonte mais fortee candidatos ficam ordenados []
-        chave = evidencia.item.casefold()
+        # Technical note removed during English standardization.
+        key = evidence.item.casefold()
 
-        if chave not in vistos:
-            vistos.add(chave)
-            saida.append(evidencia)
+        if key not in vistos:
+            vistos.add(key)
+            output.append(evidence)
 
-        if len(saida) >= min(limite, 20):
+        if len(output) >= min(limite, 20):
             break
-    return saida
+    return output

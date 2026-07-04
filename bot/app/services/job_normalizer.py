@@ -5,8 +5,8 @@ from app.services.text_normalizer import (
     normalize_resume_text,
 )
 
-# padrão de lixo q vem dos agregadores de vaga - sla, peguei umas 30 vagas e mandei pro gepeto, oq vale pe a intenção
-LINHAS_DESCARTAVEIS = (
+# Common boilerplate found in job-board descriptions.
+DISCARDED_LINES = (
     r"\bapply(?:\s+on)?\b",
     r"\bvia\b",
     r"\bindeed\b",
@@ -25,43 +25,43 @@ LINHAS_DESCARTAVEIS = (
 
 
 # regex beneficios
-CABECALHO_BENEFICIOS = re.compile(
+BENEFITS_HEADER = re.compile(
     r"(?i)^\s*(benef[ií]cios|o que oferecemos|vantagens|perks)\s*:?\s*$"
 )
 
 
-# regex pra seção principal
-CABECALHO_RELEVANTE = re.compile(
+# Pattern for the main section.
+RELEVANT_HEADER = re.compile(
     r"(?i)^\s*(requisitos|requirements|qualifica[cç][oõ]es|qualifications|responsabilidades|responsibilities|atividades|"
     r"diferenciais|differentials|preferred|nice to have|tecnologias|technologies|stack|sobre a vaga|about the role)\b"
 )
 
 
-def clean_job_text(texto: str) -> str:
+def clean_job_text(text: str) -> str:
     """remove metadados e beneficios"""
 
-    texto = normalize_resume_text(texto)
+    text = normalize_resume_text(text)
 
     linhas_limpas: list[str] = []
 
     ignorando_beneficios = False
 
-    for linha in texto.splitlines():
-        if CABECALHO_BENEFICIOS.match(linha):
+    for line in text.splitlines():
+        if BENEFITS_HEADER.match(line):
             ignorando_beneficios = True
 
             continue
 
-        if ignorando_beneficios and CABECALHO_RELEVANTE.match(linha):
+        if ignorando_beneficios and RELEVANT_HEADER.match(line):
             ignorando_beneficios = False
 
         if ignorando_beneficios:
             continue
 
-        limpa = linha
+        limpa = line
 
-        for padrao in LINHAS_DESCARTAVEIS:
-            limpa = re.sub(padrao, " ", limpa, flags=re.IGNORECASE)
+        for pattern in DISCARDED_LINES:
+            limpa = re.sub(pattern, " ", limpa, flags=re.IGNORECASE)
 
         limpa = re.sub(r"\s+", " ", limpa).strip(" -|•")
 
@@ -71,90 +71,90 @@ def clean_job_text(texto: str) -> str:
     return "\n".join(linhas_limpas)
 
 
-def normalize_job_text(texto: str) -> dict[str, str | list[str]]:
-    """estrutura a vaga e beneficios e cia não afeta score"""
+def normalize_job_text(text: str) -> dict[str, str | list[str]]:
+    """Structure job content without allowing benefits to affect scoring."""
 
     campos: dict[str, str | list[str]] = {
-        "titulo": "",
-        "empresa": "",
+        "title": "",
+        "company": "",
         "area": "",
         "localidade": "",
-        "modalidade": "",
-        "responsabilidades": [],
-        "requisitos_obrigatorios": [],
-        "diferenciais": [],
+        "modality": "",
+        "responsibilities": [],
+        "requirements_obrigatorios": [],
+        "differentials": [],
         "beneficios": [],
         "informacoes_institucionais": [],
     }
 
     grupo = "informacoes_institucionais"
 
-    def conteudo_inline(valor: str) -> str:
-        if ":" in valor:
-            return valor.partition(":")[2].strip()
-        partes = valor.split(maxsplit=1)
+    def conteudo_inline(value: str) -> str:
+        if ":" in value:
+            return value.partition(":")[2].strip()
+        partes = value.split(maxsplit=1)
         return partes[1].strip() if len(partes) == 2 else ""
 
-    for linha_original in normalize_resume_text(texto).splitlines():
-        linha = linha_original
+    for original_line in normalize_resume_text(text).splitlines():
+        line = original_line
 
-        for padrao in LINHAS_DESCARTAVEIS:
-            linha = re.sub(padrao, " ", linha, flags=re.IGNORECASE)
+        for pattern in DISCARDED_LINES:
+            line = re.sub(pattern, " ", line, flags=re.IGNORECASE)
 
-        linha = re.sub(r"\s+", " ", linha).strip(" -|•")
+        line = re.sub(r"\s+", " ", line).strip(" -|•")
 
-        if not linha:
+        if not line:
             continue
 
-        chave = re.sub(r"[^a-z ]", "", normalize_for_comparison(linha)).strip()
+        key = re.sub(r"[^a-z ]", "", normalize_for_comparison(line)).strip()
 
-        if chave.startswith(("responsabilidades", "atividades", "responsibilities")):
-            grupo = "responsabilidades"
-            linha = conteudo_inline(linha)
-            if not linha:
+        if key.startswith(("responsibilities", "atividades", "responsibilities")):
+            grupo = "responsibilities"
+            line = conteudo_inline(line)
+            if not line:
                 continue
 
-        if chave.startswith(("requisitos", "requirements", "qualificacoes", "qualifications", "tecnologias", "technologies", "stack")):
-            grupo = "requisitos_obrigatorios"
-            linha = conteudo_inline(linha)
-            if not linha:
+        if key.startswith(("requisitos", "requirements", "qualificacoes", "qualifications", "technologies", "technologies", "stack")):
+            grupo = "requirements_obrigatorios"
+            line = conteudo_inline(line)
+            if not line:
                 continue
 
-        # Seções funcionais de vagas técnicas representam requisitos centrais.
-        if chave in {"front end", "frontend", "back end", "backend", "banco de dados",
+        # Technical note removed during English standardization.
+        if key in {"front end", "frontend", "back end", "backend", "banco de dados",
                      "devops", "versionamento"}:
-            grupo = "requisitos_obrigatorios"
+            grupo = "requirements_obrigatorios"
             continue
 
-        if chave.startswith(("diferenciais", "differentials", "desejaveis", "desejveis", "preferred", "nice to have")):
-            grupo = "diferenciais"
-            linha = conteudo_inline(linha)
-            if not linha:
+        if key.startswith(("diferenciais", "differentials", "desejaveis", "desejveis", "preferred", "nice to have")):
+            grupo = "differentials"
+            line = conteudo_inline(line)
+            if not line:
                 continue
 
-        if chave.startswith(
+        if key.startswith(
             ("benefcios", "beneficios", "o que oferecemos", "vantagens", "perks")
         ):
             grupo = "beneficios"
             continue
 
-        if chave.startswith(("sobre a empresa", "quem somos", "nossa empresa")):
+        if key.startswith(("sobre a empresa", "quem somos", "nossa empresa")):
             grupo = "informacoes_institucionais"
             continue
 
-        if not campos["titulo"] and grupo == "informacoes_institucionais":
-            campos["titulo"] = linha
+        if not campos["title"] and grupo == "informacoes_institucionais":
+            campos["title"] = line
 
         else:
             assert isinstance(campos[grupo], list)
 
-            campos[grupo].append(linha)
+            campos[grupo].append(line)
 
-    comparacao = normalize_resume_text(texto)
+    comparison = normalize_resume_text(text)
 
-    modalidade = re.search(r"(?i)\b(remoto|h[ií]brid[oa]|presencial)\b", comparacao)
+    modality = re.search(r"(?i)\b(remoto|h[ií]brid[oa]|presencial)\b", comparison)
 
-    campos["modalidade"] = modalidade.group(1) if modalidade else ""
+    campos["modality"] = modality.group(1) if modality else ""
 
     cidades = (
         "Manaus",
@@ -170,19 +170,19 @@ def normalize_job_text(texto: str) -> dict[str, str | list[str]]:
     )
 
     campos["localidade"] = next(
-        (c for c in cidades if c.lower() in comparacao.lower()), ""
+        (c for c in cidades if c.lower() in comparison.lower()), ""
     )
 
-    titulo = str(campos["titulo"])
-    empresa_rotulada = re.search(r"(?im)^\s*(?:empresa|company)\s*:\s*([^\n]+)", texto)
-    campos["empresa"] = empresa_rotulada.group(1).strip() if empresa_rotulada else ""
-    corpus = normalize_for_comparison(texto)
+    title = str(campos["title"])
+    company_rotulada = re.search(r"(?im)^\s*(?:empresa|company)\s*:\s*([^\n]+)", text)
+    campos["company"] = company_rotulada.group(1).strip() if company_rotulada else ""
+    corpus = normalize_for_comparison(text)
     areas = (("full stack", ("full stack", "fullstack")), ("front-end", ("front-end", "frontend")),
-             ("back-end", ("back-end", "backend")), ("dados", ("dados", "data engineer", "data analyst")),
+             ("back-end", ("back-end", "backend")), ("data", ("data", "data engineer", "data analyst")),
              ("mobile", ("mobile", "android", "ios")), ("devops", ("devops", "sre")),
              ("qa", ("qa", "quality assurance", "testes")), ("suporte", ("suporte", "support")),
              ("automação", ("automacao", "automation")), ("ia", ("inteligencia artificial", "machine learning", "llm", " rag ")))
     campos["area"] = next((area for area, sinais in areas if any(s in corpus for s in sinais)), "")
-    campos["aceita_sem_experiencia"] = bool(re.search(r"(?i)\b(?:sem experiencia|nao exige experiencia|no experience|required experience: none|experience not required)\b", corpus))
+    campos["accepts_no_experience"] = bool(re.search(r"(?i)\b(?:sem experiencia|nao exige experiencia|no experience|required experience: none|experience not required)\b", corpus))
 
     return campos
