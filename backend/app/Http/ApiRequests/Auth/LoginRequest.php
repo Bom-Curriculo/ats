@@ -12,10 +12,14 @@ class LoginRequest extends CustomRequest
             'email' => [
                 'required',
                 'email',
+                'min:5',
+                'max:128'
             ],
             'password' => [
                 'required',
                 'string',
+                'min:8',
+                'max:64'
             ],
         ];
     }

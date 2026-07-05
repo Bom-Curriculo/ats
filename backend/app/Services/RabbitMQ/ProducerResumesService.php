@@ -13,9 +13,8 @@ class ProducerResumesService {
     public function __invoke(Request $request)
     {
         try{
-            
-            $user = User::find($request->user()->id);
-            ResumeProcessingPublisher::dispatch($user)->onConnection('rabbitmq_producer');
+
+            ResumeProcessingPublisher::dispatch($request->user())->onConnection('rabbitmq_producer');
             
             return ResponseData::success('Success', [
                 'message' => 'Processed to worker successfuly'
