@@ -76,7 +76,7 @@ def test_provider_uses_custom_configured_model() -> None:
 
 CONFIGURED_DEFAULT_MODELS = {
     "groq": "openai/gpt-oss-120b",
-    "gemini": "gemini-2.5-pro",
+    "gemini": "gemini-3.5-flash",
     "deepseek": "deepseek-v4-flash",
     "openai": "gpt-5.5",
     "ollama": "qwen3:8b",

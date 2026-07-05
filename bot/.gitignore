@@ -2,6 +2,9 @@
 .env.*
 !.env.example
 
+config.yaml
+!config.yaml.example
+
 __pycache__/
 *.py[cod]
 .pytest_cache/
