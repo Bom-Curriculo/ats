@@ -6,6 +6,7 @@ from app.models.analysis import (
     DetailedSuggestions,
     FactBank,
     RequirementAnalysisItem,
+    ResumeEvidence,
 )
 from app.models.ai_analysis import AIAnalysisResponse
 
@@ -88,7 +89,7 @@ class SuggestionEngineInterface(ABC):
     def generate_local_suggestions(
         self,
         items: list[RequirementAnalysisItem],
-        evidence_items: dict[str, bool],
+        evidence_items: ResumeEvidence,
         impeditivos: list[str],
         job: str,
     ) -> DetailedSuggestions:

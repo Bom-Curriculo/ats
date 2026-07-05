@@ -38,6 +38,8 @@ rabbitmq:
   port: 5672
   vhost: "/"
   input_queue: "resumes_queue"
-  output_queue: "resumes_results_queue"
+  # Matches the queue name hardcoded in the Laravel backend's
+  # `app:rabbit-consume` command (backend/app/Console/Commands/ConsumeRabbitMQ.php).
+  output_queue: "resumes_bot_queue"
   heartbeat_seconds: 60
   blocked_connection_timeout_seconds: 30

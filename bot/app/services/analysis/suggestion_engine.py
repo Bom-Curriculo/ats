@@ -1,7 +1,7 @@
 import re
 from difflib import SequenceMatcher
 
-from app.models.analysis import RequirementAnalysisItem, DetailedSuggestions
+from app.models.analysis import RequirementAnalysisItem, DetailedSuggestions, ResumeEvidence
 from app.services.analysis.interfaces import SuggestionEngineInterface
 from app.services.matching.common_terms import BRAZILIAN_CITIES, GIT_TERMS, SQL_TERMS
 from app.services.normalization.text_normalizer import normalize_for_comparison
@@ -108,16 +108,16 @@ class SuggestionEngine(SuggestionEngineInterface):
 
         return adjustments, gaps, next_steps
 
-    def _missing_skills_section_adjustment(self, evidence_items: dict[str, bool]) -> str | None:
-        if evidence_items["skills_section"]:
+    def _missing_skills_section_adjustment(self, evidence_items: ResumeEvidence) -> str | None:
+        if evidence_items.skills_section:
             return None
         return (
             "Crie uma seção 'Competências Técnicas' claramente identificada; ela é fortemente "
             "recomendada para ATS tech, mas sua ausência não reprova automaticamente."
         )
 
-    def _missing_experience_next_step(self, evidence_items: dict[str, bool]) -> str | None:
-        if evidence_items["professional_experience"]:
+    def _missing_experience_next_step(self, evidence_items: ResumeEvidence) -> str | None:
+        if evidence_items.professional_experience:
             return None
         return (
             "Sem experiência profissional, evidencie projects pessoais ou acadêmicos, labs, "
@@ -134,7 +134,7 @@ class SuggestionEngine(SuggestionEngineInterface):
     def generate_local_suggestions(
         self,
         items: list[RequirementAnalysisItem],
-        evidence_items: dict[str, bool],
+        evidence_items: ResumeEvidence,
         impeditivos: list[str],
         job: str,
     ) -> DetailedSuggestions:
@@ -175,7 +175,7 @@ def detect_possible_blockers(resume: str, job: str) -> list[str]:
 
 def generate_local_suggestions(
     items: list[RequirementAnalysisItem],
-    evidence_items: dict[str, bool],
+    evidence_items: ResumeEvidence,
     impeditivos: list[str],
     job: str,
 ) -> DetailedSuggestions:

@@ -172,7 +172,7 @@ Configured in `config.yaml` (`rabbitmq.*`), overridable per-deployment with
 `RABBITMQ_PASSWORD` secrets in `.env`:
 
 - **Input** — `resumes_queue` (durable). The worker declares it on startup.
-- **Output** — `resumes_results_queue` (durable) by default, or whatever
+- **Output** — `resumes_bot_queue` (durable) by default, or whatever
   queue name the request message sets in `callback_queue` (declared durable
   on the fly, so any queue name a caller wants back is accepted).
 
@@ -193,7 +193,7 @@ compatibility (only one set is required, not both):
   "language": "pt-BR",
   "job_level": "junior",
   "use_ai": true,
-  "callback_queue": "resumes_results_queue"
+  "callback_queue": "resumes_bot_queue"
 }
 ```
 
@@ -206,13 +206,13 @@ compatibility (only one set is required, not both):
 | `job_level` | `nivel_vaga` | no | e.g. `junior`, `pleno`, `senior`, `estagio`. |
 | `use_ai` | `usar_ia` | no | Defaults to `ai.enabled_by_default` in `config.yaml` when omitted. |
 | `callback_queue` | — | no | Overrides the default output queue for this message only. |
-| `resume_cv` / `resume_cv_url`, `resume_linkedin` / `resume_linkedin_url` | — | no | File references. No extractor is wired up yet — see **Pending: file references** below. |
+| `resume_cv` / `resume_cv_url`, `resume_linkedin` / `resume_linkedin_url` | — | no | File references (PDF/DOCX). Fetched and extracted automatically when the value is an absolute `http(s)` URL — see **File references** below. |
 
 \* Either the plain-text fields above, or a message that only carries a file
 reference (see below), must be present — an empty payload is rejected.
 
 The worker also accepts, unchanged, the legacy serialized payload shape the
-Laravel queue produces for `App\Jobs\ProcessResumesJobs`
+Laravel queue produces for `App\Jobs\ResumeProcessingPublisher`
 (`{"data": {"command": "..."}}` with PHP-serialized properties) — this is
 handled transparently by `app/services/parsing/rabbitmq_payload_parser.py`
 and needs no special handling from a new integration; it only matters if
@@ -268,15 +268,24 @@ Messages that are unparsable JSON, or carry neither text nor a file
 reference, are `nack`'d without requeueing and **no response is published**
 — there's no `analysis_request_id` to correlate a reply to.
 
-### Pending: file references
+### File references
 
-`resume_cv`, `resume_cv_url`, `resume_linkedin`, `resume_linkedin_url` are
-accepted and recognized, but the worker does not fetch or extract them yet —
-messages containing only those return `received_pending_extraction`. PDF/DOCX
-*content* extraction already exists (`app/services/parsing/readers/`,
-covered above), but there's no step yet that downloads a `resume_cv_url` and
-feeds its bytes through that reader — send `resume_text`/`job_text` directly
-until that's wired up.
+When no inline `resume_text`/`curriculo_texto` is present, the worker looks at
+`resume_cv_url`, `resume_cv`, `resume_linkedin_url`, `resume_linkedin` (in that
+order) and downloads the first one that is an absolute `http(s)` URL, then
+extracts its text with the PDF/DOCX readers (`app/services/parsing/readers/`).
+The extracted text is used as `resume_text` for the rest of the pipeline, same
+as if it had been sent inline.
+
+A bare storage path with no scheme (e.g. `uploads/resumes/cvs/foo.docx`, as
+produced by the legacy Laravel serialized payload for `resume_cv`) has no
+known host to fetch from, so it is left alone — send a full URL
+(`resume_cv_url`) if you want the bot to fetch it. The same applies if the
+download or extraction fails for any reason (network error, unsupported
+format, oversized file): the worker falls back to `received_pending_extraction`
+instead of failing the whole message.
+
+Download limits: 15s timeout, 10 MiB max response size, `http`/`https` only.
 
 ### Minimal integration example (Python, any service)
 
@@ -292,7 +301,7 @@ connection = pika.BlockingConnection(
 )
 channel = connection.channel()
 channel.queue_declare(queue="resumes_queue", durable=True)
-channel.queue_declare(queue="resumes_results_queue", durable=True)
+channel.queue_declare(queue="resumes_bot_queue", durable=True)
 
 request_id = str(uuid.uuid4())
 channel.basic_publish(
@@ -304,7 +313,7 @@ channel.basic_publish(
         "job_text": "Python and FastAPI are required.",
         "language": "en-US",
         "use_ai": False,
-        "callback_queue": "resumes_results_queue",
+        "callback_queue": "resumes_bot_queue",
     }).encode("utf-8"),
     properties=pika.BasicProperties(content_type="application/json", delivery_mode=2),
 )
@@ -316,7 +325,7 @@ def on_response(ch, method, _properties, body):
         ch.basic_ack(delivery_tag=method.delivery_tag)
         ch.stop_consuming()
 
-channel.basic_consume(queue="resumes_results_queue", on_message_callback=on_response)
+channel.basic_consume(queue="resumes_bot_queue", on_message_callback=on_response)
 channel.start_consuming()
 ```
 

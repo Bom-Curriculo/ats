@@ -175,7 +175,7 @@ Differentials:
 Spring Boot
 """,
     )
-    assert result.relevance_evaluation["accepts_no_experience"] is True
+    assert result.relevance_evaluation.accepts_no_experience is True
     alternativo = next(x for x in result.requirement_groups if x.mode == "any" and {"Java", "Kotlin"} <= set(x.items))
     assert alternativo.group_status == "atendido"
     assert req(result, "Kotlin").status == "missing"

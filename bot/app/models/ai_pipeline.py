@@ -1,5 +1,7 @@
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.models.fallback_detail import FallbackDetail
+
 
 
 class AIJobClassification(BaseModel):
@@ -90,4 +92,4 @@ class AIPipelineResult(BaseModel):
     fallback_steps: list[str] = Field(default_factory=list)
 
 
-    fallback_details: list[dict] = Field(default_factory=list)
+    fallback_details: list[FallbackDetail] = Field(default_factory=list)

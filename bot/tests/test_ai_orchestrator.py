@@ -47,8 +47,8 @@ def test_ai_orchestrator_behavior_02():
     assert "evaluate_requirements_contextually" in result.fallback_ai_steps
     assert result.local_fallback_used is False
     assert result.contextual_requirement_evaluations
-    detail = next(x for x in result.pipeline_fallback_details if x["step"] == "evaluate_requirements_contextually")
-    assert detail == {
+    detail = next(x for x in result.pipeline_fallback_details if x.step == "evaluate_requirements_contextually")
+    assert detail.model_dump() == {
         "step": "evaluate_requirements_contextually", "error_category": "timeout",
         "safe_message": "A etapa excedeu o tempo limite.", "provider": "mock",
         "model": "modelo-mock", "schema_used": "EvaluationsResponse",

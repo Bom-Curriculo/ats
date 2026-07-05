@@ -1,5 +1,6 @@
 import json
 from abc import ABC, abstractmethod
+from datetime import date
 from typing import Any
 
 from app.models.analysis import AIComplement, AnalysisResult, AnalysisRequest
@@ -42,17 +43,17 @@ class AIProvider(ABC):
         self, safe_request: AnalysisRequest, local_result: AnalysisResult
     ) -> AIAnalysisResponse | dict | str:
         complement = await self.generate_completion(safe_request, local_result)
-        return {
-            "contextual_summary": complement.generated_summary,
-            "contextual_requirements": [],
-            "strengths": [],
-            "gaps": [],
-            "possible_blockers": [],
-            "improvement_suggestions": complement.suggestions,
-            "next_steps": [],
-            "anti_fabrication_alerts": [],
-            "confidence": 50,
-        }
+        return AIAnalysisResponse(
+            contextual_summary=complement.generated_summary,
+            contextual_requirements=[],
+            strengths=[],
+            gaps=[],
+            possible_blockers=[],
+            improvement_suggestions=complement.suggestions,
+            next_steps=[],
+            anti_fabrication_alerts=[],
+            confidence=50,
+        )
 
     async def run_structured_task(
         self, task: str, prompt: str, schema: type, temperature: float = 0.1
@@ -71,6 +72,7 @@ def create_prompt(
     data = AIContextBuilder().build(request, base_result, sanitizer)
     schema = AIAnalysisResponse.model_json_schema()
     return (
+        f"Today's date is {date.today().isoformat()}. "
         "You are an ATS and recruitment resume expert. Analyze the sanitized resume "
         "against the sanitized job description. Return only valid JSON in the requested "
         "schema. Do not use Markdown. Do not invent experience, technology, course, "

@@ -1,5 +1,6 @@
 import re
 
+from app.models.analysis import ResumeEvidence
 from app.services.normalization.text_normalizer import normalize_for_comparison, normalize_resume_text
 from app.services.parsing.interfaces import SectionExtractorInterface, SectionParserResult
 
@@ -120,17 +121,17 @@ class SectionExtractor(SectionExtractorInterface):
         """Legacy return shape containing only the section map."""
         return self.analyze(text).sections
 
-    def detect_evidence(self, text: str, sections: dict[str, str]) -> dict[str, bool]:
+    def detect_evidence(self, text: str, sections: dict[str, str]) -> ResumeEvidence:
         normalized = normalize_for_comparison(text)
-        return {
-            "professional_experience": bool(sections.get("professional_experience")),
-            "personal_projects": bool(sections.get("projects")),
-            "academic_projects": bool(sections.get("academic_projects")) or "project academico" in normalized,
-            "open_source": bool(sections.get("open_source")) or bool(re.search(r"\bopen[ -]?source\b", normalized)),
-            "courses": bool(sections.get("courses") or sections.get("certifications")),
-            "technology_residency": bool(sections.get("residencies")) or "residencia tecnologica" in normalized,
-            "skills_section": bool(sections.get("technical_skills")),
-        }
+        return ResumeEvidence(
+            professional_experience=bool(sections.get("professional_experience")),
+            personal_projects=bool(sections.get("projects")),
+            academic_projects=bool(sections.get("academic_projects")) or "project academico" in normalized,
+            open_source=bool(sections.get("open_source")) or bool(re.search(r"\bopen[ -]?source\b", normalized)),
+            courses=bool(sections.get("courses") or sections.get("certifications")),
+            technology_residency=bool(sections.get("residencies")) or "residencia tecnologica" in normalized,
+            skills_section=bool(sections.get("technical_skills")),
+        )
 
 
 def analyze_resume_sections(text: str) -> SectionParserResult:
@@ -141,5 +142,5 @@ def extract_resume_sections(text: str) -> dict[str, str]:
     return SectionExtractor().extract_sections(text)
 
 
-def detect_evidence(text: str, sections: dict[str, str]) -> dict[str, bool]:
+def detect_evidence(text: str, sections: dict[str, str]) -> ResumeEvidence:
     return SectionExtractor().detect_evidence(text, sections)

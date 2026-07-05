@@ -6,6 +6,7 @@ from app.models.ai_analysis import AIRequirementAnalysis, AIAnalysisResponse
 from app.models.ai_pipeline import (
     ContextualRequirementEvaluation, AIJobClassification, AIPipelineResult,
 )
+from app.models.fallback_detail import FallbackDetail
 from app.services.ai.interfaces import AIContextBuilderInterface, AIPipelineOrchestratorInterface, AIPipelinePromptsInterface
 from app.services.ai.ai_context import AIContextBuilder
 from app.services.normalization.text_normalizer import normalize_for_comparison
@@ -43,16 +44,16 @@ class SuggestionsResponse(BaseModel):
     next_steps: list[str] = Field(default_factory=list)
 
 
-def _fallback_detail(step: str, provider: AIProvider, schema: type, error: Exception | None = None) -> dict:
+def _fallback_detail(step: str, provider: AIProvider, schema: type, error: Exception | None = None) -> FallbackDetail:
     category = getattr(error, "category", None) or ("unsupported_task_api" if error is None else "unknown_provider_error")
-    return {
-        "step": step,
-        "error_category": category,
-        "safe_message": ERROR_MESSAGES.get(category, ERROR_MESSAGES["unknown_provider_error"]),
-        "provider": provider.name,
-        "model": provider.model,
-        "schema_used": schema.__name__,
-    }
+    return FallbackDetail(
+        step=step,
+        error_category=category,
+        safe_message=ERROR_MESSAGES.get(category, ERROR_MESSAGES["unknown_provider_error"]),
+        provider=provider.name,
+        model=provider.model,
+        schema_used=schema.__name__,
+    )
 
 
 class AIPipelineOrchestrator(AIPipelineOrchestratorInterface):
@@ -76,10 +77,11 @@ class AIPipelineOrchestrator(AIPipelineOrchestratorInterface):
 
     def _local_classification(self, result: AnalysisResult) -> AIJobClassification:
         report = result.keyword_report
+        relevance = result.relevance_evaluation
         core_requirements = [x.item for x in result.requirement_analysis if x.weight >= 2]
         secondary_requirements = [x.item for x in result.requirement_analysis if x.weight < 2]
         return AIJobClassification(
-            title=str((result.relevance_evaluation or {}).get("title_detectado") or "") or None,
+            title=(relevance.title_detectado if relevance else "") or None,
             seniority=result.job_level,
             core_requirements=core_requirements,
             secondary_requirements=secondary_requirements,
@@ -87,18 +89,18 @@ class AIPipelineOrchestrator(AIPipelineOrchestratorInterface):
             hard_filters=[x.term for x in report.hard_filters] if report else [],
             business_context=[x.term for x in report.business_context] if report else [],
             confidence=75,
-            company=(result.relevance_evaluation or {}).get("company") or None,
-            area=(result.relevance_evaluation or {}).get("area") or None,
+            company=(relevance.company if relevance else None) or None,
+            area=(relevance.area if relevance else None) or None,
             technologies=[x.item for x in result.requirement_analysis if x.type == "technology"],
             responsibilities=[],
-            modality=(result.relevance_evaluation or {}).get("modality") or None,
-            location=(result.relevance_evaluation or {}).get("location") or None,
-            accepts_no_experience=bool((result.relevance_evaluation or {}).get("accepts_no_experience")),
+            modality=(relevance.modality if relevance else None) or None,
+            location=(relevance.location if relevance else None) or None,
+            accepts_no_experience=bool(relevance.accepts_no_experience if relevance else False),
         )
 
     async def classify_job(
         self, context: dict, result: AnalysisResult, provider: AIProvider
-    ) -> tuple[AIJobClassification, bool, dict | None]:
+    ) -> tuple[AIJobClassification, bool, FallbackDetail | None]:
         local = self._local_classification(result)
         prompt = self._prompts.job_classification(
             context.get("summary_job_sanitized", ""),

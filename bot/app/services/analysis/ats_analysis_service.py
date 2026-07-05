@@ -5,11 +5,12 @@ import re
 from app.providers.base import AIProvider
 from app.models.analysis import (
     DetailedAnalysis,
-    ResumeEvidence,
     PrivacyInformation,
     AnalysisResult,
     AnalysisRequest,
 )
+from app.models.relevance_evaluation import RelevanceEvaluation
+from app.models.sanitization_summary import SanitizationSummary
 from app.services.parsing.interfaces import SectionExtractorInterface, ResumeInventoryBuilderInterface
 from app.services.parsing.section_extractor import SectionExtractor
 from app.services.parsing.resume_inventory import ResumeInventoryBuilder
@@ -154,30 +155,30 @@ class AtsAnalysisService(AtsAnalysisServiceInterface):
             possible_blockers=blockers,
         )
 
-    def _build_sanitization_summary(self, sanitization_resume, sanitization_sources) -> dict:
+    def _build_sanitization_summary(self, sanitization_resume, sanitization_sources) -> SanitizationSummary:
         source_items = sanitization_sources.items_removed if sanitization_sources else []
         source_links = sanitization_sources.links_detected_by_type if sanitization_sources else {}
-        return {
-            "sensitive_data_detected": bool(sanitization_resume.items_removed or source_items),
-            "removed_categories": list(dict.fromkeys(sanitization_resume.items_removed + source_items)),
-            "category_count": len(set(sanitization_resume.items_removed + source_items)),
-            "links_detected_by_type": {
+        return SanitizationSummary(
+            sensitive_data_detected=bool(sanitization_resume.items_removed or source_items),
+            removed_categories=list(dict.fromkeys(sanitization_resume.items_removed + source_items)),
+            category_count=len(set(sanitization_resume.items_removed + source_items)),
+            links_detected_by_type={
                 key: sanitization_resume.links_detected_by_type.get(key, 0) + source_links.get(key, 0)
                 for key in set(sanitization_resume.links_detected_by_type) | set(source_links)
             },
-            "safe_note": "Valores sensíveis foram substituídos antes da análise externa e não são retornados.",
-        }
+            safe_note="Valores sensíveis foram substituídos antes da análise externa e não são retornados.",
+        )
 
-    def _build_relevance_evaluation(self, job: dict, job_level: JobLevel) -> dict:
-        return {
-            "title_detectado": job.get("title", ""),
-            "company": job.get("company", ""),
-            "area": job.get("area", ""),
-            "level": job_level.value,
-            "modality": job.get("modality", ""),
-            "location": job.get("localidade", ""),
-            "accepts_no_experience": bool(job.get("accepts_no_experience")),
-        }
+    def _build_relevance_evaluation(self, job: dict, job_level: JobLevel) -> RelevanceEvaluation:
+        return RelevanceEvaluation(
+            title_detectado=job.get("title", ""),
+            company=job.get("company", ""),
+            area=job.get("area", ""),
+            level=job_level.value,
+            modality=job.get("modality", ""),
+            location=job.get("localidade", ""),
+            accepts_no_experience=bool(job.get("accepts_no_experience")),
+        )
 
     def analyze(self, request: AnalysisRequest) -> AnalysisResult:
         """Run the pipeline without retaining source text."""
@@ -204,9 +205,9 @@ class AtsAnalysisService(AtsAnalysisServiceInterface):
         valid_analysis, alerts = self._suggestions.is_valid_input(resume_text_sanitized, job_text_sanitized)
         blockers = self._suggestions.detect_possible_blockers(resume_text_sanitized, job_text_sanitized)
         blockers.extend(keyword_report.hard_filter_alerts)
-        evidence_items_dict = self._sections.detect_evidence(resume_text_sanitized, sections)
+        evidence_items = self._sections.detect_evidence(resume_text_sanitized, sections)
         local_suggestions = self._suggestions.generate_local_suggestions(
-            items, evidence_items_dict, blockers, job_text_sanitized
+            items, evidence_items, blockers, job_text_sanitized
         )
 
         found_items = [i.item for i in items if i.status in {"found_with_evidence", "found_without_clear_context"}]
@@ -240,7 +241,7 @@ class AtsAnalysisService(AtsAnalysisServiceInterface):
             resume_inventory=inventory,
             requirement_analysis=items,
             detailed_analysis=details,
-            evidence_items=ResumeEvidence(**evidence_items_dict),
+            evidence_items=evidence_items,
             detected_issues=issues,
             suggestions=suggestions,
             detailed_suggestions=local_suggestions,
@@ -353,7 +354,11 @@ class AtsAnalysisService(AtsAnalysisServiceInterface):
             "anti_fabrication_alerts": ai_analysis.anti_fabrication_alerts,
             "ai_roles": ai_analysis.ai_roles or ["avaliadora contextual", "auditora de lacunas", "revisora anti-alucinação"],
             "ai_context_quality": ai_analysis.ai_context_quality,
-            "relevance_evaluation": ai_analysis.relevance_evaluation or result.relevance_evaluation,
+            "relevance_evaluation": (
+                RelevanceEvaluation(**ai_analysis.relevance_evaluation)
+                if ai_analysis.relevance_evaluation
+                else result.relevance_evaluation
+            ),
             "evidence_matrix": ai_analysis.evidence_matrix or result.evidence_matrix,
             "prioritized_gaps": ai_analysis.prioritized_gaps or result.prioritized_gaps,
             "safe_rewrite_suggestions": ai_analysis.safe_rewrite_suggestions,
@@ -371,7 +376,7 @@ class AtsAnalysisService(AtsAnalysisServiceInterface):
             "ai_job_classification": ai_pipeline.job_classification if ai_pipeline else None,
             "contextual_requirement_evaluations": ai_pipeline.requirement_evaluations if ai_pipeline else [],
             "ai_pipeline_confidence": ai_pipeline.pipeline_confidence if ai_pipeline else None,
-            "sanitized_pipeline_errors": [x["safe_message"] for x in ai_pipeline.fallback_details] if ai_pipeline else [],
+            "sanitized_pipeline_errors": [x.safe_message for x in ai_pipeline.fallback_details] if ai_pipeline else [],
             "pipeline_fallback_details": ai_pipeline.fallback_details if ai_pipeline else [],
             "privacy": PrivacyInformation(
                 sensitive_data_detected=bool(removed_items),

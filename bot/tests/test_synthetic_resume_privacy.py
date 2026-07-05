@@ -87,10 +87,10 @@ def test_synthetic_resume_privacy_behavior_04():
         assert value not in serialized
     assert {"Python", "FastAPI", ".NET", "Java"} <= set(result.matched_keywords)
     summary = result.sanitization_summary
-    assert summary["sensitive_data_detected"] is True
-    assert summary["category_count"] >= 5
-    assert summary["links_detected_by_type"]["github_repo_url"] == 1
-    assert "pessoa" not in summary["safe_note"].casefold()
+    assert summary.sensitive_data_detected is True
+    assert summary.category_count >= 5
+    assert summary.links_detected_by_type["github_repo_url"] == 1
+    assert "pessoa" not in summary.safe_note.casefold()
 
 
 def test_synthetic_resume_privacy_behavior_05():

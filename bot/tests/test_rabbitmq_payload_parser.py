@@ -38,7 +38,7 @@ def test_parses_clean_english_json() -> None:
 
 def test_rabbitmq_payload_parser_behavior_03() -> None:
     command = (
-        'O:27:"App\\Jobs\\ProcessResumesJobs":4:{'
+        'O:34:"App\\Jobs\\ResumeProcessingPublisher":4:{'
         's:9:"resume_cv";s:31:"uploads/resumes/cvs/teste.docx";'
         's:15:"resume_linkedin";s:37:"http://backend:8000/linkedin/teste.pdf";'
         's:7:"user_id";i:12;s:12:"expires_link";s:10:"2026-07-02";}'
@@ -58,7 +58,7 @@ def test_rabbitmq_payload_parser_behavior_03() -> None:
 
 def test_rabbitmq_payload_parser_behavior_04() -> None:
     command = (
-        'O:27:"App\\Jobs\\ProcessResumesJobs":3:{'
+        'O:34:"App\\Jobs\\ResumeProcessingPublisher":3:{'
         's:12:"\\u0000*\\u0000resume_cv";s:8:"file.pdf";'
         's:10:"\\u0000*\\u0000user_id";i:42;}'
         ' resume_linkedin=http://backend:8000/linkedin.pdf'

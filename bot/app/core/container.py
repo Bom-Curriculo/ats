@@ -31,6 +31,7 @@ from app.services.parsing.rabbitmq_payload_parser import RabbitMQPayloadParser
 from app.services.parsing.readers.docx_reader import DocxDocumentReader
 from app.services.parsing.readers.pdf_reader import PdfDocumentReader
 from app.services.parsing.readers.reader_aggregator import DocumentReaderAggregator
+from app.services.parsing.resume_file_fetcher import ResumeFileFetcher
 
 from app.services.matching.technical_matching import TechnicalMatcher
 from app.services.matching.technology_catalog import TechnologyCatalog
@@ -77,6 +78,10 @@ class Container(containers.DeclarativeContainer):
     document_reader_aggregator = providers.Factory(
         DocumentReaderAggregator,
         readers=providers.List(pdf_document_reader, docx_document_reader),
+    )
+    resume_file_fetcher = providers.Factory(
+        ResumeFileFetcher,
+        reader_aggregator=document_reader_aggregator,
     )
 
     # Matching
@@ -140,4 +145,5 @@ class Container(containers.DeclarativeContainer):
         settings=settings,
         ai_manager=ai_manager,
         payload_parser=rabbitmq_payload_parser,
+        resume_file_fetcher=resume_file_fetcher,
     )

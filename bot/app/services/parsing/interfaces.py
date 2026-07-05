@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
+from app.models.analysis import ResumeEvidence
+
 
 @dataclass
 class SectionParserResult:
@@ -23,7 +25,7 @@ class SectionExtractorInterface(ABC):
         ...
 
     @abstractmethod
-    def detect_evidence(self, text: str, sections: dict[str, str]) -> dict[str, bool]:
+    def detect_evidence(self, text: str, sections: dict[str, str]) -> ResumeEvidence:
         ...
 
 
@@ -61,4 +63,12 @@ class RabbitMQPayloadParserInterface(ABC):
 
     @abstractmethod
     def parse(self, body: bytes | str) -> ParsedRabbitMQPayload:
+        ...
+
+
+class ResumeFileFetcherInterface(ABC):
+    """Download a resume/LinkedIn file reference over HTTP and extract its text."""
+
+    @abstractmethod
+    async def fetch_and_extract_text(self, url: str) -> str:
         ...

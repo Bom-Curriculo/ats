@@ -83,8 +83,8 @@ class RabbitMQPayloadParser(RabbitMQPayloadParserInterface):
     def _parse_laravel(self, payload: dict[str, Any]) -> ParsedRabbitMQPayload:
         data = payload.get("data")
         command = data.get("command") if isinstance(data, dict) else None
-        if not isinstance(command, str) or "App\\Jobs\\ProcessResumesJobs" not in command:
-            raise InvalidRabbitMQPayload("payload Laravel não contém ProcessResumesJobs")
+        if not isinstance(command, str) or "App\\Jobs\\ResumeProcessingPublisher" not in command:
+            raise InvalidRabbitMQPayload("payload Laravel não contém ResumeProcessingPublisher")
 
         extracted: dict[str, Any] = {}
         for field in _ALLOWED_FIELDS:

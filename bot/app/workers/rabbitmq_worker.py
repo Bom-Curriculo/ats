@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import time
 from typing import Any
@@ -13,22 +12,25 @@ import pika
 from app.core.logging import configure_logging
 from app.core.settings import Settings
 from app.models.analysis import AnalysisRequest
+from app.models.rabbitmq_output import RabbitMQOutputMessage
 from app.services.ai.interfaces import AIManagerInterface
 from app.services.ai.ai_manager import AIManager
-from app.services.parsing.interfaces import RabbitMQPayloadParserInterface
+from app.services.parsing.interfaces import RabbitMQPayloadParserInterface, ResumeFileFetcherInterface
 from app.services.parsing.rabbitmq_payload_parser import InvalidRabbitMQPayload, RabbitMQPayloadParser
+from app.services.parsing.resume_file_fetcher import ResumeFileFetcher
+
+_FILE_REFERENCE_FIELDS = ("resume_cv_url", "resume_cv", "resume_linkedin_url", "resume_linkedin")
 
 logger = logging.getLogger(__name__)
 
 
-def _output(data: dict[str, Any], status: str, result: dict[str, Any] | None = None, error: str | None = None) -> dict[str, Any]:
-    return {
-        "analysis_request_id": data.get("analysis_request_id"),
-        "status": status,
-        "source": "bot-python",
-        "result": result or {},
-        "error": error,
-    }
+def _output(data: dict[str, Any], status: str, result: dict[str, Any] | None = None, error: str | None = None) -> RabbitMQOutputMessage:
+    return RabbitMQOutputMessage(
+        analysis_request_id=data.get("analysis_request_id"),
+        status=status,
+        result=result or {},
+        error=error,
+    )
 
 
 class RabbitMQWorker:
@@ -37,10 +39,12 @@ class RabbitMQWorker:
         settings: Settings | None = None,
         ai_manager: AIManagerInterface | None = None,
         payload_parser: RabbitMQPayloadParserInterface | None = None,
+        resume_file_fetcher: ResumeFileFetcherInterface | None = None,
     ) -> None:
         self._settings = settings or Settings.load()
         self._ai_manager = ai_manager or AIManager(self._settings)
         self._payload_parser = payload_parser or RabbitMQPayloadParser()
+        self._resume_file_fetcher = resume_file_fetcher or ResumeFileFetcher()
 
         rabbitmq = self._settings.rabbitmq
         credentials = pika.PlainCredentials(rabbitmq.user, rabbitmq.password)
@@ -55,28 +59,51 @@ class RabbitMQWorker:
         self.input_queue = rabbitmq.input_queue
         self.default_output_queue = rabbitmq.output_queue
 
-    def process_payload(self, data: dict[str, Any]) -> dict[str, Any]:
+    def process_payload(self, data: dict[str, Any]) -> RabbitMQOutputMessage:
+        return asyncio.run(self._process_payload_async(data))
+
+    async def _process_payload_async(self, data: dict[str, Any]) -> RabbitMQOutputMessage:
         resume = data.get("resume_text", data.get("curriculo_texto"))
+        if not (isinstance(resume, str) and resume.strip()):
+            resume = await self._extract_resume_text_from_file_reference(data)
         job = data.get("job_text", data.get("vaga_texto"))
+
         if isinstance(resume, str) and resume.strip() and isinstance(job, str) and job.strip():
             request = AnalysisRequest.model_validate({**data, "resume_text": resume, "job_text": job})
-            result = asyncio.run(self._ai_manager.run_analysis_with_fallback(request))
+            result = await self._ai_manager.run_analysis_with_fallback(request)
             return _output(data, "completed", result.model_dump(mode="json"))
 
-        has_file_reference = any(
-            data.get(key)
-            for key in ("resume_cv", "resume_cv_url", "resume_linkedin", "resume_linkedin_url", "urls")
-        )
+        has_file_reference = any(data.get(key) for key in (*_FILE_REFERENCE_FIELDS, "urls"))
         if has_file_reference:
             return _output(data, "received_pending_extraction")
         raise InvalidRabbitMQPayload("message contains neither analyzable text nor a file reference")
 
-    def _publish(self, channel: Any, queue: str, response: dict[str, Any]) -> None:
+    async def _extract_resume_text_from_file_reference(self, data: dict[str, Any]) -> str | None:
+        """Fetch and extract text from the first downloadable file reference.
+
+        Only fields already holding an absolute http(s) URL are attempted —
+        a bare storage path (e.g. ``uploads/resumes/cvs/foo.docx``) has no
+        known host to fetch from and is left for ``received_pending_extraction``.
+        """
+        for field in _FILE_REFERENCE_FIELDS:
+            value = data.get(field)
+            if not (isinstance(value, str) and value.lower().startswith(("http://", "https://"))):
+                continue
+            try:
+                return await self._resume_file_fetcher.fetch_and_extract_text(value)
+            except Exception as exc:
+                logger.warning(
+                    "rabbitmq_file_reference_fetch_failed",
+                    extra={"field": field, "error_type": type(exc).__name__},
+                )
+        return None
+
+    def _publish(self, channel: Any, queue: str, response: RabbitMQOutputMessage) -> None:
         channel.queue_declare(queue=queue, durable=True)
         channel.basic_publish(
             exchange="",
             routing_key=queue,
-            body=json.dumps(response, ensure_ascii=False).encode("utf-8"),
+            body=response.to_json_bytes(),
             properties=pika.BasicProperties(content_type="application/json", delivery_mode=2),
         )
 
@@ -88,7 +115,7 @@ class RabbitMQWorker:
             output_queue = parsed.data.get("callback_queue") or self.default_output_queue
             self._publish(channel, str(output_queue), response)
             channel.basic_ack(delivery_tag=method.delivery_tag)
-            logger.info("rabbitmq_message_processed", extra={"payload_format": parsed.format, "status": response["status"]})
+            logger.info("rabbitmq_message_processed", extra={"payload_format": parsed.format, "status": response.status})
         except InvalidRabbitMQPayload as exc:
             channel.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
             logger.warning("rabbitmq_message_rejected", extra={"reason": str(exc)})

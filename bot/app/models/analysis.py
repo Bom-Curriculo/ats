@@ -9,6 +9,9 @@ from app.models.ai_pipeline import (
     SelectedEvidence,
     AIPipelineResult,
 )
+from app.models.fallback_detail import FallbackDetail
+from app.models.relevance_evaluation import RelevanceEvaluation
+from app.models.sanitization_summary import SanitizationSummary
 
 
 ResumeSourceType = Literal[
@@ -324,7 +327,7 @@ class AnalysisResult(BaseModel):
     fact_bank: FactBank | None = None
     ai_roles: list[str] = Field(default_factory=list)
     ai_context_quality: int | None = Field(default=None, ge=0, le=100)
-    relevance_evaluation: dict | None = None
+    relevance_evaluation: RelevanceEvaluation | None = None
     evidence_matrix: list[dict] = Field(default_factory=list)
     prioritized_gaps: list[dict] = Field(default_factory=list)
     safe_rewrite_suggestions: list[str] = Field(default_factory=list)
@@ -343,12 +346,12 @@ class AnalysisResult(BaseModel):
     score_by_group: dict[str, int] = Field(default_factory=dict)
     grouped_semantic_score: int | None = Field(default=None, ge=0, le=100)
     sanitized_pipeline_errors: list[str] = Field(default_factory=list)
-    pipeline_fallback_details: list[dict] = Field(default_factory=list)
+    pipeline_fallback_details: list[FallbackDetail] = Field(default_factory=list)
     parser_warnings: list[str] = Field(default_factory=list)
     detected_sections: list[str] = Field(default_factory=list)
     low_confidence_sections: list[str] = Field(default_factory=list)
     evidence_source_summary: dict[str, int] = Field(default_factory=dict)
-    sanitization_summary: dict[str, object] = Field(default_factory=dict)
+    sanitization_summary: SanitizationSummary = Field(default_factory=SanitizationSummary)
 
 
 class AIComplement(BaseModel):

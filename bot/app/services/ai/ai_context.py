@@ -21,7 +21,7 @@ class AIContextBuilder(AIContextBuilderInterface):
             "summary_resume_sanitized": self._summarize(request.resume_text, sanitizer),
             "summary_job_sanitized": self._summarize(request.job_text, sanitizer),
             "job_level": result.job_level,
-            "detected_job_title": (result.relevance_evaluation or {}).get("title_detectado"),
+            "detected_job_title": result.relevance_evaluation.title_detectado if result.relevance_evaluation else None,
             "extracted_requirements": [r["item"] for r in requirements],
             "requirements_by_importance": requirements,
             "relevant_inventory": result.resume_inventory or {},
