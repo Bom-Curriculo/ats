@@ -2,10 +2,10 @@ import asyncio
 
 from app.providers.base import create_prompt
 from app.providers.mock import MockProvider
-from app.schemas.analysis import AnalysisRequest
+from app.models.analysis import AnalysisRequest
 from app.services.ats_analyzer import analyze_resume_with_ai
-from app.services.text_normalizer import normalize_resume_text
-from app.services.privacy_sanitizer import sanitize_personal_data
+from app.services.normalization.text_normalizer import normalize_resume_text
+from app.services.privacy.sanitizer import PrivacySanitizer
 
 """Privacy and PDF-extracted text-cleaning cases."""
 
@@ -16,14 +16,14 @@ def test_privacy_normalization_behavior_01() -> None:
 
     telefone = "(81) 99999-1234"
 
-    result = sanitize_personal_data(f"Contato: {email} ou {telefone}")
+    result = PrivacySanitizer().sanitize(f"Contato: {email} ou {telefone}")
 
     # trocou corretamente pelos marcadores
     assert (
-        result.text_sanitized == "Contato: [EMAIL_REMOVIDO] ou [TELEFONE_REMOVIDO]"
+        result.text_sanitized == "Contato: [EMAIL_REMOVED] ou [PHONE_REMOVED]"
     )
 
-    assert result.items_removidos == ["email", "telefone"]
+    assert result.items_removed == ["email", "phone"]
 
     # Implementation note.
     assert email not in repr(result)
@@ -70,7 +70,7 @@ def test_privacy_normalization_behavior_03() -> None:
 
     assert result.privacy.ai_text_was_sanitized is True
 
-    assert result.privacy.items_removed_before_ai == ["email", "telefone"]
+    assert result.privacy.items_removed_before_ai == ["email", "phone"]
 
 
 def test_privacy_normalization_behavior_04() -> None:
@@ -87,10 +87,9 @@ def test_privacy_normalization_behavior_04() -> None:
     # Technical note removed during English standardization.
     assert "ana@example.com" not in prompt
 
-    assert "[EMAIL_REMOVIDO]" in prompt
+    assert "[EMAIL_REMOVED]" in prompt
 
-    # Implementation note.
-    assert "Não invente experiências" in prompt
+    assert "Do not invent experience" in prompt
 
 
 def test_privacy_normalization_behavior_05() -> None:

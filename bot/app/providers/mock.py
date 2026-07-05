@@ -1,5 +1,5 @@
 from app.providers.base import AIProvider
-from app.schemas.analysis import AIComplement, AnalysisResult, AnalysisRequest
+from app.models.analysis import AIComplement, AnalysisResult, AnalysisRequest
 
 
 class MockProvider(AIProvider):

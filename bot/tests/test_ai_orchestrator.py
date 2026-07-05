@@ -2,10 +2,10 @@ import asyncio
 
 from app.providers.base import AIProviderError
 from app.providers.mock import MockProvider
-from app.schemas.analysis import FactBank, ItemKeyword, KeywordReport, AnalysisRequest
+from app.models.analysis import FactBank, ItemKeyword, KeywordReport, AnalysisRequest
 from app.services.ats_analyzer import analyze_resume, analyze_resume_with_ai, calculate_final_score
-from app.services.ai_orchestrator import run_ai_pipeline, prepare_ai_context
-from app.services.evidence_selection import select_relevant_evidence_for_job
+from app.services.ai.ai_orchestrator import run_ai_pipeline, AIPipelineOrchestrator
+from app.services.matching.evidence_selection import select_relevant_evidence_for_job
 
 
 def input_request():
@@ -47,8 +47,8 @@ def test_ai_orchestrator_behavior_02():
     assert "evaluate_requirements_contextually" in result.fallback_ai_steps
     assert result.local_fallback_used is False
     assert result.contextual_requirement_evaluations
-    detail = next(x for x in result.pipeline_fallback_details if x["step"] == "evaluate_requirements_contextually")
-    assert detail == {
+    detail = next(x for x in result.pipeline_fallback_details if x.step == "evaluate_requirements_contextually")
+    assert detail.model_dump() == {
         "step": "evaluate_requirements_contextually", "error_category": "timeout",
         "safe_message": "A etapa excedeu o tempo limite.", "provider": "mock",
         "model": "modelo-mock", "schema_used": "EvaluationsResponse",
@@ -65,7 +65,7 @@ def test_ai_orchestrator_behavior_03():
     assert all(len(x.excerpt or "") <= 500 and "ana@example.com" not in (x.excerpt or "") for x in selected)
 
     local = analyze_resume(input_request())
-    context = prepare_ai_context(input_request(), local)
+    context = AIPipelineOrchestrator().prepare_context(input_request(), local)
     assert "fact_bank" not in context
 
 

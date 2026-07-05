@@ -1,10 +1,12 @@
 import json
 from abc import ABC, abstractmethod
+from datetime import date
 from typing import Any
 
-from app.schemas.analysis import AIComplement, AnalysisResult, AnalysisRequest
-from app.schemas.ai_analysis import AIAnalysisResponse
-from app.services.ai_context import build_ai_context
+from app.models.analysis import AIComplement, AnalysisResult, AnalysisRequest
+from app.models.ai_analysis import AIAnalysisResponse
+from app.services.ai.ai_context import AIContextBuilder
+from app.services.privacy.interfaces import SanitizerInterface
 
 
 class AIProviderError(RuntimeError):
@@ -27,6 +29,7 @@ class AIProvider(ABC):
 
     name: str
     model: str
+    output_language: str = "pt-BR"
 
     @abstractmethod
     async def generate_completion(
@@ -34,23 +37,23 @@ class AIProvider(ABC):
         request: AnalysisRequest,
         base_result: AnalysisResult,
     ) -> AIComplement:
-        """resumo local"""
+        """Return a minimal AI complement (summary + suggestions) for the request."""
 
     async def generate_structured_analysis(
         self, safe_request: AnalysisRequest, local_result: AnalysisResult
     ) -> AIAnalysisResponse | dict | str:
-        complemento = await self.generate_completion(safe_request, local_result)
-        return {
-            "contextual_summary": complemento.generated_summary,
-            "contextual_requirements": [],
-            "strengths": [],
-            "gaps": [],
-            "possible_blockers": [],
-            "improvement_suggestions": complemento.suggestions,
-            "next_steps": [],
-            "anti_fabrication_alerts": [],
-            "confidence": 50,
-        }
+        complement = await self.generate_completion(safe_request, local_result)
+        return AIAnalysisResponse(
+            contextual_summary=complement.generated_summary,
+            contextual_requirements=[],
+            strengths=[],
+            gaps=[],
+            possible_blockers=[],
+            improvement_suggestions=complement.suggestions,
+            next_steps=[],
+            anti_fabrication_alerts=[],
+            confidence=50,
+        )
 
     async def run_structured_task(
         self, task: str, prompt: str, schema: type, temperature: float = 0.1
@@ -61,37 +64,45 @@ class AIProvider(ABC):
 def create_prompt(
     request: AnalysisRequest,
     base_result: AnalysisResult,
+    output_language: str = "pt-BR",
+    sanitizer: SanitizerInterface | None = None,
 ) -> str:
     """Build one instruction and require a compact, predictable JSON response."""
 
-    # Implementation note.
-    data = build_ai_context(request, base_result)
-
-    # Implementation note.
+    data = AIContextBuilder().build(request, base_result, sanitizer)
     schema = AIAnalysisResponse.model_json_schema()
     return (
-        "Você é um especialista em currículos ATS e recrutamento. Analise o currículo sanitizado "
-        "contra a vaga sanitizada. Retorne somente JSON válido no schema solicitado. Não use Markdown. "
-        "Não invente experiências, tecnologia, curso, empresa, cargo, formação, idioma, cidade, "
-        "disponibilidade, certificação, métrica ou project. Se algo não aparece no currículo, classifique "
-        "como lacuna. Evidência parcial é relacionado_mas_nao_explicito; term sem contexto suficiente é "
-        "encontrado_sem_contexto_claro. "
-        "Não reintroduza telefone, e-mail, CPF, endereço, LinkedIn ou GitHub. "
-        "Não mande declarar como experiência uma tecnologia absent; trate-a como lacuna. "
-        "Não confunda Docker com Kubernetes, ChatGPT web com APIs de IA, nem GitHub com domínio de branches, pull requests e code review. "
-        "Separe lacuna real de falta de descrição. Sugira estudo ou project quando não existir evidência. "
-        "Evidência relacionada não é match direto. Open source é diferencial, não obrigação. "
-        "Curso é evidência educacional, nunca experiência profissional. Para estágio/júnior, courses e projects "
-        "têm peso relevante e ausência de experiência profissional não reprova automaticamente. Para pleno/sênior, "
-        "curso sem aplicação prática tem peso baixo e experiência real, produção, impacto e colaboração pesam mais. "
-        "Frameworks podem implicar linguagens (Spring Boot/Java, FastAPI/Python, Laravel/PHP, Next.js/React), "
-        "mas isso não implica experiência prática. Não marque HTML5 missing_items se HTML existe, nem CSS3 missing_items se CSS existe. "
-        "Não marque APIs REST missing_items se há API REST em project, resumo ou competências. Spring Boot apenas em curso "
-        "é encontrado_sem_contexto_claro, não encontrado_com_evidencia. Quando houver dúvida, use "
-        "relacionado_mas_nao_explicito. Experiência pode ser parcialmente compensada por projects pessoais, acadêmicos, courses práticos, "
-        "residência tecnológica, laboratórios e portfólio. Competências Técnicas é fortemente recomendada "
-        "para ATS tech, mas sua ausência não reprova automaticamente. Diferencie adjustments imediatos, lacunas "
-        "técnicas, possíveis impeditivos e próximos passos. Seja específico, direto, honesto e escreva em português do Brasil. "
-        "Não peça para o usuário mentir. Não reproduza dados pessoais. Schema: "
-        f"{json.dumps(schema, ensure_ascii=False)} Dados seguros:\n{json.dumps(data, ensure_ascii=False)}"
+        f"Today's date is {date.today().isoformat()}. "
+        "You are an ATS and recruitment resume expert. Analyze the sanitized resume "
+        "against the sanitized job description. Return only valid JSON in the requested "
+        "schema. Do not use Markdown. Do not invent experience, technology, course, "
+        "company, role, education, language, city, availability, certification, metric, "
+        "or project. If something does not appear in the resume, classify it as a gap. "
+        "Partial evidence is related_but_not_explicit; a term without enough context is "
+        "found_without_clear_context. "
+        "Do not reintroduce phone numbers, email, national ID, address, LinkedIn, or GitHub. "
+        "Do not claim as experience an absent technology; treat it as a gap. "
+        "Do not confuse Docker with Kubernetes, ChatGPT web with AI APIs, or GitHub with "
+        "branch/pull-request/code-review workflows. "
+        "Separate a real gap from a missing description. Suggest study or a project when "
+        "there is no evidence. Related evidence is not a direct match. Open source is a "
+        "differential, not a requirement. A course is educational evidence, never "
+        "professional experience. For internship/junior roles, courses and projects carry "
+        "relevant weight and lacking professional experience does not automatically fail "
+        "the candidate. For mid/senior roles, a course without practical application carries "
+        "low weight, and real experience, production impact, and collaboration weigh more. "
+        "Frameworks can imply languages (Spring Boot/Java, FastAPI/Python, Laravel/PHP, "
+        "Next.js/React), but that does not imply practical experience. Do not mark HTML5 as "
+        "missing if HTML is present, nor CSS3 as missing if CSS is present. Do not mark REST "
+        "APIs as missing if REST API appears in a project, summary, or skills. Spring Boot "
+        "mentioned only in a course is found_without_clear_context, not "
+        "found_with_evidence. When in doubt, use related_but_not_explicit. Experience can be "
+        "partially compensated by personal or academic projects, practical courses, tech "
+        "residencies, labs, and a portfolio. A technical skills section is strongly "
+        "recommended for tech ATS but its absence does not automatically fail the candidate. "
+        "Distinguish immediate adjustments, technical gaps, possible blockers, and next "
+        "steps. Be specific, direct, honest, and write in "
+        f"{output_language}. Do not ask the user to lie. Do not reproduce personal data. "
+        f"Schema: {json.dumps(schema, ensure_ascii=False)} "
+        f"Safe data:\n{json.dumps(data, ensure_ascii=False)}"
     )

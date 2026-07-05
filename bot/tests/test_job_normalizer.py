@@ -1,4 +1,4 @@
-from app.services.job_normalizer import clean_job_text
+from app.services.normalization.job_normalizer import clean_job_text
 
 
 def test_job_normalizer_behavior_01() -> None:

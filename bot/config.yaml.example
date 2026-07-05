@@ -1,0 +1,45 @@
+# Non-secret configuration for the ATS bot service.
+# Secrets (API keys, RabbitMQ credentials) are NEVER stored here — they are
+# read from environment variables / .env by app/core/settings.py.
+
+server:
+  host: "0.0.0.0"
+  port: 8000
+  log_level: "INFO"
+
+ai:
+  enabled_by_default: true
+  # Language the AI is instructed to write end-user-facing text in.
+  output_language: "pt-BR"
+  # "auto" walks provider_chain in order, skipping unconfigured providers.
+  # Any other value pins a single provider.
+  provider: "auto"
+  provider_chain: ["groq", "gemini", "deepseek", "openai", "ollama"]
+  providers:
+    groq:
+      model: "openai/gpt-oss-120b"
+      timeout_seconds: 120.0
+    gemini:
+      model: "gemini-3.5-flash"
+      timeout_seconds: 120.0
+    deepseek:
+      model: "deepseek-v4-flash"
+      timeout_seconds: 120.0
+    openai:
+      model: "gpt-5.5"
+      timeout_seconds: 120.0
+    ollama:
+      model: "qwen3:8b"
+      base_url: "http://localhost:11434"
+      timeout_seconds: 120.0
+
+rabbitmq:
+  host: "rabbitmq"
+  port: 5672
+  vhost: "/"
+  input_queue: "resumes_queue"
+  # Matches the queue name hardcoded in the Laravel backend's
+  # `app:rabbit-consume` command (backend/app/Console/Commands/ConsumeRabbitMQ.php).
+  output_queue: "resumes_bot_queue"
+  heartbeat_seconds: 60
+  blocked_connection_timeout_seconds: 30

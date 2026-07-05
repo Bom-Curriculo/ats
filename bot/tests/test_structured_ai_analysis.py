@@ -1,7 +1,7 @@
 import asyncio
 
 from app.providers.mock import MockProvider
-from app.schemas.analysis import AnalysisRequest
+from app.models.analysis import AnalysisRequest
 from app.services.ats_analyzer import analyze_resume_with_ai
 from app.services.ats_analyzer import analyze_resume
 

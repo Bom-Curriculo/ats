@@ -3,7 +3,7 @@ import asyncio
 
 from app.providers.base import create_prompt
 from app.providers.mock import MockProvider
-from app.schemas.analysis import AnalysisRequest
+from app.models.analysis import AnalysisRequest
 from app.services.ats_analyzer import analyze_resume, analyze_resume_with_ai, calculate_final_score
 
 
@@ -82,6 +82,6 @@ def test_context_keyword_fact_bank_behavior_06():
     prompt = create_prompt(input_request, local)
 
 
-    assert '"fact_bank"' in prompt and "Skill solta nunca é prática" in prompt
+    assert '"fact_bank"' in prompt and "An isolated skill is never practical." in prompt
 
-    assert "Docker com Kubernetes" in prompt
+    assert "Docker with Kubernetes" in prompt

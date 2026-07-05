@@ -1,18 +1,12 @@
-from app.providers.base import AIProviderError, AIProvider
-from app.providers.deepseek import DeepSeekProvider
-from app.providers.gemini import GeminiProvider
-from app.providers.groq import GroqProvider
+from app.providers.base import AIProvider, AIProviderError
+from app.providers.factory import ProviderFactory
+from app.providers.langchain_provider import LangChainProvider
 from app.providers.mock import MockProvider
-from app.providers.ollama import OllamaProvider
-from app.providers.openai import OpenAIProvider
 
 __all__ = [
-    "DeepSeekProvider",
-    "AIProviderError",
-    "GeminiProvider",
-    "GroqProvider",
-    "MockProvider",
-    "OllamaProvider",
-    "OpenAIProvider",
     "AIProvider",
+    "AIProviderError",
+    "LangChainProvider",
+    "MockProvider",
+    "ProviderFactory",
 ]

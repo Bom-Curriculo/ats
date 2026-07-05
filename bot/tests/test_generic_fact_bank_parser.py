@@ -1,9 +1,9 @@
 import pytest
 
-from app.schemas.analysis import AnalysisRequest
+from app.models.analysis import AnalysisRequest
 from app.services.ats_analyzer import analyze_resume
-from app.services.section_extractor import analyze_resume_sections, extract_resume_sections
-from app.services.privacy_sanitizer import sanitize_personal_data
+from app.services.parsing.section_extractor import analyze_resume_sections, extract_resume_sections
+from app.services.privacy.sanitizer import PrivacySanitizer
 
 
 def analyze(cv: str, job: str = "Requisitos:\nPython"):
@@ -91,14 +91,14 @@ def test_generic_fact_bank_parser_behavior_08():
 
 @pytest.mark.parametrize("period", ["2020 - 2023", "Ago 2025 - Dez 2027", ".NET 9", "Java 17", "Python 3.12"])
 def test_generic_fact_bank_parser_behavior_09(period):
-    result = sanitize_personal_data(period)
+    result = PrivacySanitizer().sanitize(period)
     assert result.text_sanitized == period
-    assert "telefone" not in result.items_removidos
+    assert "phone" not in result.items_removed
 
 
 def test_generic_fact_bank_parser_behavior_10():
-    result = sanitize_personal_data("Contato: (81)99999-1234\nFormação: 2020 - 2023")
-    assert "[TELEFONE_REMOVIDO]" in result.text_sanitized
+    result = PrivacySanitizer().sanitize("Contato: (81)99999-1234\nFormação: 2020 - 2023")
+    assert "[PHONE_REMOVED]" in result.text_sanitized
     assert "2020 - 2023" in result.text_sanitized
 
 
@@ -175,7 +175,7 @@ Differentials:
 Spring Boot
 """,
     )
-    assert result.relevance_evaluation["accepts_no_experience"] is True
+    assert result.relevance_evaluation.accepts_no_experience is True
     alternativo = next(x for x in result.requirement_groups if x.mode == "any" and {"Java", "Kotlin"} <= set(x.items))
     assert alternativo.group_status == "atendido"
     assert req(result, "Kotlin").status == "missing"
