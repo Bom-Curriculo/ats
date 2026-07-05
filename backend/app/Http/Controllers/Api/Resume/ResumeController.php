@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Api\Resume;
 
 use App\Helpers\ResponseData;
+use App\Http\ApiRequests\Client\Resume\ValidateResumeRequest;
 use App\Http\Controllers\Api\User\Traits\UserProcessRelationsTrait;
 use App\Http\Controllers\Api\User\Traits\UserUploadsTrait;
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,22 +18,13 @@ class ResumeController extends Controller
 
     use UserProcessRelationsTrait, UserUploadsTrait;
 
-    public function storeValidateResume(Request $request)
+    public function storeValidateResume(ValidateResumeRequest $request)
     {
 
         try{
 
             DB::transaction(function() use ($request){
                 $user = $request->user();
-
-                $request->validate([
-                    'resume_cv'       => ['file', 'mimes:pdf,doc,docx', 'min:5', 'max:10240'],
-                    'resume_linkedin' => ['file', 'mimes:pdf,doc,docx', 'min:5', 'max:10240'],
-                    'github_link'     => ['nullable', 'string'],
-                    'site_link'       => ['nullable', 'string'],
-                    'skills'          => ['nullable', 'array'],
-                    'skills.*.name'   => ['required', 'string']
-                ]);
                 
                 $resumeCV = $request->file('resume_cv');
                 $resumeLinkedin = $request->file('resume_linkedin');
