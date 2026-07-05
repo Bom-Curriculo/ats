@@ -1,9 +1,15 @@
+import 'dart:convert';
+
 import 'package:bomcurriculo/include/BodyAuth.dart';
+import 'package:bomcurriculo/view/ViewHome.dart';
 import 'package:bomcurriculo/view/auth/ViewLogin.dart';
 import 'package:flutter/material.dart';
 
+import '../../service/API.dart';
+import '../../service/DB.dart';
 import '../../util/Validation.dart';
 import '../../widget/WidgetButton.dart';
+import '../../widget/WidgetError.dart';
 import '../../widget/WidgetInputText.dart';
 
 class ViewRegister extends StatefulWidget {
@@ -16,24 +22,35 @@ class _ViewRegister extends State<ViewRegister> {
 
   bool loading = false;
 
+  final controllerName = TextEditingController();
   final controllerEmail = TextEditingController();
   final controllerPassword = TextEditingController();
   final controllerRetypePassword = TextEditingController();
 
+  String errorName='';
   String errorEmail='';
   String errorPassword='';
   String errorRetypePassword='';
+  String errorText='';
 
-  void doRegister() {
+  void doRegister() async {
 
     bool error = false;
 
     // Reseta erros
     setState(() {
+      errorName = '';
       errorEmail = '';
       errorPassword='';
       errorRetypePassword='';
+      errorText = '';
     });
+
+    // Valida nome
+    if (controllerName.text=="") {
+      errorName = 'Type your name';
+      error = true;
+    }
 
     // Valida email
     if (controllerEmail.text=="") {
@@ -66,30 +83,43 @@ class _ViewRegister extends State<ViewRegister> {
     if (!error) {
       setState(() {
         loading=true;
+        errorName = '';
         errorEmail = '';
         errorPassword='';
         errorRetypePassword='';
+        errorText = '';
       });
 
-      // Faz um delay pra voltar o estado do botão
-      // TODO: remover
-      Future.delayed(Duration(seconds: 2), () {
-        setState(() {
-          loading=false;
-        });
+      API api = API();
+      var response = await api.post('auth/register', {
+        'name': controllerName.text,
+        'email': controllerEmail.text,
+        'password': controllerPassword.text,
+        'password_confirm': controllerRetypePassword.text
+      });
+
+      var body = jsonDecode(response.body);
+
+      if (response.statusCode==201) {
+        if (body['data']['token']!="") {
+          await DB.instance.saveJWT(body['data']['token']);
+        }
+        String user = jsonEncode(body['data']['user']);
+        await DB.instance.saveUser(user);
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const ViewLogin()),
+          MaterialPageRoute(builder: (context) => const ViewHome()),
         );
-      });
-
-      /*
-      API api = API();
-      api.post('auth/register', {
-        'email': controllerEmail.text,
-        'password': controllerPassword.text
-      });
-      */
+      } else {
+        print(body);
+        setState(() {
+          loading=false;
+          errorName = '';
+          errorEmail = '';
+          errorPassword='';
+          errorText=body['message'];
+        });
+      }
 
     }
 
@@ -101,22 +131,34 @@ class _ViewRegister extends State<ViewRegister> {
       child: Column(
         children: [
           WidgetInputText(
+              title: 'Name',
+              controller: controllerName,
+              error: errorName,
+              maxLength: 128
+          ),
+          WidgetInputText(
               title: 'Email',
               controller: controllerEmail,
-              error: errorEmail
+              error: errorEmail,
+              maxLength: 64
           ),
           WidgetInputText(
               title: 'Type your password',
               controller: controllerPassword,
               error: errorPassword,
-              isPassword: true
+              isPassword: true,
+              maxLength: 64
           ),
           WidgetInputText(
               title: 'Retype your password',
               controller: controllerRetypePassword,
               error: errorRetypePassword,
-              isPassword: true
+              isPassword: true,
+              maxLength: 64
           ),
+
+          WidgetError(text:errorText),
+
           GestureDetector(
             onTap: doRegister,
             child: WidgetButton(

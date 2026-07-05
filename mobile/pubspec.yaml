@@ -39,6 +39,7 @@ dependencies:
   signal_form: ^0.2.0
   lucid_validation: ^1.4.0
   http: ^1.6.0
+  sqflite: ^2.4.3
 
 dev_dependencies:
   flutter_test:
