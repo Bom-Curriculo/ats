@@ -1,17 +1,27 @@
 import 'package:bomcurriculo/config.dart';
 import 'package:bomcurriculo/routes.dart';
+import 'package:bomcurriculo/service/ServiceAuth.dart';
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final logged = await ServiceAuth().isLogged();
+  runApp(MyApp(logged: logged));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+
+  final bool logged;
+
+  const MyApp({
+    super.key,
+    required this.logged,
+  });
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      routerConfig: router,
+      routerConfig: createRouter(logged),
       debugShowCheckedModeBanner: false,
       title: appTitle,
       theme: ThemeData(

@@ -1,7 +1,11 @@
+import 'dart:convert';
+
 import 'package:bomcurriculo/include/Navbar.dart';
 import 'package:bomcurriculo/widget/WidgetButton.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
+import '../service/DB.dart';
 
 class ViewHome extends StatefulWidget {
   const ViewHome({super.key});
@@ -10,13 +14,76 @@ class ViewHome extends StatefulWidget {
 }
 
 class _ViewHomeState extends State<ViewHome> {
-  void doAction() {}
+
+  bool loading = false;
+
+  String name = '';
+  String email = '';
+  String emailVerifiedAt = '';
+  String createdAt = '';
+  String updatedAt = '';
+  String githubLink = '';
+  String siteLink = '';
+  String socialName = '';
+  String phone = '';
+  String resume = '';
+  String resumeEmail = '';
+  String gender = '';
+  bool isPcd = false;
+  String city = '';
+  String state = '';
+  String country = '';
+  String linkedinLink = '';
+
+  void doAction() async {
+    setState(() {
+      loading = true;
+    });
+
+    try {
+      final user = await DB.instance.getUser();
+
+      final userData = jsonDecode(user!);
+
+      name = userData['name'] ?? '';
+      email = userData['email'] ?? '';
+      emailVerifiedAt = userData['email_verified_at'] ?? '';
+      createdAt = userData['created_at'] ?? '';
+      updatedAt = userData['updated_at'] ?? '';
+      githubLink = userData['github_link'] ?? '';
+      siteLink = userData['site_link'] ?? '';
+      socialName = userData['social_name'] ?? '';
+      phone = userData['phone'] ?? '';
+      resume = userData['resume'] ?? '';
+      resumeEmail = userData['resume_email'] ?? '';
+      gender = userData['gender'] ?? '';
+      isPcd = (userData['is_pcd'] ?? 0) == 1;
+      city = userData['city'] ?? '';
+      state = userData['state'] ?? '';
+      country = userData['country'] ?? '';
+      linkedinLink = userData['linkedin_link'] ?? '';
+    } catch (e) {
+
+    }
+
+    setState(() {
+      loading = false;
+    });
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    doAction();
+  }
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: const Navbar(),
-      body: SingleChildScrollView(
+      body: loading?Center(child: CircularProgressIndicator()):SingleChildScrollView(
         child: Column(
           children: [
             Padding(
@@ -33,7 +100,7 @@ class _ViewHomeState extends State<ViewHome> {
                           style: TextStyle(fontWeight: FontWeight(800)),
                         ),
                         TextSpan(
-                          text: "Leonardo",
+                          text: name,
                           style: TextStyle(
                             color: Colors.blue,
                             fontWeight: FontWeight(800),

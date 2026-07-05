@@ -1,10 +1,15 @@
+import 'dart:convert';
+
 import 'package:bomcurriculo/include/BodyAuth.dart';
 import 'package:bomcurriculo/util/Validation.dart';
 import 'package:bomcurriculo/view/ViewHome.dart';
 import 'package:bomcurriculo/view/auth/ViewForgotPassword.dart';
 import 'package:bomcurriculo/view/auth/ViewRegister.dart';
+import 'package:bomcurriculo/widget/WidgetError.dart';
 import 'package:flutter/material.dart';
 
+import '../../service/API.dart';
+import '../../service/DB.dart';
 import '../../widget/WidgetButton.dart';
 import '../../widget/WidgetInputText.dart';
 
@@ -23,8 +28,9 @@ class _ViewLogin extends State<ViewLogin> {
 
   String errorEmail='';
   String errorPassword='';
+  String errorText='';
 
-  void doLogin() {
+  void doLogin() async {
 
     bool error = false;
 
@@ -32,6 +38,7 @@ class _ViewLogin extends State<ViewLogin> {
     setState(() {
       errorEmail = '';
       errorPassword='';
+      errorText='';
     });
 
     // Valida email
@@ -61,27 +68,37 @@ class _ViewLogin extends State<ViewLogin> {
         loading=true;
         errorEmail = '';
         errorPassword='';
+        errorText='';
       });
 
-      // Faz um delay pra voltar o estado do botão
-      // TODO: remover
-      Future.delayed(Duration(seconds: 2), () {
-        setState(() {
-          loading=false;
-        });
+      API api = API();
+      var response = await api.post('auth/login', {
+        'email': controllerEmail.text,
+        'password': controllerPassword.text
+      });
+
+      var body =  jsonDecode(response.body);
+
+      if (response.statusCode==200) {
+        if (body['data']['token']!="") {
+          await DB.instance.saveJWT(body['data']['token']);
+        }
+        String user = jsonEncode(body['data']['user']);
+        await DB.instance.saveUser(user);
+
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const ViewHome()),
         );
-      });
-
-      /*
-      API api = API();
-      api.post('auth/login', {
-        'email': controllerEmail.text,
-        'password': controllerPassword.text
-      });
-      */
+      } else {
+        print(body);
+        setState(() {
+          loading=false;
+          errorEmail = '';
+          errorPassword='';
+          errorText=body['message'];
+        });
+      }
 
     }
 
@@ -95,14 +112,19 @@ class _ViewLogin extends State<ViewLogin> {
           WidgetInputText(
               title: 'Email',
               error: errorEmail,
-              controller: controllerEmail
+              controller: controllerEmail,
+              maxLength: 128
           ),
           WidgetInputText(
               title: 'Password',
               error: errorPassword,
               controller: controllerPassword,
-              isPassword: true
+              isPassword: true,
+              maxLength: 64
           ),
+
+          WidgetError(text: errorText),
+
           GestureDetector(
             onTap: doLogin,
             child: WidgetButton(
@@ -110,6 +132,7 @@ class _ViewLogin extends State<ViewLogin> {
                 color: loading ? Colors.black26 : Colors.blue
             ),
           ),
+
           SizedBox(height: 30.0),
           GestureDetector(
             onTap: () {
