@@ -79,11 +79,9 @@ services:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-bomcurriculo}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-bomcurriculo}
       RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-/}
-      # Bloqueia publishers em 50% do mem_limit do container (não da RAM do host)
-      # antes de o container ser morto por OOM.
-      RABBITMQ_VM_MEMORY_HIGH_WATERMARK: "0.5"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+      - ./docker/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
     command: >
       sh -c "rabbitmq-plugins enable --offline rabbitmq_prometheus && rabbitmq-server"
     healthcheck:
