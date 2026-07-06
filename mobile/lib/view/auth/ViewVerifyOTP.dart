@@ -2,6 +2,7 @@ import 'package:bomcurriculo/include/BodyAuth.dart';
 import 'package:bomcurriculo/view/auth/ViewResetPassword.dart';
 import 'package:flutter/material.dart';
 
+import '../../service/API.dart';
 import '../../widget/WidgetButton.dart';
 import '../../widget/WidgetInputText.dart';
 
@@ -48,7 +49,7 @@ class _ViewVerifyOTP extends State<ViewVerifyOTP> {
 
   }
 
-  void doConfirmOTP() {
+  void doConfirmOTP() async {
     if (
       controllerOTP1.text=="" ||
       controllerOTP2.text=="" ||
@@ -60,9 +61,22 @@ class _ViewVerifyOTP extends State<ViewVerifyOTP> {
       //erro
     }
 
+    String otp = "";
+    otp += controllerOTP1.text;
+    otp += controllerOTP2.text;
+    otp += controllerOTP3.text;
+    otp += controllerOTP4.text;
+    otp += controllerOTP5.text;
+    otp += controllerOTP6.text;
+
+    API api = API();
+    await api.post('auth/verify-otp', {
+      'otp': otp
+    });
+
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const ViewResetPassword()),
+      MaterialPageRoute(builder: (context) => ViewResetPassword(otp: otp)),
     );
 
   }
@@ -138,12 +152,7 @@ class _ViewVerifyOTP extends State<ViewVerifyOTP> {
             ],
           ),
           GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ViewResetPassword()),
-              );
-            },
+            onTap: doConfirmOTP,
             child: WidgetButton(title: 'Confirm OTP'),
           ),
         ],

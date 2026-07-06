@@ -14,13 +14,14 @@ class API {
 
     String? jwt = await DB.instance.getJWT();
     if (jwt != null && jwt.isNotEmpty) {
-      headers["Authentication"] = "Bearer $jwt";
+      headers["Authorization"] = "Bearer $jwt";
     }
 
     return headers;
   }
 
   Future get(String url) async {
+
     try {
       final response = await http.get(
         Uri.parse("$baseURL$url"),

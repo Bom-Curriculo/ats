@@ -7,11 +7,6 @@ class ServiceAuth {
     try {
       API api = API();
       final response = await api.get("client/user");
-
-      print("#####################");
-      print(response.body);
-      print("#####################");
-
       return response.statusCode == 200;
     } catch (_) {
       await DB.instance.clear();
