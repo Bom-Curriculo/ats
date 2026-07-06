@@ -18,7 +18,7 @@ Contributors will be added here after their first accepted Pull Request.
 
 | Name | Contribution | Site/Profile |
 |------|--------------|--------------|
-| - | - | - |
+| --- | --- | --- |
 
 ---
 
@@ -38,4 +38,4 @@ Os colaboradores serão adicionados aqui após o primeiro Pull Request aceito.
 
 | Nome | Contribuição | Site/Perfil |
 |------|--------------|-------------|
-| - | - | - |
+| --- | --- | --- |
