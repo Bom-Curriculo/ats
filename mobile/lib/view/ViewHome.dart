@@ -1,7 +1,9 @@
 import 'dart:convert';
 
 import 'package:bomcurriculo/include/Navbar.dart';
+import 'package:bomcurriculo/view/resume/ViewNewResume.dart';
 import 'package:bomcurriculo/widget/WidgetButton.dart';
+import 'package:bomcurriculo/widget/WidgetResume.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -206,13 +208,15 @@ class _ViewHomeState extends State<ViewHome> {
                                   const SizedBox(height: 12),
 
                                   Wrap(
-                                    spacing: 8,
+                                    spacing: 5,
                                     children: [
                                       Chip(
+                                        padding: const EdgeInsets.all(2.0),
                                         label: Text("Keywords"),
                                         backgroundColor: Colors.blue.shade50,
                                       ),
                                       Chip(
+                                        padding: const EdgeInsets.all(2.0),
                                         label: Text("Formatação"),
                                         backgroundColor: Colors.blue.shade50,
                                       ),
@@ -239,6 +243,7 @@ class _ViewHomeState extends State<ViewHome> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+                      /*
                       GestureDetector(
                         onTap: () {},
                         child: const Text(
@@ -249,151 +254,60 @@ class _ViewHomeState extends State<ViewHome> {
                           ),
                         ),
                       ),
+                      */
                     ],
                   ),
 
                   const SizedBox(height: 15),
 
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 210,
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey.shade300),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.description_outlined,
-                                    size: 40,
-                                    color: Colors.blueGrey,
-                                  ),
-                                  const Spacer(),
-                                  Column(
-                                    children: const [
-                                      Text(
-                                        "92",
-                                        style: TextStyle(
-                                          color: Colors.blue,
-                                          fontSize: 26,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      Text(
-                                        "ATS SCORE",
-                                        style: TextStyle(fontSize: 10),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 15),
-                              const Text(
-                                "Currículo_ProductDesigner_v2.pdf",
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(height: 5),
-                              const Text(
-                                "Atualizado há 2 dias",
-                                style: TextStyle(color: Colors.grey),
-                              ),
-                              const SizedBox(height: 15),
-                              Row(
-                                children: const [
-                                  Icon(Icons.language, size: 16),
-                                  SizedBox(width: 5),
-                                  Text("pt-BR"),
-                                  Spacer(),
-                                  Icon(Icons.more_vert),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(width: 15),
-
-                        Container(
-                          width: 210,
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey.shade300),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.description_outlined,
-                                    size: 40,
-                                    color: Colors.blueGrey,
-                                  ),
-                                  const Spacer(),
-                                  Column(
-                                    children: const [
-                                      Text(
-                                        "78",
-                                        style: TextStyle(
-                                          color: Colors.blue,
-                                          fontSize: 26,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      Text(
-                                        "ATS SCORE",
-                                        style: TextStyle(fontSize: 10),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 15),
-                              const Text(
-                                "Currículo_MarketingDigital.pdf",
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(height: 5),
-                              const Text(
-                                "Atualizado há 1 semana",
-                                style: TextStyle(color: Colors.grey),
-                              ),
-                              const SizedBox(height: 15),
-                              Row(
-                                children: const [
-                                  Icon(Icons.language, size: 16),
-                                  SizedBox(width: 5),
-                                  Text("pt-BR"),
-                                  Spacer(),
-                                  Icon(Icons.more_vert),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                  WidgetResume(
+                    title: 'Curriculo_ProductDesigner_v2.pdf',
+                    subtitle: 'Atualizado há 2 dias',
+                    score: 92,
+                    downloadURL: ''
                   ),
-                  SizedBox(height: 50.0),
-                  Container(),
+                  const SizedBox(height: 15),
+                  WidgetResume(
+                      title: 'Curriculo_ProductDesigner_v2.pdf',
+                      subtitle: 'Atualizado há 2 dias',
+                      score: 92,
+                      downloadURL: ''
+                  ),
+                  const SizedBox(height: 15),
+                  WidgetResume(
+                      title: 'Curriculo_ProductDesigner_v2.pdf',
+                      subtitle: 'Atualizado há 2 dias',
+                      score: 92,
+                      downloadURL: ''
+                  ),
+                  const SizedBox(height: 15),
+                  WidgetResume(
+                      title: 'Curriculo_ProductDesigner_v2.pdf',
+                      subtitle: 'Atualizado há 2 dias',
+                      score: 92,
+                      downloadURL: ''
+                  ),
+                  const SizedBox(height: 15),
+                  WidgetResume(
+                      title: 'Curriculo_ProductDesigner_v2.pdf',
+                      subtitle: 'Atualizado há 2 dias',
+                      score: 92,
+                      downloadURL: ''
+                  ),
+                  const SizedBox(height: 15),
+                  
                   GestureDetector(
                     onTap: () {
-                      context.go('/auth/login');
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ViewNewResume(),
+                        ),
+                      );
                     },
-                    child: WidgetButton(title: 'Login'),
-                  ),
+                    child: WidgetButton(title: "Generate new resume")
+                  )
+
                 ],
               ),
             ),

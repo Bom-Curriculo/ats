@@ -1,4 +1,3 @@
-import 'DB.dart';
 import 'API.dart';
 
 class ServiceAuth {
@@ -9,7 +8,7 @@ class ServiceAuth {
       final response = await api.get("client/user");
       return response.statusCode == 200;
     } catch (_) {
-      await DB.instance.clear();
+      //await DB.instance.clear();
       return false;
     }
   }

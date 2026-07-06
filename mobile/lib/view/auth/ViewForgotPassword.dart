@@ -18,10 +18,17 @@ class _ViewForgotPassword extends State<ViewForgotPassword> {
 
   bool loading = false;
 
+  final FocusNode focusEmail = FocusNode();
   final controllerEmail = TextEditingController();
 
   String errorEmail='';
   String errorText='';
+
+  @override
+  void initState() {
+    super.initState();
+    focusEmail.requestFocus();
+  }
 
   void doSendEmail() async {
 
@@ -90,6 +97,7 @@ class _ViewForgotPassword extends State<ViewForgotPassword> {
               title: 'Email',
               controller: controllerEmail,
               error: errorEmail,
+            focusNode: focusEmail,
           ),
           WidgetError(text: errorText),
           GestureDetector(

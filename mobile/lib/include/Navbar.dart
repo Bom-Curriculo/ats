@@ -1,13 +1,9 @@
 import 'package:bomcurriculo/service/API.dart';
 import 'package:bomcurriculo/view/ViewHome.dart';
-import 'package:bomcurriculo/view/auth/ViewForgotPassword.dart';
 import 'package:bomcurriculo/view/auth/ViewRegister.dart';
-import 'package:bomcurriculo/view/auth/ViewResetPassword.dart';
-import 'package:bomcurriculo/view/auth/ViewVerifyOTP.dart';
 import 'package:bomcurriculo/view/auth/ViewLogin.dart';
 import 'package:bomcurriculo/view/resume/ViewGenerateResume.dart';
-import 'package:bomcurriculo/view/resume/ViewMyResumes.dart';
-import 'package:bomcurriculo/view/resume/ViewValidateResume.dart';
+import 'package:bomcurriculo/view/resume/ViewNewResume.dart';
 import 'package:bomcurriculo/widget/WidgetButtonIcon.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -24,8 +20,13 @@ class Navbar extends StatelessWidget implements PreferredSizeWidget {
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
   Future<void> logout(BuildContext context) async {
-    await API().get('auth/logout');
-    await DB.instance.clear();
+    //print(response.body);
+    try {
+      await API().get('auth/logout');
+    } catch (_) {}
+    try {
+      await DB.instance.clear();
+    } catch (_) {}
     context.go("/auth/login");
   }
 
@@ -33,14 +34,14 @@ class Navbar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     var links = [
       {'title': 'Home', 'widget': const ViewHome()},
-      {'title': 'My resumes', 'widget': const ViewMyResumes()},
-      {'title': 'Validate resume', 'widget': const ViewValidateResume()},
+      //{'title': 'My resumes', 'widget': const ViewMyResumes()},
+      {'title': 'New resume', 'widget': const ViewNewResume()},
       {'title': 'Generate resume', 'widget': const ViewGenerateResume()},
       {'title': 'Login', 'widget': const ViewLogin()},
       {'title': 'Register', 'widget': const ViewRegister()},
-      {'title': 'Forgot password', 'widget': const ViewForgotPassword()},
-      {'title': 'Verify OTP', 'widget': const ViewVerifyOTP()},
-      {'title': 'Reset Password', 'widget': ViewResetPassword(otp: "123456")},
+      //{'title': 'Forgot password', 'widget': const ViewForgotPassword()},
+      //{'title': 'Verify OTP', 'widget': const ViewVerifyOTP()},
+      //{'title': 'Reset Password', 'widget': ViewResetPassword(otp: "123456")},
       {'title': 'Sair', 'action': () => logout(context)},
     ];
 
