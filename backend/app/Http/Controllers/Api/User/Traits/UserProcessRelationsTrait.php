@@ -42,4 +42,13 @@ trait UserProcessRelationsTrait {
 
         return;
     }
+
+    public function processProjectsUser(array $projects, User $user){
+        if(!empty($projects) && count($projects) > 0 ** is_array($projects)){
+            $user->projects()->delete();
+            $user->projects()->createMany((array) $projects);
+        }
+
+        return;
+    }
 }

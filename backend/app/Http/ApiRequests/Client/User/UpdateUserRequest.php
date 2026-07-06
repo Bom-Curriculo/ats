@@ -55,10 +55,16 @@ class UpdateUserRequest extends CustomRequest
             'qualifications.*.end' => ['nullable', 'date'],                
             'qualifications.*.is_coursing' => ['required_unless:end,null', 'boolean'],
 
-
             'languages' => [ 'array'],
             'languages.*.level' => ['required', Rule::enum(UserLanguageLevelEnum::class)],
             'languages.*.language' => ['required', 'string'],
+
+            'projects' => [ 'array'],
+            'projects.*.title' => ['required', 'string', 'max:181', 'min:3'],
+            'projects.*.date' => ['required', 'string', 'max:4', 'min:4'],
+            'projects.*.technologies' => ['required', 'string'],
+            'projects.*.description' => ['required', 'string'],
+            'projects.*.url' => ['required', 'string', 'max: 255', 'min: 7'],
         ];
     }
 

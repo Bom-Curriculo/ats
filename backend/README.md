@@ -32,9 +32,15 @@ The Postman collection includes all API endpoints:
 - Laravel 13
 - Laravel Sanctum (API Authentication)
 - MySQL / PostgreSQL
+- Redis
 - RabbitMQ (asynchronous processing)
 - PHPUnit + Pest (testing)
 - Local / S3-compatible storage
+
+## 📬 Packages
+
+- Horizon (Queue Managemenmt)
+-- {{APP_URL}}/horizon
 
 ---
 
@@ -47,6 +53,7 @@ Before running the project, ensure your environment has:
 - MySQL 8+ or PostgreSQL 14+
 - Node.js (optional)
 - RabbitMQ server (required, for async processing)
+- Redis
 - Docker (recommended)
 
 ---
@@ -126,4 +133,11 @@ php artisan serve
 
 ```bash
 php artisan app:rabbit-consume
+```
+
+
+### 6. Run Queue Horizon Worker
+
+```bash
+php artisan horizon
 ```

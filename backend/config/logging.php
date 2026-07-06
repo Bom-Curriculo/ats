@@ -74,6 +74,14 @@ return [
             'replace_placeholders' => true,
         ],
 
+        'rabbit_resumes' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/rabbit/resumes/laravel.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => env('LOG_DAILY_DAYS', 60),
+            'replace_placeholders' => true,
+        ],
+
         'slack' => [
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),

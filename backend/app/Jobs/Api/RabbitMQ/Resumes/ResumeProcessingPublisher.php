@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Jobs;
+namespace App\Jobs\Api\RabbitMQ\Resumes;
 
 use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldQueue;

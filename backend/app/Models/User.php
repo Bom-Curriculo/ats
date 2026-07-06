@@ -72,4 +72,14 @@ class User extends Authenticatable
         return $this->hasMany(UserLanguage::class);
     }
 
+    public function projects() : HasMany
+    {
+        return $this->hasMany(UserProject::class);
+    }
+
+    public function pendingResumes() : HasMany
+    {
+        return $this->hasMany(ResumeAnalytic::class);
+    }
+
 }

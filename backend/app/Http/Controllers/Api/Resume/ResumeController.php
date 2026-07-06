@@ -7,6 +7,7 @@ use App\Http\ApiRequests\Client\Resume\ValidateResumeRequest;
 use App\Http\Controllers\Api\User\Traits\UserProcessRelationsTrait;
 use App\Http\Controllers\Api\User\Traits\UserUploadsTrait;
 use App\Http\Controllers\Controller;
+use App\Models\ResumeAnalytic;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -86,6 +87,36 @@ class ResumeController extends Controller
             'file_url' => $fileUrl
         ], 200);
 
+    }
+
+    public function pendingResumes(Request $request){
+        return ResponseData::success(
+            'Success',
+            $request->user()->pendingResumes()->orderByDesc('created_at')->get()->toArray(),
+            200
+        );
+    }
+
+    public function showPendingResume(Request $request, int $resume){
+
+        $resume = (int) $request->resume;
+        $resume = ResumeAnalytic::find($resume);
+
+        if(!$resume || $resume->user_id !== $request->user()->id){
+            return ResponseData::error(
+                'Not found',
+                [
+                    'error' => 'Resume not found'
+                ],
+                404
+            );
+        }
+
+        return ResponseData::success(
+            'Success',
+            $resume->toArray(),
+            200
+        );
     }
 
 }
