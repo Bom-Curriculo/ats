@@ -7,10 +7,9 @@ provider hand-rolling HTTP requests and JSON parsing.
 """
 
 from langchain.chat_models import init_chat_model
+from pydantic import BaseModel
 
-from app.models.analysis import AIComplement, AnalysisResult, AnalysisRequest
-from app.models.ai_analysis import AIAnalysisResponse
-from app.providers.base import AIProvider, AIProviderError, create_prompt
+from app.providers.base import AIProvider, AIProviderError
 from app.providers.error_mapping import map_provider_error
 
 _MODEL_PROVIDERS = {
@@ -54,26 +53,9 @@ class LangChainProvider(AIProvider):
             return {"base_url": base_url, "client_kwargs": {"timeout": timeout}}
         return {"api_key": api_key, "timeout": timeout}
 
-    async def generate_completion(
-        self,
-        request: AnalysisRequest,
-        base_result: AnalysisResult,
-    ) -> AIComplement:
-        analysis = await self.generate_structured_analysis(request, base_result)
-        return AIComplement(
-            generated_summary=analysis.contextual_summary,
-            suggestions=analysis.improvement_suggestions + analysis.next_steps,
-        )
-
-    async def generate_structured_analysis(self, request, base_result) -> AIAnalysisResponse:
-        prompt = create_prompt(request, base_result, self.output_language)
-        return await self._invoke_structured(prompt, AIAnalysisResponse, temperature=0.2)
-
-    async def run_structured_task(self, task: str, prompt: str, schema: type, temperature: float = 0.1) -> dict:
-        result = await self._invoke_structured(prompt, schema, temperature=temperature)
-        return result.model_dump()
-
-    async def _invoke_structured(self, prompt: str, schema: type, temperature: float):
+    async def run_structured(
+        self, prompt: str, schema: type[BaseModel], temperature: float = 0.2
+    ) -> BaseModel | None:
         structured_model = self._chat_model.bind(temperature=temperature).with_structured_output(schema)
         try:
             result = await structured_model.ainvoke(prompt)

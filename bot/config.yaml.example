@@ -37,9 +37,10 @@ rabbitmq:
   host: "rabbitmq"
   port: 5672
   vhost: "/"
-  input_queue: "resumes_queue"
+  # Matches RABBITMQ_PRODUCER in the Laravel backend's `.env`.
+  input_queue: "resumes_laravel_queue"
   # Matches the queue name hardcoded in the Laravel backend's
   # `app:rabbit-consume` command (backend/app/Console/Commands/ConsumeRabbitMQ.php).
-  output_queue: "resumes_bot_queue"
+  output_queue: "resumes_output"
   heartbeat_seconds: 60
   blocked_connection_timeout_seconds: 30

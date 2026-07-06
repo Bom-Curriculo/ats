@@ -11,8 +11,7 @@ def test_rabbitmq_payload_parser_behavior_01() -> None:
         "user_id": 12,
         "resume_cv_url": "http://backend:8000/storage/cv.docx",
         "resume_linkedin_url": "http://backend:8000/storage/linkedin.docx",
-        "vaga_texto": "Desenvolvedor Python",
-        "callback_queue": "resumes_results_queue",
+        "callback_queue": "resumes_output",
     }
 
     parsed = parse_rabbitmq_payload(json.dumps(payload).encode())
@@ -25,11 +24,6 @@ def test_parses_clean_english_json() -> None:
     payload = {
         "analysis_request_id": "request-english",
         "resume_text": "Python project",
-        "job_text": "Python required",
-        "language": "en-US",
-        "job_level": "junior",
-        "resume_sources": [],
-        "use_ai": False,
     }
     parsed = parse_rabbitmq_payload(json.dumps(payload))
     assert parsed.format == "json"

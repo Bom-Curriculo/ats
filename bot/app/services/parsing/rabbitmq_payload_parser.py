@@ -21,13 +21,7 @@ _ALLOWED_FIELDS = {
     "resume_linkedin",
     "resume_linkedin_url",
     "resume_text",
-    "job_text",
-    "language",
-    "job_level",
-    "resume_sources",
-    "use_ai",
     "curriculo_texto",
-    "vaga_texto",
     "expires_link",
     "callback_queue",
 }

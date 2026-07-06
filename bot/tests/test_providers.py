@@ -1,36 +1,10 @@
-import asyncio
-
 import pytest
 
 from app.core.settings import AISettings, ProviderSettings, Settings
 from app.providers.base import AIProviderError
 from app.providers.factory import ProviderFactory
-from app.providers.mock import MockProvider
-from app.models.analysis import AnalysisRequest
-from app.services.ats_analyzer import analyze_resume_with_ai
 
 """Provider tests that never call external services."""
-
-
-def test_providers_behavior_01() -> None:
-    request = AnalysisRequest(
-        resume_text="Experiência com Python.",
-        job_text="Python FastAPI",
-        use_ai=True,
-    )
-
-    provider = MockProvider(
-        summary="Resumo controlado.",
-        suggestions=["Sugestão controlada."],
-    )
-
-    result = asyncio.run(analyze_resume_with_ai(request, provider))
-
-    assert result.ats_score == 50
-    assert result.generated_summary == "Resumo controlado."
-    assert result.suggestions == ["Sugestão controlada."]
-    assert result.ai_provider == "mock"
-    assert result.ai_model == "modelo-mock"
 
 
 def _factory(**providers: ProviderSettings) -> ProviderFactory:

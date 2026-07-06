@@ -132,9 +132,9 @@ class Settings:
             vhost=os.getenv("RABBITMQ_VHOST", raw.get("vhost", "/")),
             user=os.getenv("RABBITMQ_USER", "bomcurriculo"),
             password=os.getenv("RABBITMQ_PASSWORD", "bomcurriculo"),
-            input_queue=os.getenv("RABBITMQ_INPUT_QUEUE", raw.get("input_queue", "resumes_queue")),
+            input_queue=os.getenv("RABBITMQ_INPUT_QUEUE", raw.get("input_queue", "resumes_laravel_queue")),
             output_queue=os.getenv(
-                "RABBITMQ_OUTPUT_QUEUE", raw.get("output_queue", "resumes_results_queue")
+                "RABBITMQ_OUTPUT_QUEUE", raw.get("output_queue", "resumes_output")
             ),
             heartbeat_seconds=int(raw.get("heartbeat_seconds", 60)),
             blocked_connection_timeout_seconds=int(

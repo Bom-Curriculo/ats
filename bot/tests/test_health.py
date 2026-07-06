@@ -2,8 +2,11 @@
 
 import asyncio
 
-from app.main import app
+from dependency_injector import providers
 from httpx import ASGITransport, AsyncClient
+
+from app.main import app
+from app.models.resume_analysis import ResumeAnalysisResult
 
 
 async def request_app(method: str, path: str, **parameters):
@@ -14,98 +17,37 @@ async def request_app(method: str, path: str, **parameters):
 
 
 def test_health_behavior_01() -> None:
-
-    # Implementation note.
     response = asyncio.run(request_app("GET", "/health"))
 
     assert response.status_code == 200
-
     assert response.json() == {"status": "online"}
 
 
-def test_legacy_analyze_endpoint_accepts_portuguese_payload(monkeypatch) -> None:
+class FakeResumeAnalysisManager:
+    async def extract_resume(self, resume_text: str) -> ResumeAnalysisResult:
+        return ResumeAnalysisResult(score=80, suggestion="Adicione métricas de impacto.")
 
-    # Implementation note.
-    monkeypatch.setenv("IA_PROVIDER", "mock")
 
-    response = asyncio.run(
-        request_app(
-            "POST",
-            "/api/v1/analisar",
-            json={
-                "curriculo_texto": "Experiência com Python. Formação em Sistemas. Projetos, habilidades e tecnologias: FastAPI.",
-                "vaga_texto": "Buscamos pessoa com Python e FastAPI.",
-                "idioma": "pt-BR",
-                "usar_ia": True,
-                "nivel_vaga": "junior",
-                "fontes_curriculo": [],
-            },
+def test_analyze_endpoint_returns_structured_result() -> None:
+    app.container.resume_analysis_manager.override(providers.Object(FakeResumeAnalysisManager()))
+    try:
+        response = asyncio.run(
+            request_app(
+                "POST",
+                "/api/v1/analyze",
+                json={"resume_text": "Python and FastAPI project experience."},
+            )
         )
-    )
-
-    assert response.status_code == 200
-
-    result = response.json()
-
-    # Implementation note.
-    assert result["pontuacao_ats"] > 0
-
-    assert "Python" in result["palavras_chave_encontradas"]
-
-    # ceonferir mock
-    assert result["provedor_ia"] == "mock"
-
-    assert result["modelo_ia"] == "modelo-mock"
-
-    # Technical note removed during English standardization.
-    assert result["privacy"]["ai_text_was_sanitized"] is True
-
-    assert result["ai_fallback"]["attempted_providers"] == ["mock"]
-
-    assert "detailed_analysis" in result
-
-    assert "detailed_suggestions" in result
-
-
-def test_analyze_endpoint_accepts_english_payload(monkeypatch) -> None:
-    monkeypatch.setenv("IA_PROVIDER", "mock")
-    response = asyncio.run(request_app("POST", "/api/v1/analyze", json={
-        "resume_text": "Python and FastAPI project experience.",
-        "job_text": "Python and FastAPI are required.",
-        "language": "en-US",
-        "job_level": "junior",
-        "resume_sources": [],
-        "use_ai": True,
-    }))
-    assert response.status_code == 200
-    result = response.json()
-    assert result["ats_score"] > 0
-    assert result["ai_provider"] == "mock"
-
-
-def test_health_behavior_04(monkeypatch) -> None:
-    monkeypatch.setenv("IA_PROVIDER", "mock")
-    resume = """HABILIDADES
-Python, JavaScript, TypeScript, React, FastAPI, SQL, Docker, Git e testes automatizados.
-PROJETOS
-API REST em Python e FastAPI com SQL, Docker, Git e testes automatizados.
-"""
-    job = """Getronics
-Requisitos: Angular, React, HTML5, CSS3, JavaScript, TypeScript, APIs REST, Java, Spring Boot, Python, FastAPI, Flask, MVC, SQL e Docker.
-Desejáveis: Kubernetes, CI/CD, Git, branches, pull requests, code review, testes unitários, testes de integração, metodologias ágeis, inglês técnico, LLMs e Prompt Engineering.
-"""
-
-    response = asyncio.run(
-        request_app(
-            "POST",
-            "/api/v1/analisar",
-            json={"curriculo_texto": resume, "vaga_texto": job},
-        )
-    )
+    finally:
+        app.container.resume_analysis_manager.reset_override()
 
     assert response.status_code == 200
     result = response.json()
-    assert "processos" in result["resume_inventory"]
-    assert "metodologias ágeis" in result["palavras_chave_faltando"]
-    assert "pontuacao_ats" in result
-    assert "provedor_ia" in result
+    assert result["score"] == 80
+    assert result["suggestion"] == "Adicione métricas de impacto."
+
+
+def test_analyze_endpoint_rejects_empty_resume_text() -> None:
+    response = asyncio.run(request_app("POST", "/api/v1/analyze", json={"resume_text": ""}))
+
+    assert response.status_code == 422

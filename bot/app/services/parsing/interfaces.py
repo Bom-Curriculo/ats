@@ -1,53 +1,6 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Literal
-
-from app.models.analysis import ResumeEvidence
-
-
-@dataclass
-class SectionParserResult:
-    sections: dict[str, str]
-    confidence_by_section: dict[str, int] = field(default_factory=dict)
-    warnings: list[str] = field(default_factory=list)
-    low_confidence_sections: list[str] = field(default_factory=list)
-
-
-class SectionExtractorInterface(ABC):
-    """Bilingual (PT/EN) resume section extraction."""
-
-    @abstractmethod
-    def analyze(self, text: str) -> SectionParserResult:
-        ...
-
-    @abstractmethod
-    def extract_sections(self, text: str) -> dict[str, str]:
-        ...
-
-    @abstractmethod
-    def detect_evidence(self, text: str, sections: dict[str, str]) -> ResumeEvidence:
-        ...
-
-
-class ResumeInventoryBuilderInterface(ABC):
-    """Detect which technology/skill categories are present in a resume."""
-
-    @abstractmethod
-    def build(self, text: str, sections: dict[str, str] | None = None) -> dict[str, list[str]]:
-        ...
-
-
-class ResumeEntityParserInterface(ABC):
-    """Parse projects and generic evidence blocks from classified resume sections."""
-
-    @abstractmethod
-    def extract_projects(self, text: str, *, source_type: str = "project") -> list[dict]:
-        ...
-
-    @abstractmethod
-    def section_block(self, text: str, source: str, confidence: int = 90) -> list[dict]:
-        ...
-
 
 PayloadFormat = Literal["json", "laravel"]
 
@@ -71,4 +24,26 @@ class ResumeFileFetcherInterface(ABC):
 
     @abstractmethod
     async def fetch_and_extract_text(self, url: str) -> str:
+        ...
+
+
+ResumeContentRejectionReason = Literal["empty", "too_short", "low_content_diversity"]
+
+
+@dataclass(frozen=True)
+class ResumeContentValidation:
+    is_valid: bool
+    reason: ResumeContentRejectionReason | None = None
+
+
+class ResumeContentValidatorInterface(ABC):
+    """Reject empty, too-short, or low-effort ("troll") resume text before analysis.
+
+    Applies to resume text from any source (inline or extracted from a PDF/DOCX
+    file) — a scanned image with no extractable text, a one-line placeholder,
+    or repeated junk content should never reach the AI as if it were a real resume.
+    """
+
+    @abstractmethod
+    def validate(self, text: str) -> ResumeContentValidation:
         ...

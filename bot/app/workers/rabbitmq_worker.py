@@ -11,12 +11,16 @@ import pika
 
 from app.core.logging import configure_logging
 from app.core.settings import Settings
-from app.models.analysis import AnalysisRequest
 from app.models.rabbitmq_output import RabbitMQOutputMessage
-from app.services.ai.interfaces import AIManagerInterface
-from app.services.ai.ai_manager import AIManager
-from app.services.parsing.interfaces import RabbitMQPayloadParserInterface, ResumeFileFetcherInterface
+from app.services.ai.interfaces import ResumeAnalysisManagerInterface
+from app.services.ai.resume_analysis_manager import ResumeAnalysisManager
+from app.services.parsing.interfaces import (
+    RabbitMQPayloadParserInterface,
+    ResumeContentValidatorInterface,
+    ResumeFileFetcherInterface,
+)
 from app.services.parsing.rabbitmq_payload_parser import InvalidRabbitMQPayload, RabbitMQPayloadParser
+from app.services.parsing.resume_content_validator import ResumeContentValidator
 from app.services.parsing.resume_file_fetcher import ResumeFileFetcher
 
 _FILE_REFERENCE_FIELDS = ("resume_cv_url", "resume_cv", "resume_linkedin_url", "resume_linkedin")
@@ -27,6 +31,7 @@ logger = logging.getLogger(__name__)
 def _output(data: dict[str, Any], status: str, result: dict[str, Any] | None = None, error: str | None = None) -> RabbitMQOutputMessage:
     return RabbitMQOutputMessage(
         analysis_request_id=data.get("analysis_request_id"),
+        user_id=data.get("user_id"),
         status=status,
         result=result or {},
         error=error,
@@ -37,14 +42,16 @@ class RabbitMQWorker:
     def __init__(
         self,
         settings: Settings | None = None,
-        ai_manager: AIManagerInterface | None = None,
+        resume_analysis_manager: ResumeAnalysisManagerInterface | None = None,
         payload_parser: RabbitMQPayloadParserInterface | None = None,
         resume_file_fetcher: ResumeFileFetcherInterface | None = None,
+        resume_content_validator: ResumeContentValidatorInterface | None = None,
     ) -> None:
         self._settings = settings or Settings.load()
-        self._ai_manager = ai_manager or AIManager(self._settings)
+        self._resume_analysis_manager = resume_analysis_manager or ResumeAnalysisManager(self._settings)
         self._payload_parser = payload_parser or RabbitMQPayloadParser()
         self._resume_file_fetcher = resume_file_fetcher or ResumeFileFetcher()
+        self._resume_content_validator = resume_content_validator or ResumeContentValidator()
 
         rabbitmq = self._settings.rabbitmq
         credentials = pika.PlainCredentials(rabbitmq.user, rabbitmq.password)
@@ -66,17 +73,19 @@ class RabbitMQWorker:
         resume = data.get("resume_text", data.get("curriculo_texto"))
         if not (isinstance(resume, str) and resume.strip()):
             resume = await self._extract_resume_text_from_file_reference(data)
-        job = data.get("job_text", data.get("vaga_texto"))
 
-        if isinstance(resume, str) and resume.strip() and isinstance(job, str) and job.strip():
-            request = AnalysisRequest.model_validate({**data, "resume_text": resume, "job_text": job})
-            result = await self._ai_manager.run_analysis_with_fallback(request)
-            return _output(data, "completed", result.model_dump(mode="json"))
+        if not isinstance(resume, str):
+            has_file_reference = any(data.get(key) for key in (*_FILE_REFERENCE_FIELDS, "urls"))
+            if has_file_reference:
+                return _output(data, "received_pending_extraction")
+            raise InvalidRabbitMQPayload("message contains neither analyzable text nor a file reference")
 
-        has_file_reference = any(data.get(key) for key in (*_FILE_REFERENCE_FIELDS, "urls"))
-        if has_file_reference:
-            return _output(data, "received_pending_extraction")
-        raise InvalidRabbitMQPayload("message contains neither analyzable text nor a file reference")
+        validation = self._resume_content_validator.validate(resume)
+        if not validation.is_valid:
+            return _output(data, "invalid_resume_content", error=validation.reason)
+
+        result = await self._resume_analysis_manager.extract_resume(resume)
+        return _output(data, "completed", result.model_dump(mode="json"))
 
     async def _extract_resume_text_from_file_reference(self, data: dict[str, Any]) -> str | None:
         """Fetch and extract text from the first downloadable file reference.
