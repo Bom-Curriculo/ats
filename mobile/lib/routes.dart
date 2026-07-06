@@ -35,7 +35,7 @@ GoRouter createRouter(bool logged) {
       ),
       GoRoute(
         path: '/auth/reset-password',
-        builder: (context, state) => ViewResetPassword(),
+        builder: (context, state) => ViewResetPassword(otp: "123456"),
       ),
       GoRoute(
         path: '/validate-resume',

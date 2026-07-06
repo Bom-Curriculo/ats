@@ -1,3 +1,4 @@
+import 'package:bomcurriculo/service/API.dart';
 import 'package:bomcurriculo/view/ViewHome.dart';
 import 'package:bomcurriculo/view/auth/ViewForgotPassword.dart';
 import 'package:bomcurriculo/view/auth/ViewRegister.dart';
@@ -12,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../config.dart';
+import '../service/DB.dart';
 
 class Navbar extends StatelessWidget implements PreferredSizeWidget {
   const Navbar({super.key, this.onMenuChanged});
@@ -20,6 +22,12 @@ class Navbar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+
+  Future<void> logout(BuildContext context) async {
+    await API().get('auth/logout');
+    await DB.instance.clear();
+    context.go("/auth/login");
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,10 +38,10 @@ class Navbar extends StatelessWidget implements PreferredSizeWidget {
       {'title': 'Generate resume', 'widget': const ViewGenerateResume()},
       {'title': 'Login', 'widget': const ViewLogin()},
       {'title': 'Register', 'widget': const ViewRegister()},
-      {'title': 'Recovery', 'widget': const ViewForgotPassword()},
-      {'title': 'OTP', 'widget': const ViewVerifyOTP()},
-      {'title': 'Password', 'widget': const ViewResetPassword()},
-      {'title': 'Sair', 'widget': const ViewLogin()},
+      {'title': 'Forgot password', 'widget': const ViewForgotPassword()},
+      {'title': 'Verify OTP', 'widget': const ViewVerifyOTP()},
+      {'title': 'Reset Password', 'widget': ViewResetPassword(otp: "123456")},
+      {'title': 'Sair', 'action': () => logout(context)},
     ];
 
     return AppBar(
@@ -55,18 +63,22 @@ class Navbar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       actions: [
-        PopupMenuButton<Widget>(
+        PopupMenuButton<dynamic>(
           icon: const WidgetButtonIcon(icon: Icons.menu, color: Color(0xFFDDDDDD)),
-          onSelected: (Widget widget) {
+          onSelected: (item) {
+            if (item is Function) {
+              item();
+              return;
+            }
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => widget),
+              MaterialPageRoute(builder: (_) => item as Widget),
             );
           },
           itemBuilder: (BuildContext context) {
             return links.map((link) {
-              return PopupMenuItem<Widget>(
-                value: link['widget'] as Widget,
+              return PopupMenuItem<dynamic>(
+                value: link['action'] ?? link['widget'],
                 child: Text(link['title'] as String),
               );
             }).toList();
@@ -75,5 +87,6 @@ class Navbar extends StatelessWidget implements PreferredSizeWidget {
         const SizedBox(width: 5.0),
       ],
     );
+
   }
 }

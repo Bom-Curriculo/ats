@@ -1,6 +1,8 @@
 import 'package:bomcurriculo/include/BodyAuth.dart';
 import 'package:bomcurriculo/view/auth/ViewVerifyOTP.dart';
+import 'package:bomcurriculo/widget/WidgetError.dart';
 import 'package:flutter/material.dart';
+import '../../service/API.dart';
 
 import '../../util/Validation.dart';
 import '../../widget/WidgetButton.dart';
@@ -19,14 +21,16 @@ class _ViewForgotPassword extends State<ViewForgotPassword> {
   final controllerEmail = TextEditingController();
 
   String errorEmail='';
+  String errorText='';
 
-  void doSendEmail() {
+  void doSendEmail() async {
 
     bool error = false;
 
     // Reseta erros
     setState(() {
       errorEmail = '';
+      errorText = '';
     });
 
     // Valida email
@@ -49,28 +53,24 @@ class _ViewForgotPassword extends State<ViewForgotPassword> {
       setState(() {
         loading=true;
         errorEmail = '';
+        errorText = '';
       });
 
-      // Faz um delay pra voltar o estado do botão
-      // TODO: remover
-      Future.delayed(Duration(seconds: 2), () {
-        setState(() {
-          loading=false;
-        });
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const ViewVerifyOTP()),
-        );
-      });
-
-
-      /*
       API api = API();
-      api.post('auth/login', {
-        'email': controllerEmail.text,
-        'password': controllerPassword.text
+      await api.post('auth/forgot-password', {
+        'email': controllerEmail.text
       });
-      */
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const ViewVerifyOTP()),
+      );
+
+      setState(() {
+        loading=false;
+      });
+
+
 
     }
 
@@ -91,6 +91,7 @@ class _ViewForgotPassword extends State<ViewForgotPassword> {
               controller: controllerEmail,
               error: errorEmail,
           ),
+          WidgetError(text: errorText),
           GestureDetector(
             onTap: doSendEmail,
             child: WidgetButton(
