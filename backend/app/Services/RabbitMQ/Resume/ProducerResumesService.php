@@ -1,10 +1,9 @@
 <?php
 
-namespace App\Services\RabbitMQ;
+namespace App\Services\RabbitMQ\Resume;
 
 use App\Helpers\ResponseData;
-use App\Jobs\ResumeProcessingPublisher;
-use App\Models\User;
+use App\Jobs\Api\RabbitMQ\Resumes\ResumeProcessingPublisher;
 use Exception;
 use Illuminate\Http\Request;
 

@@ -1,8 +1,5 @@
 <?php
 
-use App\Services\ConsumerRabbitMqProcess;
-use App\Services\Queue\CustomRabbitMQQueue;
-
 return [
 
     /*
@@ -115,7 +112,7 @@ return [
 
         'rabbitmq_consumer' => [
             'driver' => 'rabbitmq',
-            'queue' => env('RABBITMQ_QUEUE_CONSUMER', 'default_consumer'),
+            'queue' => env('RABBITMQ_CONSUMER', 'default_consumer'),
             'connection' => PhpAmqpLib\Connection\AMQPLazyConnection::class,
             'hosts' => [
                 [
@@ -126,6 +123,7 @@ return [
                     'vhost' => env('RABBITMQ_VHOST', '/'),
                 ],
             ],
+            
             'options' => [
                 'queue' => [
                     'declare' => true,

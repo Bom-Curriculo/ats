@@ -87,7 +87,6 @@ class AuthController extends Controller
                 ->orWhere('expires_at', '<', now())
                 ->delete();
 
-
             $otp = rand(100000, 999999);
             $expiresAt = now()->addMinutes(15);
 
@@ -174,7 +173,8 @@ class AuthController extends Controller
                 'skills',
                 'experiences',
                 'qualifications',
-                'languages'
+                'languages',
+                'projects'
             ])->where('id', $request->user()->id)->first()
         ]);
     }

@@ -8,7 +8,6 @@ use App\Http\Controllers\Api\User\Traits\UserProcessRelationsTrait;
 use App\Http\Controllers\Api\User\Traits\UserUploadsTrait;
 use App\Http\Controllers\Controller;
 use Exception;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -30,6 +29,7 @@ class UserController extends Controller
                 $this->processExperiencesUser($request->input('experiences', []), $user);
                 $this->processQualificationsUser($request->input('qualifications', []), $user);
                 $this->processLanguageUser($request->input('languages', []), $user);
+                $this->processProjectsUser($request->input('projects', []), $user);
 
                 $pathResumeCv = $user->resume_cv;
                 $pathResumeLinkedin = $user->resume_linkedin;
@@ -70,7 +70,7 @@ class UserController extends Controller
             });
             
             return ResponseData::success('Success', [
-                'user' => $request->user()->load(['skills', 'experiences', 'qualifications', 'languages']),
+                'user' => $request->user()->load(['skills', 'experiences', 'qualifications', 'languages', 'projects']),
             ]);
 
         }catch(ValidationException $validator){

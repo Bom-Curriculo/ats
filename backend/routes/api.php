@@ -3,7 +3,7 @@
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Resume\ResumeController;
 use App\Http\Controllers\Api\User\UserController;
-use App\Services\RabbitMQ\ProducerResumesService;
+use App\Services\RabbitMQ\Resume\ProducerResumesService;
 use Illuminate\Support\Facades\Route;
 
 // Unauthenticated routes
@@ -15,7 +15,7 @@ Route::group([
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
-    Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
+    Route::middleware('auth:sanctum')->get('/logout', [AuthController::class, 'logout']);
 });
 
 // Only authenticated users can access the group routes bellow
@@ -37,6 +37,8 @@ Route::group([
 
         Route::get('/files', [ResumeController::class, 'getResumesFiles']);
         Route::post('/validate-resume', [ResumeController::class, 'storeValidateResume']);
+        Route::get('/pendings', [ResumeController::class, 'pendingResumes']);
+        Route::get('/pendings/{resume}', [ResumeController::class, 'showPendingResume']);
 
     });
 

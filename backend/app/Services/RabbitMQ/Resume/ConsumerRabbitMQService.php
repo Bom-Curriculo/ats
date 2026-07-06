@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\RabbitMQ;
+namespace App\Services\RabbitMQ\Resume;
 
 use Closure;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
