@@ -1,5 +1,4 @@
 import 'package:bomcurriculo/widget/WidgetButton.dart';
-import 'package:bomcurriculo/widget/WidgetButtonIcon.dart';
 import 'package:flutter/material.dart';
 
 import '../../include/Body.dart';
@@ -119,7 +118,9 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
     {'title': 'Espanhol', 'level': 'Intermediário', 'checked': true},
   ];
 
-  void generateResume() {}
+  void generateResume() async {
+
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -175,8 +176,8 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          WidgetButtonIcon(
-                            icon: personal['checked']
+                          Icon(
+                            personal['checked']
                                 ? Icons.check_box_outlined
                                 : Icons.check_box_outline_blank,
                           ),
@@ -237,8 +238,8 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          WidgetButtonIcon(
-                            icon: item['checked']
+                          Icon(
+                            item['checked']
                                 ? Icons.check_box_outlined
                                 : Icons.check_box_outline_blank,
                           ),
@@ -290,8 +291,8 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          WidgetButtonIcon(
-                            icon: experience['checked']
+                          Icon(
+                            experience['checked']
                                 ? Icons.check_box_outlined
                                 : Icons.check_box_outline_blank,
                           ),
@@ -357,8 +358,8 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          WidgetButtonIcon(
-                            icon: item['checked']
+                          Icon(
+                            item['checked']
                                 ? Icons.check_box_outlined
                                 : Icons.check_box_outline_blank,
                           ),
@@ -418,8 +419,8 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
                       padding: const EdgeInsets.only(bottom: 8),
                       child: Row(
                         children: [
-                          WidgetButtonIcon(
-                            icon: course['checked']
+                          Icon(
+                            course['checked']
                                 ? Icons.check_box_outlined
                                 : Icons.check_box_outline_blank,
                           ),
@@ -474,8 +475,8 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          WidgetButtonIcon(
-                            icon: skill['checked']
+                          Icon(
+                            skill['checked']
                                 ? Icons.check_box_outlined
                                 : Icons.check_box_outline_blank,
                           ),
@@ -537,8 +538,8 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
                       padding: const EdgeInsets.only(bottom: 8),
                       child: Row(
                         children: [
-                          WidgetButtonIcon(
-                            icon: language['checked']
+                          Icon(
+                            language['checked']
                                 ? Icons.check_box_outlined
                                 : Icons.check_box_outline_blank,
                           ),

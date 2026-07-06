@@ -29,6 +29,12 @@ class _ViewVerifyOTP extends State<ViewVerifyOTP> {
   final focusOTP6 = FocusNode();
 
   @override
+  void initState() {
+    super.initState();
+    focusOTP1.requestFocus();
+  }
+
+  @override
   void dispose() {
 
     controllerOTP1.dispose();

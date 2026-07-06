@@ -1,5 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 
 import '../config.dart';
 import 'DB.dart';
@@ -17,16 +20,18 @@ class API {
       headers["Authorization"] = "Bearer $jwt";
     }
 
+    print("Headers: $headers");
+
     return headers;
   }
 
   Future get(String url) async {
-
     try {
       final response = await http.get(
         Uri.parse("$baseURL$url"),
         headers: await _headers()
       );
+      print("Response: ${response.body}");
       return response;
     } catch (e) {
       return {
@@ -42,6 +47,7 @@ class API {
           headers: await _headers(),
           body: jsonEncode(data)
       );
+      print("Response: ${response.body}");
       return response;
     } catch (e) {
       return {
@@ -57,6 +63,7 @@ class API {
           headers: await _headers(),
           body: jsonEncode(data)
       );
+      print("Response: ${response.body}");
       return response;
     } catch (e) {
       return {
@@ -72,6 +79,7 @@ class API {
           headers: await _headers(),
           body: jsonEncode(data)
       );
+      print("Response: ${response.body}");
       return response;
     } catch (e) {
       return {
@@ -86,12 +94,106 @@ class API {
           Uri.parse("$baseURL$url"),
           headers: await _headers()
       );
+      print("Response: ${response.body}");
       return response;
     } catch (e) {
       return {
         "error": e.toString()
       };
     }
+  }
+
+  Future<dynamic> upload(String url, Map<String, String> data, List<Map<String, String>> files) async {
+    try {
+      final request = http.MultipartRequest(
+        "POST",
+        Uri.parse("$baseURL$url"),
+      );
+
+      final headers = await _headers();
+      headers.remove("Content-Type");
+
+      request.headers.addAll(headers);
+      request.fields.addAll(data);
+
+      // Adiciona os arquivos ao multipart
+      for (final file in files) {
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            file["field"]!,
+            file["path"]!,
+          ),
+        );
+      }
+
+      // Envia a requisição
+      final streamedResponse = await request.send();
+
+      // Converte para Response normal
+      final response = await http.Response.fromStream(streamedResponse);
+
+      // Logs
+      print("Status Code: ${response.statusCode}");
+      print("Response Body: ${response.body}");
+
+      return response;
+    } catch (e) {
+      return {
+        "error": e.toString(),
+      };
+    }
+  }
+
+  Future<File> download(
+      String url, {
+        String? fileName,
+        Map<String, String>? headers,
+      }) async {
+
+    // Faz o download
+    final response = await http.get(
+      Uri.parse(url),
+      headers: headers,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        "Erro ao baixar arquivo (${response.statusCode})",
+      );
+    }
+
+    // Descobre o nome do arquivo
+    String name = fileName ??
+        path.basename(
+          Uri.parse(url).path,
+        );
+
+    // Caso a URL não tenha nome de arquivo
+    if (name.isEmpty) {
+      name = "download";
+    }
+
+    // Pasta de documentos do app
+    final directory = await getApplicationDocumentsDirectory();
+
+    // Caminho final
+    final file = File(
+      path.join(directory.path, name),
+    );
+
+    // Garante que a pasta exista
+    await file.parent.create(
+      recursive: true,
+    );
+
+    // Salva o arquivo
+    await file.writeAsBytes(
+      response.bodyBytes,
+    );
+
+    print("Arquivo salvo em: ${file.path}");
+
+    return file;
   }
 
 }

@@ -2,25 +2,31 @@ import 'dart:io';
 
 import 'package:bomcurriculo/include/Body.dart';
 import 'package:bomcurriculo/view/resume/ViewGenerateResume.dart';
+import 'package:bomcurriculo/view/resume/ViewMyResumes.dart';
 import 'package:bomcurriculo/widget/WidgetButton.dart';
 import 'package:bomcurriculo/widget/WidgetInputText.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
+import '../../service/API.dart';
 import '../../widget/WidgetInputFile.dart';
 
-class ViewValidateResume extends StatefulWidget {
-  const ViewValidateResume({super.key});
+class ViewNewResume extends StatefulWidget {
+  const ViewNewResume({super.key});
   @override
-  _ViewValidateResume createState() => _ViewValidateResume();
+  _ViewNewResume createState() => _ViewNewResume();
 }
 
-class _ViewValidateResume extends State<ViewValidateResume> {
+//processing, analyze, ready
+
+class _ViewNewResume extends State<ViewNewResume> {
   File? resumeFile;
   File? linkedinFile;
   String? resumeFileName;
   String? linkedinFileName;
 
+  final controllerGitHubURL = TextEditingController();
+  final controllerWebsiteURL = TextEditingController();
   final List<TextEditingController> skills = [];
 
   @override
@@ -79,11 +85,49 @@ class _ViewValidateResume extends State<ViewValidateResume> {
     super.dispose();
   }
 
-  void validateResume() {
-    // Validar currículo
+  void validateResume() async {
+
+    if (resumeFile == null || linkedinFile == null) {
+      return;
+    }
+
+    final data = <String, String>{
+      "github_link": controllerGitHubURL.text,
+      "website_link": controllerWebsiteURL.text,
+    };
+
+    int skillIndex = 0;
+
+    for (final controller in skills) {
+      final skill = controller.text.trim();
+
+      if (skill.isNotEmpty) {
+        data["skills[$skillIndex][name]"] = skill;
+        skillIndex++;
+      }
+    }
+
+    final response = await API().upload(
+      "client/resumes/new-resume",
+      data,
+      [
+        {
+          "field": "resume_cv",
+          "path": resumeFile!.path,
+        },
+        {
+          "field": "resume_linkedin",
+          "path": linkedinFile!.path,
+        },
+      ],
+    );
+    print(response.body);
+
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const ViewGenerateResume()),
+      MaterialPageRoute(
+        builder: (context) => const ViewMyResumes(),
+      ),
     );
   }
 
@@ -135,8 +179,16 @@ class _ViewValidateResume extends State<ViewValidateResume> {
                 });
               },
             ),
-            WidgetInputText(title: 'GitHub URL', httpsPrefix: 'https://github.com/'),
-            WidgetInputText(title: 'Your site URL', httpsPrefix: 'https://'),
+            WidgetInputText(
+                title: 'GitHub URL',
+                controller: controllerGitHubURL,
+                httpsPrefix: 'https://github.com/'
+            ),
+            WidgetInputText(
+                title: 'Your site URL',
+                controller: controllerWebsiteURL,
+                httpsPrefix: 'https://'
+            ),
 
             Column(
               children: List.generate(skills.length, (index) {

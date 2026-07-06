@@ -22,11 +22,19 @@ class _ViewResetPassword extends State<ViewResetPassword> {
 
   bool loading = false;
 
+  final focusPassword = FocusNode();
+  final focusPasswordConfirm = FocusNode();
   final controllerPassword = TextEditingController();
   final controllerPasswordConfirm = TextEditingController();
 
   String errorPassword='';
   String errorPasswordConfirm='';
+
+  @override
+  void initState() {
+    super.initState();
+    focusPassword.requestFocus();
+  }
 
   void doPasswordChange() async {
     bool error = false;
@@ -40,12 +48,15 @@ class _ViewResetPassword extends State<ViewResetPassword> {
     // Valida email
     if (controllerPassword.text=="") {
       errorPassword = 'Type your new password';
+      focusPassword.requestFocus();
       error = true;
-    } else if (controllerPassword.text=="") {
+    } else if (controllerPasswordConfirm.text=="") {
       errorPasswordConfirm = 'Type your new password again';
+      focusPasswordConfirm.requestFocus();
       error = true;
     } else if (controllerPassword.text!=controllerPasswordConfirm.text) {
       errorPasswordConfirm = 'Your passwords doesn\'t match';
+      focusPasswordConfirm.requestFocus();
       error = true;
     }
 
@@ -95,21 +106,18 @@ class _ViewResetPassword extends State<ViewResetPassword> {
               title: 'New password',
               controller: controllerPassword,
               error: errorPassword,
+              focusNode: focusPassword,
               isPassword: true
           ),
           WidgetInputText(
               title: 'Retype your password',
               controller: controllerPasswordConfirm,
               error: errorPasswordConfirm,
+              focusNode: focusPasswordConfirm,
               isPassword: true
           ),
           GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ViewLogin()),
-              );
-            },
+            onTap: doPasswordChange,
             child: WidgetButton(title: 'Update password'),
           ),
         ],
