@@ -4,7 +4,6 @@ import 'package:bomcurriculo/view/auth/ViewLogin.dart';
 import 'package:bomcurriculo/view/auth/ViewRegister.dart';
 import 'package:bomcurriculo/view/auth/ViewResetPassword.dart';
 import 'package:bomcurriculo/view/auth/ViewVerifyOTP.dart';
-import 'package:bomcurriculo/view/resume/ViewMyResumes.dart';
 import 'package:bomcurriculo/view/resume/ViewNewResume.dart';
 import 'package:bomcurriculo/view/resume/ViewGenerateResume.dart';
 import 'package:go_router/go_router.dart';
@@ -40,10 +39,6 @@ GoRouter createRouter(bool logged) {
       GoRoute(
         path: '/validate-resume',
         builder: (context, state) => ViewNewResume(),
-      ),
-      GoRoute(
-          path: '/my-resumes',
-          builder: (context, state) => ViewMyResumes()
       ),
       GoRoute(
         path: '/generate-resume',

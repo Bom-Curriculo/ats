@@ -1,11 +1,11 @@
 import 'dart:convert';
 
 import 'package:bomcurriculo/include/Navbar.dart';
+import 'package:bomcurriculo/util/Translation.dart';
 import 'package:bomcurriculo/view/resume/ViewNewResume.dart';
 import 'package:bomcurriculo/widget/WidgetButton.dart';
 import 'package:bomcurriculo/widget/WidgetResume.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import '../service/DB.dart';
 
@@ -36,6 +36,18 @@ class _ViewHomeState extends State<ViewHome> {
   String state = '';
   String country = '';
   String linkedinLink = '';
+
+  void getTranslation() async {
+    await Translation.instance.load("pt-BR");
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getTranslation();
+    doAction();
+  }
 
   void doAction() async {
     setState(() {
@@ -73,12 +85,7 @@ class _ViewHomeState extends State<ViewHome> {
     });
   }
 
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    doAction();
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +105,7 @@ class _ViewHomeState extends State<ViewHome> {
                       style: TextStyle(fontSize: 30, color: Colors.black),
                       children: [
                         TextSpan(
-                          text: "Bem-vindo, ",
+                          text: "${Translation.instance.translate('Welcome')}, ",
                           style: TextStyle(fontWeight: FontWeight(800)),
                         ),
                         TextSpan(
@@ -112,7 +119,7 @@ class _ViewHomeState extends State<ViewHome> {
                     ),
                   ),
                   Text(
-                    "Seus Currículos otimizados em um só lugar.",
+                    Translation.instance.translate('Seus Currículos otimizados em um só lugar'),
                     style: TextStyle(fontWeight: FontWeight(700)),
                   ),
                   SizedBox(
@@ -173,8 +180,8 @@ class _ViewHomeState extends State<ViewHome> {
                                       color: Colors.blue.shade50,
                                       borderRadius: BorderRadius.circular(20),
                                     ),
-                                    child: const Text(
-                                      "MÉDIA GLOBAL",
+                                    child: Text(
+                                      Translation.instance.translate('GLOBAL MEDIA'),
                                       style: TextStyle(
                                         color: Colors.blue,
                                         fontSize: 10,
@@ -185,8 +192,8 @@ class _ViewHomeState extends State<ViewHome> {
 
                                   const SizedBox(height: 8),
 
-                                  const Text(
-                                    "Performance Geral",
+                                  Text(
+                                    Translation.instance.translate('General performance'),
                                     style: TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
@@ -195,14 +202,14 @@ class _ViewHomeState extends State<ViewHome> {
 
                                   const SizedBox(height: 8),
 
-                                  const Text(
-                                    "Sua pontuação média de otimização está excelente.",
+                                  Text(
+                                    Translation.instance.translate('Your medium score are excelent'),
                                   ),
 
                                   const SizedBox(height: 4),
 
-                                  const Text(
-                                    "Foque em adicionar palavras-chave específicas para as vagas de Product Designer para atingir a nota máxima.",
+                                  Text(
+                                    Translation.instance.translate('Focus on adding keywords specific to Product Designer roles to achieve the maximum score'),
                                   ),
 
                                   const SizedBox(height: 12),
@@ -212,12 +219,12 @@ class _ViewHomeState extends State<ViewHome> {
                                     children: [
                                       Chip(
                                         padding: const EdgeInsets.all(2.0),
-                                        label: Text("Keywords"),
+                                        label: Text(Translation.instance.translate('Keywords')),
                                         backgroundColor: Colors.blue.shade50,
                                       ),
                                       Chip(
                                         padding: const EdgeInsets.all(2.0),
-                                        label: Text("Formatação"),
+                                        label: Text(Translation.instance.translate('Formatting')),
                                         backgroundColor: Colors.blue.shade50,
                                       ),
                                     ],
@@ -236,8 +243,8 @@ class _ViewHomeState extends State<ViewHome> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        "Meus Currículos",
+                      Text(
+                        Translation.instance.translate('My resumes'),
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -305,7 +312,7 @@ class _ViewHomeState extends State<ViewHome> {
                         ),
                       );
                     },
-                    child: WidgetButton(title: "Generate new resume")
+                    child: WidgetButton(title: Translation.instance.translate('Generate new resume'))
                   )
 
                 ],

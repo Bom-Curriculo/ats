@@ -1,5 +1,7 @@
 import 'package:bomcurriculo/include/BodyAuth.dart';
+import 'package:bomcurriculo/util/Translation.dart';
 import 'package:bomcurriculo/view/auth/ViewResetPassword.dart';
+import 'package:bomcurriculo/widget/WidgetError.dart';
 import 'package:flutter/material.dart';
 
 import '../../service/API.dart';
@@ -13,6 +15,8 @@ class ViewVerifyOTP extends StatefulWidget {
 }
 
 class _ViewVerifyOTP extends State<ViewVerifyOTP> {
+
+  String errorText = '';
 
   final controllerOTP1 = TextEditingController();
   final controllerOTP2 = TextEditingController();
@@ -28,9 +32,15 @@ class _ViewVerifyOTP extends State<ViewVerifyOTP> {
   final focusOTP5 = FocusNode();
   final focusOTP6 = FocusNode();
 
+  void getTranslation() async {
+    await Translation.instance.load("pt-BR");
+    setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
+    getTranslation();
     focusOTP1.requestFocus();
   }
 
@@ -56,6 +66,11 @@ class _ViewVerifyOTP extends State<ViewVerifyOTP> {
   }
 
   void doConfirmOTP() async {
+
+    setState(() {
+      errorText = '';
+    });
+
     if (
       controllerOTP1.text=="" ||
       controllerOTP2.text=="" ||
@@ -65,6 +80,10 @@ class _ViewVerifyOTP extends State<ViewVerifyOTP> {
       controllerOTP6.text==""
     ) {
       //erro
+      setState(() {
+        errorText = Translation.instance.translate('Invalid OTP');
+      });
+      return;
     }
 
     String otp = "";
@@ -76,14 +95,24 @@ class _ViewVerifyOTP extends State<ViewVerifyOTP> {
     otp += controllerOTP6.text;
 
     API api = API();
-    await api.post('auth/verify-otp', {
+    var response = await api.post('auth/verify-otp', {
       'otp': otp
     });
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => ViewResetPassword(otp: otp)),
-    );
+    if (response.statusCode==200) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => ViewResetPassword(otp: otp)),
+      );
+    } else if (response.statusCode==422) {
+      setState(() {
+        errorText = Translation.instance.translate('Invalid OTP');
+      });
+    } else {
+      setState(() {
+        errorText = Translation.instance.translate('Server comunication error');
+      });
+    }
 
   }
 
@@ -93,7 +122,7 @@ class _ViewVerifyOTP extends State<ViewVerifyOTP> {
       child: Column(
         children: [
           Text(
-            'Type the OTP sent to your email to change your password',
+            Translation.instance.translate('Type the OTP sent to your email to change your password'),
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 30.0),
@@ -157,9 +186,10 @@ class _ViewVerifyOTP extends State<ViewVerifyOTP> {
               )),
             ],
           ),
+          WidgetError(text: errorText),
           GestureDetector(
             onTap: doConfirmOTP,
-            child: WidgetButton(title: 'Confirm OTP'),
+            child: WidgetButton(title: Translation.instance.translate('Confirm OTP')),
           ),
         ],
       ),
