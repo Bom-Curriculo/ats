@@ -1,7 +1,8 @@
 import 'package:bomcurriculo/service/API.dart';
+import 'package:bomcurriculo/util/Translation.dart';
 import 'package:bomcurriculo/view/ViewHome.dart';
-import 'package:bomcurriculo/view/auth/ViewRegister.dart';
 import 'package:bomcurriculo/view/auth/ViewLogin.dart';
+import 'package:bomcurriculo/view/auth/ViewRegister.dart';
 import 'package:bomcurriculo/view/resume/ViewGenerateResume.dart';
 import 'package:bomcurriculo/view/resume/ViewNewResume.dart';
 import 'package:bomcurriculo/widget/WidgetButtonIcon.dart';
@@ -11,7 +12,7 @@ import 'package:go_router/go_router.dart';
 import '../config.dart';
 import '../service/DB.dart';
 
-class Navbar extends StatelessWidget implements PreferredSizeWidget {
+class Navbar extends StatefulWidget implements PreferredSizeWidget {
   const Navbar({super.key, this.onMenuChanged});
 
   final VoidCallback? onMenuChanged;
@@ -19,30 +20,65 @@ class Navbar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
+  @override
+  State<Navbar> createState() => _NavbarState();
+}
+
+class _NavbarState extends State<Navbar> {
+
+  @override
+  void initState() {
+    super.initState();
+    getTranslation();
+  }
+
+  Future<void> getTranslation() async {
+    await Translation.instance.load("pt-BR");
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   Future<void> logout(BuildContext context) async {
-    //print(response.body);
     try {
-      await API().get('auth/logout');
+      var response = await API().get('auth/logout');
+      print(response.body);
     } catch (_) {}
+
     try {
       await DB.instance.clear();
     } catch (_) {}
+
     context.go("/auth/login");
   }
 
   @override
   Widget build(BuildContext context) {
-    var links = [
-      {'title': 'Home', 'widget': const ViewHome()},
-      //{'title': 'My resumes', 'widget': const ViewMyResumes()},
-      {'title': 'New resume', 'widget': const ViewNewResume()},
-      {'title': 'Generate resume', 'widget': const ViewGenerateResume()},
-      {'title': 'Login', 'widget': const ViewLogin()},
-      {'title': 'Register', 'widget': const ViewRegister()},
-      //{'title': 'Forgot password', 'widget': const ViewForgotPassword()},
-      //{'title': 'Verify OTP', 'widget': const ViewVerifyOTP()},
-      //{'title': 'Reset Password', 'widget': ViewResetPassword(otp: "123456")},
-      {'title': 'Sair', 'action': () => logout(context)},
+    final links = [
+      {
+        'title': Translation.instance.translate('Home'),
+        'widget': const ViewHome(),
+      },
+      {
+        'title': Translation.instance.translate('New resume'),
+        'widget': const ViewNewResume(),
+      },
+      {
+        'title': Translation.instance.translate('Generate resume'),
+        'widget': const ViewGenerateResume(),
+      },
+      {
+        'title': Translation.instance.translate('Login'),
+        'widget': const ViewLogin(),
+      },
+      {
+        'title': Translation.instance.translate('Register'),
+        'widget': const ViewRegister(),
+      },
+      {
+        'title': Translation.instance.translate('Logout'),
+        'action': () => logout(context),
+      },
     ];
 
     return AppBar(
@@ -56,7 +92,7 @@ class Navbar extends StatelessWidget implements PreferredSizeWidget {
         },
         child: Text(
           appTitle,
-          style: TextStyle(
+          style: const TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 18.0,
             color: Colors.black,
@@ -65,12 +101,16 @@ class Navbar extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: [
         PopupMenuButton<dynamic>(
-          icon: const WidgetButtonIcon(icon: Icons.menu, color: Color(0xFFDDDDDD)),
+          icon: const WidgetButtonIcon(
+            icon: Icons.menu,
+            color: Color(0xFFDDDDDD),
+          ),
           onSelected: (item) {
             if (item is Function) {
               item();
               return;
             }
+
             Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => item as Widget),
@@ -88,6 +128,5 @@ class Navbar extends StatelessWidget implements PreferredSizeWidget {
         const SizedBox(width: 5.0),
       ],
     );
-
   }
 }

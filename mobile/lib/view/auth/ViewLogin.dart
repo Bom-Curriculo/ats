@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 
 import '../../service/API.dart';
 import '../../service/DB.dart';
+import '../../util/Translation.dart';
 import '../../widget/WidgetButton.dart';
 import '../../widget/WidgetInputText.dart';
 
@@ -30,6 +31,17 @@ class _ViewLogin extends State<ViewLogin> {
   String errorPassword='';
   String errorText='';
 
+  void getTranslation() async {
+    await Translation.instance.load("pt-BR");
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getTranslation();
+  }
+
   void doLogin() async {
 
     bool error = false;
@@ -43,16 +55,16 @@ class _ViewLogin extends State<ViewLogin> {
 
     // Valida email
     if (controllerEmail.text=="") {
-      errorEmail = 'Type your email';
+      errorEmail = Translation.instance.translate('Type your email');
       error = true;
     } else if (!Validation().isEmail(controllerEmail.text)) {
-      errorEmail = 'Incorrect email';
+      errorEmail = Translation.instance.translate('Incorrect email');
       error = true;
     }
 
     // Valida senha
     if (controllerPassword.text=="") {
-      errorPassword='Type your password';
+      errorPassword=Translation.instance.translate('Type your password');
       error = true;
     }
 
@@ -116,7 +128,7 @@ class _ViewLogin extends State<ViewLogin> {
               maxLength: 128
           ),
           WidgetInputText(
-              title: 'Password',
+              title: Translation.instance.translate('Password'),
               error: errorPassword,
               controller: controllerPassword,
               isPassword: true,
@@ -128,7 +140,7 @@ class _ViewLogin extends State<ViewLogin> {
           GestureDetector(
             onTap: doLogin,
             child: WidgetButton(
-                title: loading ? 'Loading...' : 'Login',
+                title: loading ? '${Translation.instance.translate('Loading')}...' : Translation.instance.translate('Login'),
                 color: loading ? Colors.black26 : Colors.blue
             ),
           ),
@@ -141,7 +153,7 @@ class _ViewLogin extends State<ViewLogin> {
                 MaterialPageRoute(builder: (context) => const ViewRegister()),
               );
             },
-            child: Text('Signup for free'),
+            child: Text(Translation.instance.translate('Signup for free')),
           ),
           SizedBox(height: 15.0),
           GestureDetector(
@@ -151,7 +163,7 @@ class _ViewLogin extends State<ViewLogin> {
                 MaterialPageRoute(builder: (context) => const ViewForgotPassword()),
               );
             },
-            child: Text('Forgot password'),
+            child: Text(Translation.instance.translate('Forgot password')),
           ),
           SizedBox(height: 15.0),
         ],
