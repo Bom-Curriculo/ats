@@ -4,7 +4,7 @@ namespace App\Http\ApiRequests\Client\Resume;
 
 use App\Http\ApiRequests\CustomRequest;
 
-class ValidateResumeRequest extends CustomRequest
+class NewResumeRequest extends CustomRequest
 {
 
     public function rules(): array

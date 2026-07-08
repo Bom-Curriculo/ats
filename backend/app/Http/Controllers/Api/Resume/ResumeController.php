@@ -3,11 +3,12 @@
 namespace App\Http\Controllers\Api\Resume;
 
 use App\Helpers\ResponseData;
-use App\Http\ApiRequests\Client\Resume\ValidateResumeRequest;
+use App\Http\ApiRequests\Client\Resume\NewResumeRequest;
 use App\Http\Controllers\Api\User\Traits\UserProcessRelationsTrait;
 use App\Http\Controllers\Api\User\Traits\UserUploadsTrait;
 use App\Http\Controllers\Controller;
 use App\Models\ResumeAnalytic;
+use App\Models\UserResume;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +20,7 @@ class ResumeController extends Controller
 
     use UserProcessRelationsTrait, UserUploadsTrait;
 
-    public function storeValidateResume(ValidateResumeRequest $request)
+    public function storeNewResume(NewResumeRequest $request)
     {
 
         try{
@@ -49,6 +50,12 @@ class ResumeController extends Controller
                     'site_link' => $request->input('site_link', $user->site_link),
                 ]);
 
+                if(!empty($pathResumeCv) || !empty($pathResumeLinkedin)){
+                    $user->resumes()->create([
+                        'original_file_path_cv' => $pathResumeCv,
+                        'original_file_path_linkedin' => $pathResumeLinkedin
+                    ]);
+                }
                 $this->processSkillsUser($skills, $user);
 
             });
@@ -89,10 +96,10 @@ class ResumeController extends Controller
 
     }
 
-    public function pendingResumes(Request $request){
+    public function resumeAnalytics(Request $request){
         return ResponseData::success(
             'Success',
-            $request->user()->pendingResumes()->orderByDesc('created_at')->get()->toArray(),
+            $request->user()->resumeAnalytics()->orderByDesc('created_at')->get()->toArray(),
             200
         );
     }

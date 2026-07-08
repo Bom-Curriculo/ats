@@ -12,8 +12,17 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                    
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
+                    </x-nav-link>
+
+                    <x-nav-link :href="route('users')" :active="request()->routeIs('users')">
+                        {{ __('Users') }}
+                    </x-nav-link>
+
+                    <x-nav-link :href="route('resumes')" :active="request()->routeIs('resumes')">
+                        {{ __('Resumes') }}
                     </x-nav-link>
                    
                 </div>
@@ -36,12 +45,12 @@
 
                     <x-slot name="content">
                         <x-dropdown-link :href="route('profile.edit')">
-                            {{ __('Perfil') }}
+                            {{ __('Profile') }}
                         </x-dropdown-link>
                         
                         <hr>
                         <x-dropdown-link target="_blank" :href="route('horizon.index')">
-                            {{ __('Gerênciar Filas') }}
+                            {{ __('Queue manager') }}
                         </x-dropdown-link>
                         <hr>
 
@@ -53,7 +62,7 @@
                             <x-dropdown-link :href="route('logout')"
                                     onclick="event.preventDefault();
                                                 this.closest('form').submit();">
-                                {{ __('Sair') }}
+                                {{ __('Logout') }}
                             </x-dropdown-link>
                         </form>
                     </x-slot>
