@@ -5,6 +5,7 @@ import 'package:bomcurriculo/util/Translation.dart';
 import 'package:bomcurriculo/view/resume/ViewNewResume.dart';
 import 'package:bomcurriculo/widget/WidgetButton.dart';
 import 'package:bomcurriculo/widget/WidgetResume.dart';
+import 'package:bomcurriculo/widget/WidgetScore.dart';
 import 'package:flutter/material.dart';
 
 import '../service/DB.dart';
@@ -36,6 +37,46 @@ class _ViewHomeState extends State<ViewHome> {
   String state = '';
   String country = '';
   String linkedinLink = '';
+
+  var items = [
+    {
+      'type': 'fail',
+      'title': '---',
+      'subtitle': 'Falha ao processar currículo',
+      'score': '---',
+      'downloadURL': ''
+    },
+    {
+      'type': 'pending',
+      'title': '---',
+      'subtitle': 'Currículo pendente - em processamento',
+      'score': '---',
+      'downloadURL': ''
+    },
+    {
+      'type': 'analyze',
+      'title': '---',
+      'subtitle': 'Analisar currículo',
+      'score': '---',
+      'downloadURL': ''
+    },
+    {
+      'type': 'ready',
+      'title': 'Curriculo_ProductDesigner_v2.pdf',
+      'subtitle': 'Atualizado há 2 dias',
+      'score': '92',
+      'downloadURL': ''
+    }
+    /*,
+    {
+      'type': 'ready',
+      'title': 'Curriculo_ProductDesigner_v2.pdf',
+      'subtitle': 'Atualizado há 2 dias',
+      'score': '92',
+      'downloadURL': ''
+    }
+     */
+  ];
 
   void getTranslation() async {
     await Translation.instance.load("pt-BR");
@@ -100,6 +141,8 @@ class _ViewHomeState extends State<ViewHome> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+
+
                   RichText(
                     text: TextSpan(
                       style: TextStyle(fontSize: 30, color: Colors.black),
@@ -108,6 +151,7 @@ class _ViewHomeState extends State<ViewHome> {
                           text: "${Translation.instance.translate('Welcome')}, ",
                           style: TextStyle(fontWeight: FontWeight(800)),
                         ),
+
                         TextSpan(
                           text: name,
                           style: TextStyle(
@@ -122,188 +166,34 @@ class _ViewHomeState extends State<ViewHome> {
                     Translation.instance.translate('Seus Currículos otimizados em um só lugar'),
                     style: TextStyle(fontWeight: FontWeight(700)),
                   ),
-                  SizedBox(
-                    width: double.infinity,
-                    child: Card(
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // ATS SCORE
-                            Container(
-                              width: 90,
-                              height: 90,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Colors.blue,
-                                  width: 5,
-                                ),
-                              ),
-                              child: const Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      "85",
-                                      style: TextStyle(
-                                        fontSize: 30,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    Text(
-                                      "ATS SCORE",
-                                      style: TextStyle(fontSize: 10),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
 
-                            const SizedBox(width: 20),
+                  const SizedBox(height: 15),
 
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.blue.shade50,
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: Text(
-                                      Translation.instance.translate('GLOBAL MEDIA'),
-                                      style: TextStyle(
-                                        color: Colors.blue,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-
-                                  const SizedBox(height: 8),
-
-                                  Text(
-                                    Translation.instance.translate('General performance'),
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-
-                                  const SizedBox(height: 8),
-
-                                  Text(
-                                    Translation.instance.translate('Your medium score are excelent'),
-                                  ),
-
-                                  const SizedBox(height: 4),
-
-                                  Text(
-                                    Translation.instance.translate('Focus on adding keywords specific to Product Designer roles to achieve the maximum score'),
-                                  ),
-
-                                  const SizedBox(height: 12),
-
-                                  Wrap(
-                                    spacing: 5,
-                                    children: [
-                                      Chip(
-                                        padding: const EdgeInsets.all(2.0),
-                                        label: Text(Translation.instance.translate('Keywords')),
-                                        backgroundColor: Colors.blue.shade50,
-                                      ),
-                                      Chip(
-                                        padding: const EdgeInsets.all(2.0),
-                                        label: Text(Translation.instance.translate('Formatting')),
-                                        backgroundColor: Colors.blue.shade50,
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                  /*
+                  Text(
+                    Translation.instance.translate('My resumes'),
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
+                  SizedBox(height: 15.0),
 
-                  const SizedBox(height: 25),
+                   */
 
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        Translation.instance.translate('My resumes'),
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      /*
-                      GestureDetector(
-                        onTap: () {},
-                        child: const Text(
-                          "Ver todos",
-                          style: TextStyle(
-                            color: Colors.blue,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      */
-                    ],
-                  ),
+                  //WidgetScore(),
 
-                  const SizedBox(height: 15),
+                  Column(children: items.map((item){
+                    return WidgetResume(
+                        type: item['type']??"",
+                        title: item['title']??"",
+                        subtitle: item['subtitle']??"",
+                        score: item['score']??"",
+                        downloadURL: item['downloadURL']??""
+                    );
+                  }).toList()),
 
-                  WidgetResume(
-                    title: 'Curriculo_ProductDesigner_v2.pdf',
-                    subtitle: 'Atualizado há 2 dias',
-                    score: 92,
-                    downloadURL: ''
-                  ),
-                  const SizedBox(height: 15),
-                  WidgetResume(
-                      title: 'Curriculo_ProductDesigner_v2.pdf',
-                      subtitle: 'Atualizado há 2 dias',
-                      score: 92,
-                      downloadURL: ''
-                  ),
-                  const SizedBox(height: 15),
-                  WidgetResume(
-                      title: 'Curriculo_ProductDesigner_v2.pdf',
-                      subtitle: 'Atualizado há 2 dias',
-                      score: 92,
-                      downloadURL: ''
-                  ),
-                  const SizedBox(height: 15),
-                  WidgetResume(
-                      title: 'Curriculo_ProductDesigner_v2.pdf',
-                      subtitle: 'Atualizado há 2 dias',
-                      score: 92,
-                      downloadURL: ''
-                  ),
-                  const SizedBox(height: 15),
-                  WidgetResume(
-                      title: 'Curriculo_ProductDesigner_v2.pdf',
-                      subtitle: 'Atualizado há 2 dias',
-                      score: 92,
-                      downloadURL: ''
-                  ),
-                  const SizedBox(height: 15),
-                  
-                  GestureDetector(
+                  items.length<5?GestureDetector(
                     onTap: () {
                       Navigator.push(
                         context,
@@ -313,7 +203,7 @@ class _ViewHomeState extends State<ViewHome> {
                       );
                     },
                     child: WidgetButton(title: Translation.instance.translate('Generate new resume'))
-                  )
+                  ):SizedBox()
 
                 ],
               ),

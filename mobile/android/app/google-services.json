@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "986095846020",
+    "project_id": "bomcurriculo",
+    "storage_bucket": "bomcurriculo.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:986095846020:android:6859c979983fbe14d138d1",
+        "android_client_info": {
+          "package_name": "tech.bomcurriculo.bomcurriculo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCou-sWR0ybzDrljHKGenerpSvZ7rZG240"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

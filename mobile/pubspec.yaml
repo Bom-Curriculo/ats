@@ -41,6 +41,8 @@ dependencies:
   http: ^1.6.0
   sqflite: ^2.4.3
   path_provider: ^2.1.6
+  firebase_core: ^4.11.0
+  firebase_messaging: ^16.4.1
 
 dev_dependencies:
   flutter_test:
