@@ -1,7 +1,10 @@
+import Header from "@/components/MyCurriculum/Header";
+
 export default function MyCurriculum() {
-  return(
-    <div>
-      
-    </div>
-  )
+  return (
+    <>
+      <Header />
+      <main></main>
+    </>
+  );
 }
