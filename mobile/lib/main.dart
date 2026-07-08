@@ -1,12 +1,16 @@
 import 'package:bomcurriculo/config.dart';
 import 'package:bomcurriculo/routes.dart';
+import 'package:bomcurriculo/service/FirebaseNotificationService.dart';
 import 'package:bomcurriculo/service/ServiceAuth.dart';
 import 'package:flutter/material.dart';
 // 1. Add Firebase imports
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+final GlobalKey<NavigatorState> _navKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,6 +34,16 @@ void main() async {
   String? token = await messaging.getToken();
   print("FCM Token do Aparelho: $token");
 
+  await NotificationService.init(
+    onNotificationTap: (data) {
+      final route = data['route'] ?? '/';
+      // invite vindo de background/terminated (usuário tocou na notificação)
+      // if (route == '/home-page') {
+      //   abrir tela X...
+      // }
+      _navKey.currentState?.pushNamed(route, arguments: data);
+    },
+  );
 
   final logged = await ServiceAuth().isLogged();
   runApp(MyApp(logged: logged));
