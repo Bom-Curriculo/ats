@@ -1,35 +1,34 @@
-## Descrição
+## Description
 
-<!-- O que esse PR faz e por quê -->
+<!-- PR description here -->
 
-## Uso de IA
+## AI Usage
 
-- [ ] Vibe-code
-- [ ] Pesquisa
+* [ ] Vibe coding
+* [ ] Research
 
-## Tipo de mudança
+## Type of change
 
-- [ ] Bug fix
-- [ ] Nova feature
-- [ ] Breaking change
-- [ ] Documentação
-- [ ] Chore / infra
+* [ ] Bug fix
+* [ ] New feature
+* [ ] Breaking change
+* [ ] Documentation
+* [ ] Chore / Infrastructure
 
-## Área afetada
+## Affected area
 
-- [ ] frontend
-- [ ] backend
-- [ ] mobile
-- [ ] bot
-- [ ] CI/CD
+* [ ] Frontend
+* [ ] Backend
+* [ ] Mobile
+* [ ] Bot
+* [ ] CI/CD
 
 ## Checklist
 
-- [ ] Testei localmente
-- [ ] Adicionei/atualizei testes quando necessário
-- [ ] `npm run lint` / `vendor/bin/pint` / `flutter analyze` passando
-- [ ] Atualizei a documentação quando necessário
+* [ ] Tested locally
+* [ ] Added/updated tests when necessary
+* [ ] Updated the documentation when necessary
 
-## Como testar
+## How to test
 
-<!-- Passo a passo pra quem for revisar -->
+<!-- Step-by-step instructions for reviewers -->
