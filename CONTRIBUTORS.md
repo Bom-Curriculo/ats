@@ -22,7 +22,7 @@ Contributors will be added here after their first accepted Pull Request.
 | Gustavo Martim          | Laravel        | https://github.com/gustavo-martim-oliveira              |
 | Maurilio Eduardo        | Laravel        | https://linkedin.com/in/maur%C3%ADlio-eduardo-8b51aa172 |
 | Leonardo de Souza       | React          | https://linkedin.com/in/leoozzz                         |
-| Leoni Frazão            | Python         | https://linkedin.com/in/leonifrazao                     |
+| Leoni Frazão            | Python         | https://leonifrazao.dev                                 |
 | Jefferson Tadeu Santos  | Python         | https://jeffersontadeu.vercel.app                       |
 | Flávio Pavim            | Flutter        | https://flaviopavim.com.br                              |
 | Gillis Gonçalves        | Flutter        | https://linkedin.com/in/gillisgoncalves                 |
@@ -30,7 +30,7 @@ Contributors will be added here after their first accepted Pull Request.
 | Estefânio Silva Ribeiro | Layouts & Docs | https://linkedin.com/in/estef%C3%A2nio-silva-5319b2133  |
 | Edmar Sousa             | Docker         | https://linkedin.com/in/edmar-sousa                     |
 | Caio Vieira             | Ci & Docker    | https://linkedin.com/in/caioviier                       |
-| Willian                 | CI             | https://github.com/Ishidawg                             |
+| Willian                 | CI             | https://williancagol.vercel.app                         |
 | Caio Vinícius Ferreira  | CI             | https://linkedin.com/in/caio-vin%C3%ADcius-ferreira     |
 
 ---
@@ -55,7 +55,7 @@ Os colaboradores serão adicionados aqui após o primeiro Pull Request aceito.
 | Gustavo Martim          | Laravel        | https://github.com/gustavo-martim-oliveira              |
 | Maurilio Eduardo        | Laravel        | https://linkedin.com/in/maur%C3%ADlio-eduardo-8b51aa172 |
 | Leonardo de Souza       | React          | https://linkedin.com/in/leoozzz                         |
-| Leoni Frazão            | Python         | https://linkedin.com/in/leonifrazao                     |
+| Leoni Frazão            | Python         | https://leonifrazao.dev                                 |
 | Jefferson Tadeu Santos  | Python         | https://jeffersontadeu.vercel.app                       |
 | Flávio Pavim            | Flutter        | https://flaviopavim.com.br                              |
 | Gillis Gonçalves        | Flutter        | https://linkedin.com/in/gillisgoncalves                 |
@@ -63,5 +63,5 @@ Os colaboradores serão adicionados aqui após o primeiro Pull Request aceito.
 | Estefânio Silva Ribeiro | Layouts & Docs | https://linkedin.com/in/estef%C3%A2nio-silva-5319b2133  |
 | Edmar Sousa             | Docker         | https://linkedin.com/in/edmar-sousa                     |
 | Caio Vieira             | Ci & Docker    | https://linkedin.com/in/caioviier                       |
-| Willian                 | CI             | https://github.com/Ishidawg                             |
+| Willian                 | CI             | https://williancagol.vercel.app                         |
 | Caio Vinícius Ferreira  | CI             | https://linkedin.com/in/caio-vin%C3%ADcius-ferreira     |
