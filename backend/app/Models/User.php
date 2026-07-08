@@ -30,9 +30,10 @@ use Laravel\Sanctum\HasApiTokens;
     'city',
     'state',
     'country',
-    'linkedin_link'
+    'linkedin_link',
+    'last_resume_id'
 ])]
-#[Hidden(['password', 'remember_token', 'resume_cv', 'resume_linkedin', 'path_certificate_pcd'])]
+#[Hidden(['password', 'remember_token', 'resume_cv', 'resume_linkedin', 'path_certificate_pcd', 'last_resume_id'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -77,7 +78,12 @@ class User extends Authenticatable
         return $this->hasMany(UserProject::class);
     }
 
-    public function pendingResumes() : HasMany
+    public function resumes() : HasMany
+    {
+        return $this->hasMany(UserResume::class);
+    }
+
+    public function resumeAnalytics() : HasMany
     {
         return $this->hasMany(ResumeAnalytic::class);
     }

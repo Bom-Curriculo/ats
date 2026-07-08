@@ -44,4 +44,9 @@ class ResumeAnalytic extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function resume(): BelongsTo
+    {
+        return $this->belongsTo(UserResume::class, 'user_resume_id', 'id');
+    }
 }
