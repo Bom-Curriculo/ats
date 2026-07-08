@@ -113,8 +113,9 @@ class _ViewNewResume extends State<ViewNewResume> {
       }
     }
 
+    //"client/resumes/new-resume",
     final response = await API().upload(
-      "client/resumes/new-resume",
+      "client/resumes/validate-resume",
       data,
       [
         {
@@ -206,7 +207,7 @@ class _ViewNewResume extends State<ViewNewResume> {
 
             GestureDetector(
               onTap: validateResume,
-              child: WidgetButton(title: Translation.instance.translate('Validate resume')),
+              child: WidgetButton(title: Translation.instance.translate('Validate data')),
             ),
           ],
         ),

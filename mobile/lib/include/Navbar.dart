@@ -1,6 +1,7 @@
 import 'package:bomcurriculo/service/API.dart';
 import 'package:bomcurriculo/util/Translation.dart';
 import 'package:bomcurriculo/view/ViewHome.dart';
+import 'package:bomcurriculo/view/auth/ViewForgotPassword.dart';
 import 'package:bomcurriculo/view/auth/ViewLogin.dart';
 import 'package:bomcurriculo/view/auth/ViewRegister.dart';
 import 'package:bomcurriculo/view/resume/ViewGenerateResume.dart';
@@ -26,10 +27,13 @@ class Navbar extends StatefulWidget implements PreferredSizeWidget {
 
 class _NavbarState extends State<Navbar> {
 
+  bool isLogged = false;
+
   @override
   void initState() {
     super.initState();
     getTranslation();
+    getLogged();
   }
 
   Future<void> getTranslation() async {
@@ -37,6 +41,21 @@ class _NavbarState extends State<Navbar> {
     if (mounted) {
       setState(() {});
     }
+  }
+
+  Future<void> getLogged() async {
+    final jwt = await DB.instance.getJWT();
+
+    //print("-----------------------------");
+    //print(jwt);
+    //print("-----------------------------");
+
+    if (jwt==null) {
+      isLogged=false;
+    } else {
+      isLogged=true;
+    }
+    setState(() {});
   }
 
   Future<void> logout(BuildContext context) async {
@@ -49,37 +68,56 @@ class _NavbarState extends State<Navbar> {
       await DB.instance.clear();
     } catch (_) {}
 
-    context.go("/auth/login");
+    await getLogged();
+
+    //context.go("/auth/login");
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ViewLogin(),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final links = [
-      {
-        'title': Translation.instance.translate('Home'),
-        'widget': const ViewHome(),
-      },
-      {
-        'title': Translation.instance.translate('New resume'),
-        'widget': const ViewNewResume(),
-      },
-      {
-        'title': Translation.instance.translate('Generate resume'),
-        'widget': const ViewGenerateResume(),
-      },
-      {
-        'title': Translation.instance.translate('Login'),
-        'widget': const ViewLogin(),
-      },
-      {
-        'title': Translation.instance.translate('Register'),
-        'widget': const ViewRegister(),
-      },
-      {
-        'title': Translation.instance.translate('Logout'),
-        'action': () => logout(context),
-      },
-    ];
+    var links = [];
+
+    if (!isLogged) {
+      links = [
+        {
+          'title': Translation.instance.translate('Login'),
+          'widget': const ViewLogin(),
+        },
+        {
+          'title': Translation.instance.translate('Register'),
+          'widget': const ViewRegister(),
+        },
+        {
+          'title': Translation.instance.translate('Forgot password'),
+          'widget': const ViewForgotPassword(),
+        }
+      ];
+    } else {
+      links = [
+        {
+          'title': Translation.instance.translate('Home'),
+          'widget': const ViewHome(),
+        },
+        {
+          'title': Translation.instance.translate('New resume'),
+          'widget': const ViewNewResume(),
+        },
+        {
+          'title': Translation.instance.translate('Generate resume'),
+          'widget': const ViewGenerateResume(),
+        },
+        {
+          'title': Translation.instance.translate('Logout'),
+          'action': () async => await logout(context),
+        },
+      ];
+    }
 
     return AppBar(
       backgroundColor: const Color(0xFFEEEEEE),
@@ -88,7 +126,13 @@ class _NavbarState extends State<Navbar> {
       titleSpacing: 11.0,
       title: GestureDetector(
         onTap: () {
-          context.go("/");
+          //context.go("/");
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => isLogged?ViewHome():ViewLogin(),
+            ),
+          );
         },
         child: Text(
           appTitle,

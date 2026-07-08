@@ -428,6 +428,7 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
                     child: Padding(
                       padding: const EdgeInsets.only(bottom: 8),
                       child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Icon(
                             course['checked']
@@ -547,6 +548,7 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
                     child: Padding(
                       padding: const EdgeInsets.only(bottom: 8),
                       child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Icon(
                             language['checked']

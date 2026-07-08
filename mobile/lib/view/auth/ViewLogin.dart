@@ -102,14 +102,31 @@ class _ViewLogin extends State<ViewLogin> {
           context,
           MaterialPageRoute(builder: (context) => const ViewHome()),
         );
-      } else {
-        print(body);
+      } else if (response.statusCode==422) {
+
+        final Map<String, dynamic> errors = body['data']['errors'];
+
+        final List<String> messages = [];
+
+        errors.forEach((key, value) {
+          if (value is List) {
+            messages.addAll(value.map((e) => e.toString()));
+          } else if (value != null) {
+            messages.add(value.toString());
+          }
+        });
+
+        final errorString = messages.join('\n');
+
         setState(() {
           loading=false;
           errorEmail = '';
           errorPassword='';
-          errorText=body['message'];
+          //errorText=body['message'];
+          errorText=errorString;
         });
+      } else {
+
       }
 
     }
