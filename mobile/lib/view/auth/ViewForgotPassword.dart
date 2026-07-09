@@ -3,6 +3,7 @@ import 'package:bomcurriculo/util/Translation.dart';
 import 'package:bomcurriculo/view/auth/ViewVerifyOTP.dart';
 import 'package:bomcurriculo/widget/WidgetError.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../service/API.dart';
 
 import '../../util/Validation.dart';
@@ -75,10 +76,11 @@ class _ViewForgotPassword extends State<ViewForgotPassword> {
         'email': controllerEmail.text
       });
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const ViewVerifyOTP()),
-      );
+      context.go("/auth/verify-otp");
+      //Navigator.push(
+      //  context,
+      //  MaterialPageRoute(builder: (context) => const ViewVerifyOTP()),
+      //);
 
       setState(() {
         loading=false;

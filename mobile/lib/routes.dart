@@ -37,11 +37,11 @@ GoRouter createRouter(bool logged) {
         builder: (context, state) => ViewResetPassword(otp: "123456"),
       ),
       GoRoute(
-        path: '/validate-resume',
+        path: '/resume/new-resume',
         builder: (context, state) => ViewNewResume(),
       ),
       GoRoute(
-        path: '/generate-resume',
+        path: '/resume/generate-resume',
         builder: (context, state) => ViewGenerateResume(),
       ),
     ],

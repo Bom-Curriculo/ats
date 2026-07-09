@@ -7,6 +7,7 @@ import 'package:bomcurriculo/view/auth/ViewForgotPassword.dart';
 import 'package:bomcurriculo/view/auth/ViewRegister.dart';
 import 'package:bomcurriculo/widget/WidgetError.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../service/API.dart';
 import '../../service/DB.dart';
@@ -83,10 +84,13 @@ class _ViewLogin extends State<ViewLogin> {
         errorText='';
       });
 
+      final fcm = await DB.instance.getFCM();
+
       API api = API();
       var response = await api.post('auth/login', {
         'email': controllerEmail.text,
-        'password': controllerPassword.text
+        'password': controllerPassword.text,
+        'fcm': fcm
       });
 
       var body =  jsonDecode(response.body);
@@ -98,10 +102,11 @@ class _ViewLogin extends State<ViewLogin> {
         String user = jsonEncode(body['data']['user']);
         await DB.instance.saveUser(user);
 
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const ViewHome()),
-        );
+        context.go("/");
+        //Navigator.push(
+        //  context,
+        //  MaterialPageRoute(builder: (context) => const ViewHome()),
+        //);
       } else if (response.statusCode==422) {
 
         final Map<String, dynamic> errors = body['data']['errors'];
@@ -165,20 +170,22 @@ class _ViewLogin extends State<ViewLogin> {
           SizedBox(height: 30.0),
           GestureDetector(
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ViewRegister()),
-              );
+              context.go("/auth/register");
+              //Navigator.push(
+              //  context,
+              //  MaterialPageRoute(builder: (context) => const ViewRegister()),
+              //);
             },
             child: Text(Translation.instance.translate('Signup for free')),
           ),
           SizedBox(height: 15.0),
           GestureDetector(
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ViewForgotPassword()),
-              );
+              context.go("/auth/forgot-passwor");
+              //Navigator.push(
+              //  context,
+              //  MaterialPageRoute(builder: (context) => const ViewForgotPassword()),
+              //);
             },
             child: Text(Translation.instance.translate('Forgot password')),
           ),

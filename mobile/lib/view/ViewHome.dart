@@ -7,6 +7,7 @@ import 'package:bomcurriculo/widget/WidgetButton.dart';
 import 'package:bomcurriculo/widget/WidgetResume.dart';
 import 'package:bomcurriculo/widget/WidgetScore.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../service/DB.dart';
 
@@ -195,12 +196,13 @@ class _ViewHomeState extends State<ViewHome> {
 
                   items.length<5?GestureDetector(
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ViewNewResume(),
-                        ),
-                      );
+                      context.go("/resume/new-resume");
+                      //Navigator.push(
+                      //  context,
+                      //  MaterialPageRoute(
+                      //    builder: (context) => const ViewNewResume(),
+                      //  ),
+                      //);
                     },
                     child: WidgetButton(title: Translation.instance.translate('Generate new resume'))
                   ):SizedBox()

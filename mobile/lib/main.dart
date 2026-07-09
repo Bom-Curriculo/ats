@@ -1,13 +1,14 @@
 import 'package:bomcurriculo/config.dart';
 import 'package:bomcurriculo/routes.dart';
+import 'package:bomcurriculo/service/DB.dart';
 import 'package:bomcurriculo/service/FirebaseNotificationService.dart';
 import 'package:bomcurriculo/service/ServiceAuth.dart';
 import 'package:flutter/material.dart';
-// 1. Add Firebase imports
+
+// Firebase imports
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<NavigatorState> _navKey = GlobalKey<NavigatorState>();
@@ -33,6 +34,8 @@ void main() async {
   // 2. Recupera o token único do seu aparelho de teste
   String? token = await messaging.getToken();
   print("FCM Token do Aparelho: $token");
+
+  await DB.instance.saveFCM(token!);
 
   await NotificationService.init(
     onNotificationTap: (data) {
