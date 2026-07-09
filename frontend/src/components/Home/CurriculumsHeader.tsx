@@ -1,7 +1,7 @@
 import { List, Plus, ListFilter } from "lucide-react";
 import { Button } from "../ui/button";
 
-export default function Header() {
+export default function CurriculumsHeader() {
   return (
     <header className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
       <div>
