@@ -3,23 +3,25 @@ import { Button } from "../ui/button";
 
 export default function Header() {
   return (
-    <header className="flex items-center justify-between gap-4 py-6">
+    <header className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
       <div>
-        <h1 className="text-3xl font-bold text-[#03206E] tracking-wide">Meus Currículos</h1>
-        <span className="text-gray-600">Gerencie e otimize suas aplicações para o mercado</span>
+        <h1 className="text-2xl lg:text-3xl font-bold text-[#03206E] tracking-wide">Meus Currículos</h1>
+        <span className="text-sm text-gray-600">Gerencie e otimize suas aplicações para o mercado</span>
       </div>
-      <div className="flex items-center gap-3">
-        <Button className="h-11 gap-2 px-4 bg-[#DCE1FF] text-[#001550] hover:bg-[#DCE1FF]/90">
-          <List className="size-4" />
-          2/5 Currículos
-        </Button>
-        <Button className="h-11 gap-2 px-4 bg-[#D3E4FE] text-[#00072B] hover:bg-[#D3E4FE]/90">
-          <ListFilter className="size-4" />
-          Filtrar
-        </Button>
-        <Button className="h-11 gap-2 px-4 bg-[#2E7BFF] text-white hover:bg-[#2E7BFF]/90">
+      <div className="flex flex-col md:flex-row items-center gap-3">
+        <div className="flex w-full items-center gap-3 md:contents">
+          <Button className="h-9 lg:h-11 min-w-0 flex-1 gap-2 md:px-4 bg-[#DCE1FF] text-[#001550] hover:bg-[#DCE1FF]/90 md:flex-none">
+            <List className="size-4 shrink-0" />
+            <span className="truncate">2/5 Currículos</span>
+          </Button>
+          <Button className="h-9 lg:h-11 min-w-0 flex-1 gap-2 md:px-4 bg-[#D3E4FE] text-[#00072B] hover:bg-[#D3E4FE]/90 md:flex-none">
+            <ListFilter className="size-4 shrink-0" />
+            <span className="truncate">Filtrar</span>
+          </Button>
+        </div>
+        <Button className="w-full h-9 lg:h-11 gap-2 md:px-4 bg-[#2E7BFF] text-white hover:bg-[#2E7BFF]/90 md:w-auto">
           <Plus className="size-4" />
-          Novo Currículo
+          <span className="truncate">Adicionar Currículo</span>
         </Button>
       </div>
     </header>
