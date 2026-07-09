@@ -36,7 +36,7 @@ export default function AddCurriculumCard({
       onClick={onCreate}
       className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-brand-primary/35 bg-brand-primary/5 p-8 text-center transition-colors hover:border-brand-primary hover:bg-brand-primary/15"
     >
-      <span aria-hidden="true" className="flex size-12 items-center justify-center rounded-full bg-[#DCE1FF]">
+      <span aria-hidden="true" className="flex size-12 items-center justify-center rounded-full bg-brand-primary-tint">
         <CirclePlus className="size-5 text-brand-primary" />
       </span>
       <span className="block font-bold text-brand-secondary">Criar Novo Currículo</span>

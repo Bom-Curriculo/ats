@@ -13,6 +13,7 @@
  *   bg-brand-secondary / text-brand-secondary / border-brand-secondary -> navy #03206E (fundos escuros, botões CTA, títulos)
  *   text-brand-primary-foreground / text-brand-secondary-foreground -> texto sobre essas cores (branco)
  *   Tons claros/tints: use opacidade em vez de hex novo, ex: bg-brand-primary/10, /5, /15, border-brand-primary/35
+ *   bg-brand-primary-tint -> azul claro #DCE1FF (fundo de ícones/badges sobre brand-primary; não é uma opacidade do brand-primary, é tom próprio)
  *
  * Neutros/semânticos (shadcn, já mapeados para light/dark automaticamente):
  *   bg-background / text-foreground     -> fundo e texto padrão da página
@@ -20,6 +21,9 @@
  *   bg-muted / text-muted-foreground    -> texto secundário, fundos sutis (substitui gray-* e slate-* claros)
  *   border-border                       -> bordas (substitui border-gray-* e border-slate-*)
  *   text-destructive / bg-destructive   -> erros, ações destrutivas (substitui red-*)
+ *
+ * Gráficos (recharts recebe cor via prop JS fill/stroke, não aceita classe Tailwind — usar o hex que espelha o token):
+ *   --color-chart-grid #E5E7EB -> linhas de grid e bordas sutis de gráficos.
  *
  * Cores fora desse conjunto (ex: tons únicos usados 1x) devem virar token novo aqui, não hex solto no componente.
  */
@@ -59,8 +63,10 @@
     --color-background: var(--background);
     --color-brand-primary-foreground: #ffffff;
     --color-brand-primary: #2e7bff;
+    --color-brand-primary-tint: #dce1ff;
     --color-brand-secondary-foreground: #ffffff;
     --color-brand-secondary: #03206e;
+    --color-chart-grid: #e5e7eb;
     --radius-sm: calc(var(--radius) * 0.6);
     --radius-md: calc(var(--radius) * 0.8);
     --radius-lg: var(--radius);

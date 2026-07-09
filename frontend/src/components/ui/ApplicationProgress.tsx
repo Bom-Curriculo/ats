@@ -20,14 +20,14 @@ export function ApplicationProgress() {
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                     <XAxis dataKey="day" />
                     <YAxis />
-                    <Tooltip 
-                        contentStyle={{ 
-                            backgroundColor: "#fff", 
+                    <Tooltip
+                        contentStyle={{
+                            backgroundColor: "#fff",
                             border: "1px solid #e5e7eb",
                             borderRadius: "8px"
-                        }} 
+                        }}
                     />
-                    <Bar dataKey="value" fill="#3b82f6" radius={[8, 8, 0, 0]} />
+                    <Bar dataKey="value" fill="#2e7bff" radius={[8, 8, 0, 0]} />
                 </BarChart>
             </ResponsiveContainer>
         </div>

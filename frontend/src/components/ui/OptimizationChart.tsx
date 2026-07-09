@@ -6,7 +6,7 @@ const data = [
   { name: "Pendente", value: 25 },
 ];
 
-const COLORS = ["#2e7bff", "#e5e7eb"];
+const COLORS = ["#2e7bff", "#e5e7eb"]; // espelha --color-brand-primary e --color-chart-grid (index.css)
 
 export function OptimizationChart() {
   return (
