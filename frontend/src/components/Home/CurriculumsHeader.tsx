@@ -22,7 +22,7 @@ export default function CurriculumsHeader() {
             <span className="truncate">Filtrar</span>
           </Button>
         </div>
-        <Button className="w-full h-9 lg:h-11 gap-2 md:px-4 bg-[#1A56DB] text-white hover:bg-[#1A56DB]/90 md:w-auto">
+        <Button className="w-full h-9 lg:h-11 gap-2 md:px-4 bg-[#2E7BFF] text-white hover:bg-[#2E7BFF]/90 md:w-auto">
           <Plus className="size-4" />
           <span className="truncate">Adicionar Currículo</span>
         </Button>
