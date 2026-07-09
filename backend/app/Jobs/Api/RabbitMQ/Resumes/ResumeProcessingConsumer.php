@@ -2,7 +2,9 @@
 
 namespace App\Jobs\Api\RabbitMQ\Resumes;
 
+use App\Enums\UserResumeEnum;
 use App\Models\ResumeAnalytic;
+use App\Models\UserResume;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
@@ -28,6 +30,14 @@ class ResumeProcessingConsumer implements ShouldQueue
     public function handle(): void
     {
         ResumeAnalytic::create($this->resume['resume'] ?? $this->resume);
+        if($this->resume['resume_id'] || $this->resume->resume_id ){
+            $resume = UserResume::find($this->resume['resume_id'] ?? $this->resume->resume_id);
+            if($resume){
+                $resume->update([
+                    'status' => UserResumeEnum::ANALYZE
+                ]);
+            }
+        }
     }
 
     public function failed(Throwable $exception): void

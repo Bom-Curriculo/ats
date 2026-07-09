@@ -10,7 +10,7 @@ Build ATS-friendly resumes using AI.
 
 ## About
 
-ATS Resume Builder is an open-source project that generates professional resumes optimized for Applicant Tracking Systems (ATS).
+Bom Currículo is an open-source project that generates professional resumes optimized for Applicant Tracking Systems (ATS).
 
 The system can use multiple optional sources of information, including:
 
@@ -75,7 +75,7 @@ This project is licensed under the MIT License.
 
 ## Sobre
 
-ATS Resume Builder é um projeto open source para geração de currículos profissionais otimizados para sistemas ATS.
+Bom Currículo é um projeto open source para geração de currículos profissionais otimizados para sistemas ATS.
 
 O sistema pode utilizar diversas fontes opcionais de informação:
 

@@ -10,6 +10,7 @@ final class ResumeResponseDTO
 
     private const REQUIREMENTS = [
         'analysis_request_id',
+        'resume_id',
         'user_id',
         'status',
         'result',
@@ -18,6 +19,7 @@ final class ResumeResponseDTO
   
     public function __construct(
         public string $analysis_request_id,
+        public string $user_resume_id,
         public int $user_id,
         public string $status,
         public array $result,
@@ -54,6 +56,7 @@ final class ResumeResponseDTO
 
         return new self(
             analysis_request_id: (string) $dataArray['analysis_request_id'],
+            user_resume_id: (string) $dataArray['resume_id'],
             user_id: (int) $dataArray['user_id'],
             status: (string) $dataArray['status'],
             result: (array) $dataArray['result'],
@@ -85,6 +88,7 @@ final class ResumeResponseDTO
     {
         return [
             'analysis_request_id' => $this->analysis_request_id,
+            'user_resume_id'      => $this->user_resume_id,
             'user_id'             => $this->user_id,
             'status'              => $this->status,
             'error'               => $this->error,

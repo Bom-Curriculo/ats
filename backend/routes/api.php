@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Resume\ResumeController;
 use App\Http\Controllers\Api\User\UserController;
+use App\Http\Controllers\Api\User\UserResumeController;
 use App\Services\RabbitMQ\Resume\ProducerResumesService;
 use Illuminate\Support\Facades\Route;
 
@@ -30,14 +31,15 @@ Route::group([
     
         Route::get('/', [AuthController::class, 'user']);
         Route::put('/update', [UserController::class, 'update']);
+        Route::get('/resumes', UserResumeController::class);
 
     });
 
     Route::prefix('/resumes')->group(function(){
 
         Route::get('/files', [ResumeController::class, 'getResumesFiles']);
-        Route::post('/validate-resume', [ResumeController::class, 'storeValidateResume']);
-        Route::get('/pendings', [ResumeController::class, 'pendingResumes']);
+        Route::post('/new-resume', [ResumeController::class, 'storeNewResume']);
+        Route::get('/pendings', [ResumeController::class, 'resumeAnalytics']);
         Route::get('/pendings/{resume}', [ResumeController::class, 'showPendingResume']);
 
     });

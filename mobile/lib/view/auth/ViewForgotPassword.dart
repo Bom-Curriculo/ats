@@ -1,4 +1,5 @@
 import 'package:bomcurriculo/include/BodyAuth.dart';
+import 'package:bomcurriculo/util/Translation.dart';
 import 'package:bomcurriculo/view/auth/ViewVerifyOTP.dart';
 import 'package:bomcurriculo/widget/WidgetError.dart';
 import 'package:flutter/material.dart';
@@ -24,9 +25,15 @@ class _ViewForgotPassword extends State<ViewForgotPassword> {
   String errorEmail='';
   String errorText='';
 
+  void getTranslation() async {
+    await Translation.instance.load("pt-BR");
+    setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
+    getTranslation();
     focusEmail.requestFocus();
   }
 
@@ -42,10 +49,10 @@ class _ViewForgotPassword extends State<ViewForgotPassword> {
 
     // Valida email
     if (controllerEmail.text=="") {
-      errorEmail = 'Type your email';
+      errorEmail = Translation.instance.translate('Type your email');
       error = true;
     } else if (!Validation().isEmail(controllerEmail.text)) {
-      errorEmail = 'Incorrect email';
+      errorEmail = Translation.instance.translate('Incorrect email');
       error = true;
     }
 
@@ -89,7 +96,7 @@ class _ViewForgotPassword extends State<ViewForgotPassword> {
       child: Column(
         children: [
           Text(
-            'Forgot your password? Type your email to receive OTP code to change your password',
+            Translation.instance.translate('Forgot your password? Type your email to receive OTP code to change your password'),
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 30.0),
@@ -103,7 +110,7 @@ class _ViewForgotPassword extends State<ViewForgotPassword> {
           GestureDetector(
             onTap: doSendEmail,
             child: WidgetButton(
-                title: loading ? 'Loading...' : 'Recover password',
+                title: loading ? '${Translation.instance.translate('Loading')}...' : Translation.instance.translate('Recover password'),
                 color: loading ? Colors.black26 : Colors.blue
             ),
           ),
