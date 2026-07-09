@@ -4,7 +4,6 @@ export default function MyCurriculum() {
   return (
     <>
       <Header />
-      <main></main>
     </>
   );
 }
