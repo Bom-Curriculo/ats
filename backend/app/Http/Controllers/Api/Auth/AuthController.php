@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Auth;
 
 use App\Helpers\ResponseData;
+use App\Models\UserDevice;
 use App\Http\ApiRequests\Auth\{ LoginRequest, RegisterRequest, ResetPasswordRequest, VerifyOtpRequest, ForgotPasswordRequest };
 use App\Http\Controllers\Controller;
 use App\Mail\UserResetPasswordMail;
@@ -20,7 +21,17 @@ class AuthController extends Controller
 {
     try {
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::query()->where('email', $request->email)->first();
+
+        if($request->filled('fcm'))
+        {
+            $fcm = $user->devices()->where('fcm_token', $request->fcm)->exists();
+            if(!$fcm){
+                $user->devices()->create([
+                    'fcm_token' => $request->fcm,
+                ]);
+            }
+        }
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
             return ResponseData::error('Invalid credentials', ['Email or password is incorrect'], 401);
@@ -50,6 +61,16 @@ class AuthController extends Controller
                 'password' => Hash::make($request->password),
             ]);
 
+            if($request->filled('fcm'))
+            {
+                $fcm = $user->devices()->where('fcm_token', $request->fcm)->exists();
+                if(!$fcm){
+                    $user->devices()->create([
+                        'fcm_token' => $request->fcm,
+                    ]);
+                }
+            }
+
             $token = $user->createToken('api-token')->plainTextToken;
 
             return ResponseData::success('User registered successfully', [
@@ -67,6 +88,12 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
+
+        if($request->filled('fcm'))
+        {
+            UserDevice::query()->where('fcm_token', $request->fcm)->delete();
+        }
+
         return ResponseData::success('Logged out successfully');
     }
 

@@ -2,8 +2,10 @@
 
 namespace App\Jobs\Api\RabbitMQ\Resumes;
 
+use App\Actions\SendPushNotificationAction;
 use App\Enums\UserResumeEnum;
 use App\Models\ResumeAnalytic;
+use App\Models\User;
 use App\Models\UserResume;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -29,7 +31,7 @@ class ResumeProcessingConsumer implements ShouldQueue
      */
     public function handle(): void
     {
-        ResumeAnalytic::create($this->resume['resume'] ?? $this->resume);
+        ResumeAnalytic::query()->create($this->resume['resume'] ?? $this->resume);
         if($this->resume['resume_id'] || $this->resume->resume_id ){
             $resume = UserResume::find($this->resume['resume_id'] ?? $this->resume->resume_id);
             if($resume){
@@ -37,6 +39,38 @@ class ResumeProcessingConsumer implements ShouldQueue
                     'status' => UserResumeEnum::ANALYZE
                 ]);
             }
+        }
+
+        $user = User::query()->find($this->resume['user_id']);
+        if($user){
+
+            /**
+             * For success
+             */
+            //            $service->sendToToken(
+            //                token: 'cy4bSjq-RLuLaWiMDsY7i2:APA91bH6DHwLmkb_66yx7loOVsaWFuM2C9KHseXOspixhd0RTAhkxFTLj2NBDKqL7bI5EMrlW92S6e4T8ekruDVq_aWxvzmIVHfWUA1cJOrxnDNTaAKMrog',
+            //                payload: [
+            //                    'title' => '🚀 Falta só mais um passo!',
+            //                    'body'  => 'Escolha as informações para montar seu currículo.'
+            //                ]
+            //            );
+
+            /**
+             * For errors
+             */
+            //            $service->sendToToken(
+            //                token: 'cy4bSjq-RLuLaWiMDsY7i2:APA91bH6DHwLmkb_66yx7loOVsaWFuM2C9KHseXOspixhd0RTAhkxFTLj2NBDKqL7bI5EMrlW92S6e4T8ekruDVq_aWxvzmIVHfWUA1cJOrxnDNTaAKMrog',
+            //                payload: [
+            //                    'title' => '⚠️ Algo deu errado',
+            //                    'body'  => 'Ocorreu um erro ao preparar seu currículo. Tente novamente.'
+            //                ]
+            //            );
+
+            SendPushNotificationAction::send(
+                user: $user,
+                title: '🚀 Falta só mais um passo!',
+                body: 'Escolha as informações para montar seu currículo.'
+            );
         }
     }
 

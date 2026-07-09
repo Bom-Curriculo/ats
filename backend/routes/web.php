@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\SendPushNotificationAction;
 use App\Http\Controllers\System\ProfileController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
@@ -31,6 +32,6 @@ Route::middleware('auth:system')->group(function () {
 
 require __DIR__.'/auth.php';
 
-Route::get('/teste', function(){
-
+Route::get('/teste', function(Request $request){
+    return \App\Actions\SendPushNotificationAction::send(User::query()->first(), 'Seu currículo está pronto', 'Preparamos seu currículo. Confira.');
 });

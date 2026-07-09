@@ -16,7 +16,7 @@ Route::group([
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
-    Route::middleware('auth:sanctum')->get('/logout', [AuthController::class, 'logout']);
+    Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
 });
 
 // Only authenticated users can access the group routes bellow

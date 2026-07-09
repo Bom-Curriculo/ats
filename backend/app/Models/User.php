@@ -39,6 +39,10 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, HasApiTokens;
 
+    protected $fillable = [
+        'fcm_token',
+    ];
+
     /**
      * Get the attributes that should be cast.
      *
@@ -86,6 +90,11 @@ class User extends Authenticatable
     public function resumeAnalytics() : HasMany
     {
         return $this->hasMany(ResumeAnalytic::class);
+    }
+
+    public function devices(): HasMany
+    {
+        return $this->hasMany(UserDevice::class);
     }
 
 }

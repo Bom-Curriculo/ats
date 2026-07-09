@@ -21,6 +21,7 @@ class LoginRequest extends CustomRequest
                 'min:8',
                 'max:64'
             ],
+            'fcm' => ['nullable', 'string']
         ];
     }
 }
