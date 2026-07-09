@@ -89,7 +89,7 @@ class User extends Authenticatable
 
     public function resumeAnalytics() : HasMany
     {
-        return $this->hasMany(ResumeAnalytic::class);
+        return $this->hasMany(UserResumeAnalytic::class);
     }
 
     public function devices(): HasMany

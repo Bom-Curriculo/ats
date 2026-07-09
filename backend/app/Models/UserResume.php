@@ -43,6 +43,6 @@ class UserResume extends Model
 
     public function analytic() : HasOne
     {
-        return $this->hasOne(ResumeAnalytic::class, 'user_resume_id', 'id');
+        return $this->hasOne(UserResumeAnalytic::class, 'user_resume_id', 'id');
     }
 }

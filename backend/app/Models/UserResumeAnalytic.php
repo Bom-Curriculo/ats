@@ -19,8 +19,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'languages',
     'others',
 ])]
-class ResumeAnalytic extends Model
+class UserResumeAnalytic extends Model
 {
+
     /**
      * Get the attributes that should be cast.
      *
