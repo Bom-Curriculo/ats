@@ -30,7 +30,7 @@ export default function Card({
         <div aria-hidden="true" className="flex size-10 md:size-12 shrink-0 items-center justify-center rounded-xl bg-[#DCE1FF]">
           <FileText className="size-6 text-[#1A56DB]" />
         </div>
-        <p className="inline-flex items-center gap-1.5 rounded-full bg-[#1A56DB] px-3 py-1.5 text-xs lg:text-sm font-semibold text-white">
+        <p className="inline-flex items-center gap-1.5 rounded-full bg-[#1A56DB] px-3 py-1.5 text-xs font-semibold text-white">
           <Zap className="size-4 fill-current" aria-hidden="true" />
           {matchPercentage}% Match
         </p>
