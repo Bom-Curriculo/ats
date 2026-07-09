@@ -1,6 +1,7 @@
 import Header from "@/components/MyCurriculum/Header";
 import Card, { type CurriculumCardProps } from "@/components/MyCurriculum/Card";
 import AddCurriculumCard from "@/components/MyCurriculum/AddCurriculumCard";
+import AISuggestion from "@/components/MyCurriculum/AISuggestion";
 
 const CURRICULUM_LIMIT = 5;
 
@@ -58,6 +59,7 @@ export default function MyCurriculum() {
           limit={CURRICULUM_LIMIT}
         />
       </section>
+      <AISuggestion />
     </>
   );
 }
