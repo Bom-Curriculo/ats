@@ -37,7 +37,7 @@ export function Login() {
   return (
     <section className="flex min-h-screen items-center justify-center bg-slate-100 p-4 md:p-6">
       <div className="flex w-full max-w-7xl flex-col overflow-hidden bg-white shadow-2xl lg:flex-row">
-        <div className="hidden w-full flex-col bg-[#03206E] p-8 text-white lg:flex lg:w-1/2 lg:p-12">
+        <div className="hidden w-full flex-col bg-brand-secondary p-8 text-white lg:flex lg:w-1/2 lg:p-12">
           <div className="mb-10 flex items-center gap-4">
             <div className="h-20 w-0.5 bg-white/60" />
 
@@ -50,7 +50,7 @@ export function Login() {
             <div>
               <h1 className="text-3xl font-bold lg:text-5xl">
                 Bom
-                <span className="text-blue-400">Currículo</span>
+                <span className="text-brand-primary">Currículo</span>
               </h1>
 
               <p className="mt-2 text-sm text-white/80 lg:text-xl">
@@ -138,7 +138,7 @@ export function Login() {
               <Button
                 type="submit"
                 disabled={mutation.isPending}
-                className="h-12 w-full rounded-none bg-[#03206E] text-base text-white hover:bg-[#03206E]/80 lg:h-14 lg:text-lg"
+                className="h-12 w-full rounded-none bg-brand-secondary text-base text-white hover:bg-brand-secondary/80 lg:h-14 lg:text-lg"
               >
                 {mutation.isPending ? "Entrando..." : "Acessar Plataforma"}
               </Button>

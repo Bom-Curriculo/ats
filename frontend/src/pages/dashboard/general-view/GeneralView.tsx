@@ -21,7 +21,7 @@ export default function GeneralView() {
                 <div>
                     <h1 className="text-4xl font-bold leading-tight">
                         Bem-vindo,{" "}
-                        <span className="text-blue-700">
+                        <span className="text-brand-primary">
                             {user?.name}
                         </span>
                     </h1>
@@ -31,9 +31,9 @@ export default function GeneralView() {
                     </p>
                 </div>
 
-                <div className="flex items-center gap-3 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5">
+                <div className="flex items-center gap-3 rounded-full border border-brand-primary/20 bg-brand-primary/5 px-3 py-1.5">
                     <Avatar className="size-8">
-                        <AvatarFallback className="size-full bg-blue-600 text-white text-xs font-semibold">
+                        <AvatarFallback className="size-full bg-brand-primary text-white text-xs font-semibold">
                             {user?.name?.[0]}
                         </AvatarFallback>
                     </Avatar>
@@ -83,7 +83,7 @@ export default function GeneralView() {
 
                 {/* IA */}
 
-                <div className="rounded-2xl border border-l-4 border-blue-600 bg-blue-50 p-6">
+                <div className="rounded-2xl border border-l-4 border-brand-primary bg-brand-primary/5 p-6">
                     <div className="flex items-center gap-3 mb-6">
                         ⭐
                         <h3 className="font-bold text-lg">
@@ -92,19 +92,19 @@ export default function GeneralView() {
                     </div>
                     <div className="space-y-5">
                         <div className="flex gap-3">
-                            <div className="w-2 h-2 rounded-full bg-blue-600 mt-2" />
+                            <div className="w-2 h-2 rounded-full bg-brand-primary mt-2" />
                             <p className="text-sm text-gray-700">
                                 Inclua métricas quantitativas na seção de experiências para aumentar o score em até 15%.
                             </p>
                         </div>
                         <div className="flex gap-3">
-                            <div className="w-2 h-2 rounded-full bg-blue-600 mt-2" />
+                            <div className="w-2 h-2 rounded-full bg-brand-primary mt-2" />
                             <p className="text-sm text-gray-700">
                                 A skill "Agile Methodology" é recorrente nas vagas que você analisou.
                             </p>
                         </div>
                     </div>
-                    <button className="mt-8 w-full rounded-lg border-2 border-blue-600 py-2 font-medium text-blue-600 hover:bg-blue-100">
+                    <button className="mt-8 w-full rounded-lg border-2 border-brand-primary py-2 font-medium text-brand-primary hover:bg-brand-primary/15">
                         Otimizar agora
                     </button>
                 </div>
@@ -118,7 +118,7 @@ export default function GeneralView() {
                 </h2>
                 <Link
                     to="/my-curriculum"
-                    className="text-blue-600 text-sm font-medium hover:underline"
+                    className="text-brand-primary text-sm font-medium hover:underline"
                 >
                     Ver todos
                 </Link>

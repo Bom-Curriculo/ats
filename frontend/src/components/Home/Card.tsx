@@ -31,15 +31,15 @@ export default function Card({
           aria-hidden="true"
           className="flex size-10 md:size-12 shrink-0 items-center justify-center rounded-xl bg-[#DCE1FF]"
         >
-          <FileText className="size-6 text-[#03206E]" />
+          <FileText className="size-6 text-brand-secondary" />
         </div>
-        <p className="inline-flex items-center gap-1.5 rounded-full bg-[#2E7BFF] px-3 py-1.5 text-xs font-semibold text-white">
+        <p className="inline-flex items-center gap-1.5 rounded-full bg-brand-primary px-3 py-1.5 text-xs font-semibold text-white">
           <Zap className="size-4 fill-current" aria-hidden="true" />
           {matchPercentage}% Match
         </p>
       </header>
 
-      <h3 className="mt-4 line-clamp-2 sm:text-lg leading-snug font-bold wrap-break-word text-[#03206E]">{fileName}</h3>
+      <h3 className="mt-4 line-clamp-2 sm:text-lg leading-snug font-bold wrap-break-word text-brand-secondary">{fileName}</h3>
 
       <p className="mt-1.5 flex items-center gap-1.5 text-xs sm:text-sm text-gray-500">
         <Clock className="size-3 sm:size-4 shrink-0" aria-hidden="true" />
@@ -49,12 +49,12 @@ export default function Card({
       {tags.length > 0 && (
         <ul aria-label="Tecnologias identificadas" className="mt-4 flex flex-wrap gap-2">
           {visibleTags.map((tag) => (
-            <li key={tag} className="rounded-full bg-[#EFF4FF] px-3 py-1 text-xs font-medium text-[#03206E]">
+            <li key={tag} className="rounded-full bg-brand-primary/10 px-3 py-1 text-xs font-medium text-brand-secondary">
               {tag}
             </li>
           ))}
           {hiddenCount > 0 && (
-            <li className="rounded-full bg-[#EFF4FF] px-3 py-1 text-xs font-medium text-[#03206E]">+{hiddenCount}</li>
+            <li className="rounded-full bg-brand-primary/10 px-3 py-1 text-xs font-medium text-brand-secondary">+{hiddenCount}</li>
           )}
         </ul>
       )}
@@ -63,7 +63,7 @@ export default function Card({
         <button
           type="button"
           onClick={onDownload}
-          className="flex cursor-pointer flex-col items-center gap-1.5 rounded-lg py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-[#2E7BFF]"
+          className="flex cursor-pointer flex-col items-center gap-1.5 rounded-lg py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-brand-primary"
         >
           <Download className="size-5" aria-hidden="true" />
           Baixar
@@ -71,7 +71,7 @@ export default function Card({
         <button
           type="button"
           onClick={onMatch}
-          className="flex cursor-pointer flex-col items-center gap-1.5 rounded-lg py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-[#2E7BFF]"
+          className="flex cursor-pointer flex-col items-center gap-1.5 rounded-lg py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-brand-primary"
         >
           <ChartSpline className="size-5" aria-hidden="true" />
           Match
