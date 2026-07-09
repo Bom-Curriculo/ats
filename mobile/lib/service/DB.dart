@@ -13,6 +13,7 @@ class DB {
 
   static const String keyJWT = "jwt";
   static const String keyUser = "user";
+  static const String keyFCM = "fcm";
 
   DB._();
 
@@ -109,6 +110,18 @@ class DB {
     await _delete(keyUser);
   }
 
+  Future<void> saveFCM(String token) async {
+    await _save(keyFCM, token);
+  }
+
+  Future<String?> getFCM() async {
+    return _get(keyFCM);
+  }
+
+  Future<void> deleteFCM() async {
+    await _delete(keyFCM);
+  }
+
   Future<void> clear() async {
     final db = await database;
     await db.delete(_table);
@@ -141,6 +154,15 @@ class DB {
   Remover usuário:
   await DB.instance.deleteUser();
 
+  Salvar FCM:
+  await DB.instance.saveFCM(fcmToken);
+
+  Ler FCM:
+  final fcm = await DB.instance.getFCM();
+
+  Remover FCM:
+  await DB.instance.deleteFCM();
+
   Logout:
   await DB.instance.clear();
- */
+*/

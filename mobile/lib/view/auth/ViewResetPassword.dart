@@ -2,6 +2,7 @@ import 'package:bomcurriculo/include/BodyAuth.dart';
 import 'package:bomcurriculo/util/Translation.dart';
 import 'package:bomcurriculo/view/auth/ViewLogin.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../service/API.dart';
 import '../../widget/WidgetButton.dart';
@@ -90,10 +91,11 @@ class _ViewResetPassword extends State<ViewResetPassword> {
       });
 
       if (response.statusCode==200) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const ViewLogin()),
-        );
+        context.go("/auth/login");
+        //Navigator.push(
+        //  context,
+        //  MaterialPageRoute(builder: (context) => const ViewLogin()),
+        //);
       } else if (response.statusCode==422) {
         setState(() {
           errorText = 'Erro ao alterar senha';
