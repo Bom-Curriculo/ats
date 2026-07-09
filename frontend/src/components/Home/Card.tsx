@@ -25,7 +25,7 @@ export default function Card({
   const hiddenCount = tags.length - visibleTags.length;
 
   return (
-    <article className="flex flex-col rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
+    <article className="flex flex-col rounded-2xl border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md">
       <header className="flex items-start justify-between gap-3">
         <div
           aria-hidden="true"
@@ -41,7 +41,7 @@ export default function Card({
 
       <h3 className="mt-4 line-clamp-2 sm:text-lg leading-snug font-bold wrap-break-word text-brand-secondary">{fileName}</h3>
 
-      <p className="mt-1.5 flex items-center gap-1.5 text-xs sm:text-sm text-gray-500">
+      <p className="mt-1.5 flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground">
         <Clock className="size-3 sm:size-4 shrink-0" aria-hidden="true" />
         <time>Atualizado {updatedLabel}</time>
       </p>
@@ -59,11 +59,11 @@ export default function Card({
         </ul>
       )}
 
-      <footer className="mt-5 grid grid-cols-3 gap-2 border-t border-gray-100 pt-4">
+      <footer className="mt-5 grid grid-cols-3 gap-2 border-t border-border pt-4">
         <button
           type="button"
           onClick={onDownload}
-          className="flex cursor-pointer flex-col items-center gap-1.5 rounded-lg py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-brand-primary"
+          className="flex cursor-pointer flex-col items-center gap-1.5 rounded-lg py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-brand-primary"
         >
           <Download className="size-5" aria-hidden="true" />
           Baixar
@@ -71,7 +71,7 @@ export default function Card({
         <button
           type="button"
           onClick={onMatch}
-          className="flex cursor-pointer flex-col items-center gap-1.5 rounded-lg py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-brand-primary"
+          className="flex cursor-pointer flex-col items-center gap-1.5 rounded-lg py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-brand-primary"
         >
           <ChartSpline className="size-5" aria-hidden="true" />
           Match
@@ -79,7 +79,7 @@ export default function Card({
         <button
           type="button"
           onClick={onDelete}
-          className="flex cursor-pointer flex-col items-center gap-1.5 rounded-lg py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-red-50 hover:text-red-600"
+          className="flex cursor-pointer flex-col items-center gap-1.5 rounded-lg py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
         >
           <Trash2 className="size-5" aria-hidden="true" />
           Excluir

@@ -35,8 +35,8 @@ export function Login() {
     mutation.mutate(data);
   }
   return (
-    <section className="flex min-h-screen items-center justify-center bg-slate-100 p-4 md:p-6">
-      <div className="flex w-full max-w-7xl flex-col overflow-hidden bg-white shadow-2xl lg:flex-row">
+    <section className="flex min-h-screen items-center justify-center bg-background p-4 md:p-6">
+      <div className="flex w-full max-w-7xl flex-col overflow-hidden bg-card shadow-2xl lg:flex-row">
         <div className="hidden w-full flex-col bg-brand-secondary p-8 text-white lg:flex lg:w-1/2 lg:p-12">
           <div className="mb-10 flex items-center gap-4">
             <div className="h-20 w-0.5 bg-white/60" />
@@ -84,13 +84,13 @@ export function Login() {
           </div>
         </div>
 
-        <div className="flex w-full items-center justify-center bg-white p-6 sm:p-8 md:p-12 lg:w-1/2 lg:p-16">
+        <div className="flex w-full items-center justify-center bg-card p-6 sm:p-8 md:p-12 lg:w-1/2 lg:p-16">
           <div className="w-full max-w-md">
-            <h2 className="mb-2 text-3xl font-bold text-slate-900 lg:text-4xl">
+            <h2 className="mb-2 text-3xl font-bold text-foreground lg:text-4xl">
               Acesse sua conta
             </h2>
 
-            <p className="mb-8 text-sm text-slate-500 lg:mb-10 lg:text-base">
+            <p className="mb-8 text-sm text-muted-foreground lg:mb-10 lg:text-base">
               Insira suas credenciais corporativas.
             </p>
 
@@ -99,37 +99,37 @@ export function Login() {
               className="space-y-5 lg:space-y-6"
             >
               <div>
-                <label className="mb-2 block font-medium text-slate-900">
+                <label className="mb-2 block font-medium text-foreground">
                   Endereço de e-mail
                 </label>
 
                 <Input
-                  className="h-12 rounded-none border-slate-900 text-slate-900 lg:h-14"
+                  className="h-12 rounded-none border-input-border-strong text-foreground lg:h-14"
                   placeholder="nome@exemplo.com.br"
                   {...register("email")}
                 />
 
                 {errors.email && (
-                  <p className="mt-1 text-sm text-red-500">
+                  <p className="mt-1 text-sm text-destructive">
                     {errors.email.message}
                   </p>
                 )}
               </div>
 
               <div>
-                <label className="mb-2 block font-medium text-slate-900">
+                <label className="mb-2 block font-medium text-foreground">
                   Senha
                 </label>
 
                 <Input
                   type="password"
-                  className="h-12 rounded-none border-slate-900 text-slate-900 lg:h-14"
+                  className="h-12 rounded-none border-input-border-strong text-foreground lg:h-14"
                   placeholder="••••••••"
                   {...register("password")}
                 />
 
                 {errors.password && (
-                  <p className="mt-1 text-sm text-red-500">
+                  <p className="mt-1 text-sm text-destructive">
                     {errors.password.message}
                   </p>
                 )}
@@ -143,9 +143,9 @@ export function Login() {
                 {mutation.isPending ? "Entrando..." : "Acessar Plataforma"}
               </Button>
 
-              <p className="pt-4 text-center text-sm text-slate-600 lg:pt-6">
+              <p className="pt-4 text-center text-sm text-muted-foreground lg:pt-6">
                 Novo usuário?{" "}
-                <Link to="/register" className="text-slate-900 hover:underline">
+                <Link to="/register" className="text-foreground hover:underline">
                   Criar conta profissional
                 </Link>
               </p>

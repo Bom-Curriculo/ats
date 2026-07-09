@@ -30,7 +30,7 @@ export default function AISuggestion({
           <h3 className="font-bold text-sm lg:text-base xl:text-lg text-brand-secondary">
             Dica da IA para o seu currículo de {role}
           </h3>
-          <p className="mt-1 text-xs lg:text-sm xl:text-base text-gray-600">
+          <p className="mt-1 text-xs lg:text-sm xl:text-base text-muted-foreground">
             Identificamos que a palavra-chave "{keyword}" está em alta para as vagas que você analisa. Adicione
             experiências relacionadas para aumentar seu ATS score em até {scoreIncrease}%.
           </p>

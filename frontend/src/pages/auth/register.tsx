@@ -44,8 +44,8 @@ export default function Register() {
   }
 
   return (
-    <section className="flex min-h-screen items-center justify-center bg-slate-100 p-4 md:p-6">
-      <div className="flex w-full max-w-7xl overflow-hidden bg-white shadow-2xl">
+    <section className="flex min-h-screen items-center justify-center bg-background p-4 md:p-6">
+      <div className="flex w-full max-w-7xl overflow-hidden bg-card shadow-2xl">
         <div className="hidden w-1/2 flex-col bg-brand-secondary p-12 text-white lg:flex">
           <div className="mb-10 flex items-center gap-4">
             <div className="h-20 w-0.5 bg-white/60" />
@@ -107,13 +107,13 @@ export default function Register() {
           </div>
         </div>
 
-        <div className="flex w-full items-center justify-center bg-white p-6 sm:p-8 lg:w-1/2 lg:p-16">
+        <div className="flex w-full items-center justify-center bg-card p-6 sm:p-8 lg:w-1/2 lg:p-16">
           <div className="w-full max-w-md">
-            <h2 className="mb-2 text-4xl font-bold text-slate-900">
+            <h2 className="mb-2 text-4xl font-bold text-foreground">
               Criar sua conta
             </h2>
 
-            <p className="mb-10 text-slate-500">
+            <p className="mb-10 text-muted-foreground">
               Comece sua jornada profissional.{" "}
               <Link
                 to="/login"
@@ -125,50 +125,50 @@ export default function Register() {
 
             <form onSubmit={handleSubmit(handleSingUp)} className="space-y-5">
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">
+                <label className="mb-2 block text-sm font-medium text-foreground">
                   Nome Completo
                 </label>
 
                 <Input
-                  className="h-12 rounded-none border-slate-900 bg-slate-50 text-brand-secondary focus-visible:ring-brand-primary sm:h-14"
+                  className="h-12 rounded-none border-input-border-strong bg-muted text-brand-secondary focus-visible:ring-brand-primary sm:h-14"
                   placeholder="Ex: João Silva"
                   {...register("name")}
                 />
 
                 {errors.name && (
-                  <p className="mt-1 text-sm text-red-500">
+                  <p className="mt-1 text-sm text-destructive">
                     {errors.name.message}
                   </p>
                 )}
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">
+                <label className="mb-2 block text-sm font-medium text-foreground">
                   E-mail Profissional
                 </label>
 
                 <Input
-                  className="h-12 rounded-none border-slate-900 bg-slate-50 text-brand-secondary focus-visible:ring-brand-primary sm:h-14"
+                  className="h-12 rounded-none border-input-border-strong bg-muted text-brand-secondary focus-visible:ring-brand-primary sm:h-14"
                   placeholder="seu@email.com"
                   {...register("email")}
                 />
 
                 {errors.email && (
-                  <p className="mt-1 text-sm text-red-500">
+                  <p className="mt-1 text-sm text-destructive">
                     {errors.email.message}
                   </p>
                 )}
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">
+                <label className="mb-2 block text-sm font-medium text-foreground">
                   Senha
                 </label>
 
                 <div className="relative">
                   <Input
                     type={showPassword ? "text" : "password"}
-                    className="h-12 rounded-none border-slate-900 bg-slate-50 pr-12 text-brand-secondary focus-visible:ring-brand-primary sm:h-14"
+                    className="h-12 rounded-none border-input-border-strong bg-muted pr-12 text-brand-secondary focus-visible:ring-brand-primary sm:h-14"
                     placeholder="Mínimo 8 caracteres"
                     {...register("password")}
                   />
@@ -176,7 +176,7 @@ export default function Register() {
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-secondary hover:text-slate-600"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-secondary hover:text-muted-foreground"
                     tabIndex={-1}
                   >
                     {showPassword ? (
@@ -188,21 +188,21 @@ export default function Register() {
                 </div>
 
                 {errors.password && (
-                  <p className="mt-1 text-sm text-red-500">
+                  <p className="mt-1 text-sm text-destructive">
                     {errors.password.message}
                   </p>
                 )}
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">
+                <label className="mb-2 block text-sm font-medium text-foreground">
                   Confirmar Senha
                 </label>
 
                 <div className="relative">
                   <Input
                     type={showConfirmPassword ? "text" : "password"}
-                    className="h-12 rounded-none border-slate-900 bg-slate-50 pr-12 text-brand-secondary focus-visible:ring-brand-primary sm:h-14"
+                    className="h-12 rounded-none border-input-border-strong bg-muted pr-12 text-brand-secondary focus-visible:ring-brand-primary sm:h-14"
                     placeholder="Repita sua senha"
                     {...register("password_confirm")}
                   />
@@ -210,7 +210,7 @@ export default function Register() {
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword((v) => !v)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     tabIndex={-1}
                   >
                     {showConfirmPassword ? (
@@ -222,7 +222,7 @@ export default function Register() {
                 </div>
 
                 {errors.password_confirm && (
-                  <p className="mt-1 text-sm text-red-500">
+                  <p className="mt-1 text-sm text-destructive">
                     {errors.password_confirm.message}
                   </p>
                 )}
@@ -232,10 +232,10 @@ export default function Register() {
                 <input
                   type="checkbox"
                   id="terms"
-                  className="mt-1 h-4 w-4 border-slate-300"
+                  className="mt-1 h-4 w-4 border-border"
                 />
 
-                <label htmlFor="terms" className="text-sm text-slate-600">
+                <label htmlFor="terms" className="text-sm text-muted-foreground">
                   Li e aceito os{" "}
                   <a href="/termo" className="text-brand-primary hover:underline">
                     Termos de Uso

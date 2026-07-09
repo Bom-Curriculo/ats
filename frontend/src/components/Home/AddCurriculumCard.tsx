@@ -15,13 +15,13 @@ export default function AddCurriculumCard({
     return (
       <article
         role="status"
-        className="flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-center"
+        className="flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-border bg-muted p-8 text-center"
       >
         <div aria-hidden="true" className="flex size-12 items-center justify-center rounded-full bg-gray-200">
-          <Lock className="size-5 text-gray-500" />
+          <Lock className="size-5 text-muted-foreground" />
         </div>
         <h3 className="font-bold text-brand-secondary">Limite Atingido</h3>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground">
           Você atingiu o limite de {limit} currículos.
           <br />
           Exclua um currículo para liberar espaço.
@@ -40,7 +40,7 @@ export default function AddCurriculumCard({
         <CirclePlus className="size-5 text-brand-primary" />
       </span>
       <span className="block font-bold text-brand-secondary">Criar Novo Currículo</span>
-      <span className="block text-sm text-gray-500">
+      <span className="block text-sm text-muted-foreground">
         Crie uma versão otimizada
         <br />
         para uma nova vaga.

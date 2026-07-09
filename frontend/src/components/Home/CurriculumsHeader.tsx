@@ -6,7 +6,7 @@ export default function CurriculumsHeader() {
     <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
       <div>
         <h1 className="text-2xl lg:text-3xl font-bold text-brand-secondary tracking-wide">Meus Currículos</h1>
-        <span className="text-sm lg:text-base text-gray-600">Gerencie e otimize suas aplicações para o mercado</span>
+        <span className="text-sm lg:text-base text-muted-foreground">Gerencie e otimize suas aplicações para o mercado</span>
       </div>
       <div className="flex flex-col md:flex-row items-center gap-3">
         <div className="flex w-full items-center gap-3 md:contents">
