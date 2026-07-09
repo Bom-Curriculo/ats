@@ -1,10 +1,9 @@
-FROM php:8.5-fpm
+FROM php:8.4-cli
 
-LABEL maintainer="Gustavo Martim"
+LABEL maintainer="servidor de tecnologia"
 
 ENV TZ=America/Sao_Paulo
 
-# Dependências do sistema
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -17,18 +16,15 @@ RUN apt-get update && apt-get install -y \
     libfreetype6-dev \
     libonig-dev \
     libxml2-dev \
-    libpq-dev \
     libssl-dev \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Timezone
-RUN ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime \
-    && echo ${TZ} > /etc/timezone
 
-# Extensões do PHP
 RUN docker-php-ext-configure gd \
     --with-freetype \
     --with-jpeg
+
 
 RUN docker-php-ext-install \
     bcmath \
@@ -37,38 +33,49 @@ RUN docker-php-ext-install \
     intl \
     opcache \
     pcntl \
-    pdo_mysql \
+    pdo_pgsql \
+    pgsql \
     sockets \
     zip
 
-# Composer
+RUN pecl install redis \
+    && docker-php-ext-enable redis
+
+
 COPY --from=composer:2.8 /usr/bin/composer /usr/local/bin/composer
+
 
 WORKDIR /var/www/html
 
-# Copia apenas arquivos do composer para aproveitar cache
 COPY composer.json composer.lock ./
 
 RUN composer install \
     --prefer-dist \
     --no-interaction \
-    --no-progress
+    --no-progress \
+    --no-scripts
 
-# Copia o restante da aplicação
 COPY . .
 
-# Permissões
+RUN composer dump-autoload --optimize
+
+RUN php artisan package:discover
+
 RUN mkdir -p \
     storage/framework/cache \
     storage/framework/sessions \
     storage/framework/views \
     storage/logs \
     bootstrap/cache
-
-RUN chown -R www-data:www-data storage bootstrap/cache
-
+    
 RUN chmod -R 775 storage bootstrap/cache
+
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 EXPOSE 9000
 
-CMD ["php-fpm"]
+ENTRYPOINT ["entrypoint.sh"]
+
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=9000"]
