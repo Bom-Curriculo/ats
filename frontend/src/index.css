@@ -6,30 +6,35 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Paleta da aplicação — use estas classes em vez de cores Tailwind cruas (blue-*, gray-*, slate-*, red-*) ou hex solto (#xxxxxx).
+ * TOKENS DE COR — nunca gray-, slate-, blue- ou red- do Tailwind nem hex solto. Sempre um token daqui.
+ * Não existe o token que você precisa? Crie em @theme inline e adicione uma linha aqui, não invente hex no componente.
  *
- * Marca (valor fixo dentro do @theme, não muda entre light/dark):
- *   bg-brand-primary / text-brand-primary / border-brand-primary   -> azul de marca #2E7BFF (ações, destaques, ícones ativos)
- *   bg-brand-secondary / text-brand-secondary / border-brand-secondary -> navy #03206E (fundos escuros, botões CTA, títulos)
- *   text-brand-primary-foreground / text-brand-secondary-foreground -> texto sobre essas cores (branco)
- *   Tons claros/tints: use opacidade em vez de hex novo, ex: bg-brand-primary/10, /5, /15, border-brand-primary/35
- *   bg-brand-primary-tint -> azul claro #DCE1FF (fundo de ícones/badges sobre brand-primary; não é uma opacidade do brand-primary, é tom próprio)
+ * MARCA (valor fixo, não muda no dark — fica fora de --primary/--secondary pra não quebrar variantes do shadcn)
+ *   brand-primary        #2E7BFF — ações, links/ícones ativos, CTA principal
+ *   brand-secondary      #03206E — fundo escuro de destaque, títulos fortes, CTA escuro
+ *   brand-*-foreground   branco — texto/ícone em cima das duas acima
+ *   brand-primary-tint   #DCE1FF — fundo de ícone/badge (tom próprio, não é opacidade do primary)
+ *   tint leve genérico: use opacidade (bg-brand-primary/10) em vez de criar hex novo
  *
- * Neutros/semânticos (shadcn, já mapeados para light/dark automaticamente):
- *   bg-background / text-foreground     -> fundo e texto padrão da página
- *   bg-card / text-card-foreground      -> cards
- *   bg-muted / text-muted-foreground    -> texto secundário, fundos sutis (substitui gray-* e slate-* claros)
- *   border-border                       -> bordas (substitui border-gray-* e border-slate-*)
- *   text-destructive / bg-destructive   -> erros, ações destrutivas (substitui red-*)
+ * NEUTROS (shadcn, já reagem a light/dark sozinhos)
+ *   background / foreground     fundo e texto padrão da página
+ *   card / card-foreground      cards, painéis, blocos flutuantes sobre o background
+ *   muted / muted-foreground    fundo sutil e texto secundário — substitui gray-/slate- claros e médios
+ *   secondary / secondary-fg    só pra Button variant="secondary"; não usar em conteúdo só porque "é a mesma cor" de muted
+ *   border                      borda neutra sutil — substitui border-gray-/slate-
+ *   destructive                 erro/ação destrutiva — substitui red-*
+ *   popover / accent / ring     uso interno dos componentes shadcn; raro escrever à mão
  *
- * Gráficos (recharts recebe cor via prop JS fill/stroke, não aceita classe Tailwind — usar o hex que espelha o token):
- *   --color-chart-grid #E5E7EB -> linhas de grid e bordas sutis de gráficos.
+ * ESPECIAIS
+ *   sidebar-border (e demais sidebar-*)   dentro de <Sidebar>, usar essas em vez de border/muted genéricos
+ *   input-border-strong                   borda grossa intencional dos inputs de login/registro (= foreground, já reage a dark)
+ *   chart-grid #E5E7EB                    grid dos gráficos recharts — recharts não lê classe Tailwind, então usa o hex
+ *                                          direto no componente, comentado apontando pra cá
  *
- * border-input-border-strong -> borda escura/grossa intencional dos inputs de login/registro (equivale a text-foreground,
- *   já reage a dark mode). Não usar border-border ali: border-border é sutil/clara e descaracteriza o campo.
- *
- * Cores fora desse conjunto (ex: tons únicos usados 1x) devem virar token novo aqui, não hex solto no componente.
+ * Token novo: cor de marca ou uso pontual = valor fixo em @theme inline. Cor que precisa variar por tema = declarar
+ * em :root/.dark e expor como --color-x: var(--x) (ou aliasar outro token, ex. --color-input-border-strong: var(--foreground)).
  */
+ 
 @theme inline {
     --font-heading: var(--font-sans);
     --font-sans: 'Geist Variable', sans-serif;
