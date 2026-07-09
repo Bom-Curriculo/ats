@@ -55,7 +55,7 @@ export function Header() {
   });
 
   return (
-    <header className="border-b border-gray-300 bg-gray-50 px-6 py-4 dark:border-blue-800 dark:bg-[#03206E]">
+    <header className="border-b border-gray-300 bg-gray-50 px-6 py-4 dark:border-brand-primary/30 dark:bg-brand-secondary">
       <div className="mx-auto flex max-w-8xl items-center justify-between">
         <div className="flex items-center gap-2">
           <img
@@ -71,7 +71,7 @@ export function Header() {
           />
 
           <h1 className="text-xl font-bold md:text-2xl">
-            Bom<span className="text-blue-600">Curriculo</span>
+            Bom<span className="text-brand-primary">Curriculo</span>
           </h1>
         </div>
 
@@ -84,8 +84,8 @@ export function Header() {
                     to={to}
                     end={to === "/"}
                     className={({ isActive }) =>
-                      `transition hover:text-blue-600 ${
-                        isActive ? "text-blue-600" : ""
+                      `transition hover:text-brand-primary ${
+                        isActive ? "text-brand-primary" : ""
                       }`
                     }
                   >
@@ -112,12 +112,12 @@ export function Header() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-3 rounded-none border px-3 py-2 shadow-sm transition-all">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-200 font-semibold text-blue-600">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-200 font-semibold text-brand-primary">
                     {user.name.charAt(0).toUpperCase()}
                   </div>
 
                   <div className="text-left">
-                    <p className="text-sm font-medium text-blue-600">
+                    <p className="text-sm font-medium text-brand-primary">
                       {user.name}
                     </p>
 
@@ -157,14 +157,14 @@ export function Header() {
           ) : (
             <Link
               to="/login"
-              className="flex items-center gap-2 rounded-xl bg-gray-100 px-4 py-2 transition hover:bg-gray-200 dark:bg-[#03206E]/90"
+              className="flex items-center gap-2 rounded-xl bg-gray-100 px-4 py-2 transition hover:bg-gray-200 dark:bg-brand-secondary/90"
             >
               <User2 className="h-5 w-5" />
               Entrar
             </Link>
           )}
 
-          <Bell className="cursor-pointer text-gray-700 hover:text-blue-600 dark:text-gray-300" />
+          <Bell className="cursor-pointer text-gray-700 hover:text-brand-primary dark:text-gray-300" />
 
           <ModeToggle />
         </div>
@@ -192,8 +192,8 @@ export function Header() {
                       end={to === "/"}
                       onClick={() => setOpenMenu(false)}
                       className={({ isActive }) =>
-                        `hover:text-blue-600 ${
-                          isActive ? "text-blue-600" : ""
+                        `hover:text-brand-primary ${
+                          isActive ? "text-brand-primary" : ""
                         }`
                       }
                     >

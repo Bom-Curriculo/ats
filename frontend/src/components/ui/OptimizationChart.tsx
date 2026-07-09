@@ -6,13 +6,13 @@ const data = [
   { name: "Pendente", value: 25 },
 ];
 
-const COLORS = ["#3b82f6", "#e5e7eb"];
+const COLORS = ["#2e7bff", "#e5e7eb"];
 
 export function OptimizationChart() {
   return (
     <div className="flex flex-col items-center">
 
-      <Badge className="mb-4 bg-blue-600 text-white">
+      <Badge className="mb-4 bg-brand-primary text-white">
         MÉDIA GLOBAL
       </Badge>
 
@@ -33,7 +33,7 @@ export function OptimizationChart() {
   </PieChart>
 
   <div className="absolute inset-0 flex flex-col items-center justify-center">
-    <span className="text-4xl font-bold text-blue-700">
+    <span className="text-4xl font-bold text-brand-primary">
       75%
     </span>
 

@@ -87,8 +87,8 @@ export default function AppSidebar() {
                 alt="BomCurriculo"
                 className="hidden h-10 w-auto dark:block"
               />
-              <h1 className="text-[#03206E] dark:text-white flex items-center text-xl gap-1 font-semibold">
-                Bom<span className="text-blue-500"> Currículo</span>
+              <h1 className="text-brand-secondary dark:text-white flex items-center text-xl gap-1 font-semibold">
+                Bom<span className="text-brand-primary"> Currículo</span>
               </h1>
             </div>
             <span className="text-gray-400 text-sm">Otimização ATS</span>
@@ -102,7 +102,7 @@ export default function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
-                    className="py-4 hover:bg-[#03206E] dark:hover:bg-blue-500 "
+                    className="py-4 hover:bg-brand-secondary dark:hover:bg-brand-primary "
                   >
                     <a
                       href={item.url}
@@ -120,7 +120,7 @@ export default function AppSidebar() {
       </SidebarContent>
       <footer className="p-4">
         <div className="flex flex-col gap-2">
-          <Button className="bg-[#03206E] dark:bg-blue-500 p-6 hover:bg-[#03206E]">
+          <Button className="bg-brand-secondary dark:bg-brand-primary p-6 hover:bg-brand-secondary">
             {/** Tds os botoes aqui criar o component */} <Plus /> Novo
             Currículo
           </Button>

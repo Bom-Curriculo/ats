@@ -17,17 +17,17 @@ export default function AISuggestion({
   return (
     <aside
       aria-label="Sugestão da IA"
-      className="mt-6 flex flex-col lg:flex-row lg:items-center gap-4 border-l-4 border-[#2E7BFF] bg-[#EFF4FF] p-5 sm:p-6"
+      className="mt-6 flex flex-col lg:flex-row lg:items-center gap-4 border-l-4 border-brand-primary bg-brand-primary/10 p-5 sm:p-6"
     >
       <div className="flex items-start md:items-center justify-center gap-4 sm:flex-1">
         <span
           aria-hidden="true"
-          className="hidden sm:flex size-10 lg:size-12 shrink-0 items-center justify-center rounded-full bg-[#2E7BFF] text-white"
+          className="hidden sm:flex size-10 lg:size-12 shrink-0 items-center justify-center rounded-full bg-brand-primary text-white"
         >
           <Bot className="size-5 lg:size-7" />
         </span>
         <div>
-          <h3 className="font-bold text-sm lg:text-base xl:text-lg text-[#03206E]">
+          <h3 className="font-bold text-sm lg:text-base xl:text-lg text-brand-secondary">
             Dica da IA para o seu currículo de {role}
           </h3>
           <p className="mt-1 text-xs lg:text-sm xl:text-base text-gray-600">
@@ -39,7 +39,7 @@ export default function AISuggestion({
       <Button
         type="button"
         onClick={onOptimize}
-        className="h-9 lg:h-11 shrink-0 rounded-lg bg-[#03206E] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#03206E]/90 "
+        className="h-9 lg:h-11 shrink-0 rounded-lg bg-brand-secondary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-secondary/90 "
       >
         Otimizar agora
       </Button>

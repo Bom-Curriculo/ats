@@ -46,7 +46,7 @@ export default function Register() {
   return (
     <section className="flex min-h-screen items-center justify-center bg-slate-100 p-4 md:p-6">
       <div className="flex w-full max-w-7xl overflow-hidden bg-white shadow-2xl">
-        <div className="hidden w-1/2 flex-col bg-[#03206E] p-12 text-white lg:flex">
+        <div className="hidden w-1/2 flex-col bg-brand-secondary p-12 text-white lg:flex">
           <div className="mb-10 flex items-center gap-4">
             <div className="h-20 w-0.5 bg-white/60" />
 
@@ -54,7 +54,7 @@ export default function Register() {
 
             <div>
               <h1 className="text-5xl font-bold">
-                Bom<span className="text-blue-400">Currículo</span>
+                Bom<span className="text-brand-primary">Currículo</span>
               </h1>
 
               <p className="mt-2 text-xl text-white/80">
@@ -67,7 +67,7 @@ export default function Register() {
             <h2 className="text-4xl font-bold leading-tight">
               Impulsione sua carreira
               <br />
-              com <span className="text-blue-400">Inteligência Artificial</span>
+              com <span className="text-brand-primary">Inteligência Artificial</span>
             </h2>
 
             <p className="mt-6 max-w-lg text-lg text-white/70">
@@ -78,7 +78,7 @@ export default function Register() {
 
           <div className="space-y-6">
             <div className="flex items-start gap-4">
-              <CircleCheck className="mt-1 h-6 w-6 shrink-0 text-blue-400" />
+              <CircleCheck className="mt-1 h-6 w-6 shrink-0 text-brand-primary" />
 
               <div>
                 <h3 className="font-semibold">
@@ -93,7 +93,7 @@ export default function Register() {
             </div>
 
             <div className="flex items-start gap-4">
-              <CircleCheck className="mt-1 h-6 w-6 shrink-0 text-blue-400" />
+              <CircleCheck className="mt-1 h-6 w-6 shrink-0 text-brand-primary" />
 
               <div>
                 <h3 className="font-semibold">Otimização de Keywords</h3>
@@ -117,7 +117,7 @@ export default function Register() {
               Comece sua jornada profissional.{" "}
               <Link
                 to="/login"
-                className="font-medium text-[#03206E] hover:underline"
+                className="font-medium text-brand-secondary hover:underline"
               >
                 Já possui conta?
               </Link>
@@ -130,7 +130,7 @@ export default function Register() {
                 </label>
 
                 <Input
-                  className="h-12 rounded-none border-slate-900 bg-slate-50 text-[#03206E] focus-visible:ring-blue-600 sm:h-14"
+                  className="h-12 rounded-none border-slate-900 bg-slate-50 text-brand-secondary focus-visible:ring-brand-primary sm:h-14"
                   placeholder="Ex: João Silva"
                   {...register("name")}
                 />
@@ -148,7 +148,7 @@ export default function Register() {
                 </label>
 
                 <Input
-                  className="h-12 rounded-none border-slate-900 bg-slate-50 text-[#03206E] focus-visible:ring-blue-600 sm:h-14"
+                  className="h-12 rounded-none border-slate-900 bg-slate-50 text-brand-secondary focus-visible:ring-brand-primary sm:h-14"
                   placeholder="seu@email.com"
                   {...register("email")}
                 />
@@ -168,7 +168,7 @@ export default function Register() {
                 <div className="relative">
                   <Input
                     type={showPassword ? "text" : "password"}
-                    className="h-12 rounded-none border-slate-900 bg-slate-50 pr-12 text-[#03206E] focus-visible:ring-blue-600 sm:h-14"
+                    className="h-12 rounded-none border-slate-900 bg-slate-50 pr-12 text-brand-secondary focus-visible:ring-brand-primary sm:h-14"
                     placeholder="Mínimo 8 caracteres"
                     {...register("password")}
                   />
@@ -176,7 +176,7 @@ export default function Register() {
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#03206E] hover:text-slate-600"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-secondary hover:text-slate-600"
                     tabIndex={-1}
                   >
                     {showPassword ? (
@@ -202,7 +202,7 @@ export default function Register() {
                 <div className="relative">
                   <Input
                     type={showConfirmPassword ? "text" : "password"}
-                    className="h-12 rounded-none border-slate-900 bg-slate-50 pr-12 text-[#03206E] focus-visible:ring-blue-600 sm:h-14"
+                    className="h-12 rounded-none border-slate-900 bg-slate-50 pr-12 text-brand-secondary focus-visible:ring-brand-primary sm:h-14"
                     placeholder="Repita sua senha"
                     {...register("password_confirm")}
                   />
@@ -237,11 +237,11 @@ export default function Register() {
 
                 <label htmlFor="terms" className="text-sm text-slate-600">
                   Li e aceito os{" "}
-                  <a href="/termo" className="text-blue-600 hover:underline">
+                  <a href="/termo" className="text-brand-primary hover:underline">
                     Termos de Uso
                   </a>{" "}
                   e{" "}
-                  <a href="/termos" className="text-blue-600 hover:underline">
+                  <a href="/termos" className="text-brand-primary hover:underline">
                     Privacidade
                   </a>
                   .
@@ -251,7 +251,7 @@ export default function Register() {
               <Button
                 type="submit"
                 disabled={mutation.isPending}
-                className="h-12 w-full rounded-none bg-[#03206E] text-base font-semibold text-white hover:bg-[#03206E]/90 sm:h-14 sm:text-lg"
+                className="h-12 w-full rounded-none bg-brand-secondary text-base font-semibold text-white hover:bg-brand-secondary/90 sm:h-14 sm:text-lg"
               >
                 {mutation.isPending ? "Entrando..." : "Finalizar Cadastro"}
               </Button>
