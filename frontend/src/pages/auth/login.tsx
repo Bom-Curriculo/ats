@@ -23,7 +23,7 @@ export function Login() {
 
     onSuccess: () => {
       toast.success("Usuario autenticado com sucesso!");
-      navigate("/");
+      navigate("/dashboard");
     },
 
     onError: (error: Error) => {

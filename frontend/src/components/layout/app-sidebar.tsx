@@ -27,7 +27,7 @@ import { useNavigate } from "react-router-dom";
 const items = [
   {
     title: "Visão Geral",
-    url: "/",
+    url: "/dashboard",
     icon: LayoutDashboard,
   },
   {
