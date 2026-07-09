@@ -1,89 +1,41 @@
 services:
-
-  frontend:
-    container_name: bomcurriculo-frontend
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    restart: always
+  postgres:
+    image: postgres:16-alpine
+    container_name: bomcurriculo-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: atsdatabase
+      POSTGRES_USER: ats
+      POSTGRES_PASSWORD: ats
     ports:
-      - "5173:5173"
+      - "5434:5432"
     volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    env_file:
-      - path: ./frontend/.env
-        required: false
-    networks:
-      - bomcurriculo
-
-  backend:
-    container_name: bomcurriculo-backend
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    restart: always
-    working_dir: /var/www/html
-    volumes:
-      - ./backend:/var/www/html
-    env_file:
-      - path: ./backend/.env
-        required: false
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-    expose:
-      - "9000"
-    networks:
-      - bomcurriculo
-
-  nginx:
-    image: nginx:1.28-alpine
-    container_name: bomcurriculo-nginx
-    restart: always
-    depends_on:
-      - backend
-    ports:
-      - "8080:80"
-    volumes:
-      - ./backend:/var/www/html
-      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-    networks:
-      - bomcurriculo
-
-  bot:
-    container_name: bomcurriculo-bot
-    build:
-      context: ./bot
-      dockerfile: Dockerfile
-    restart: always
-    ports:
-      - "8000:8000"
-    env_file:
-      - path: ./bot/.env
-        required: false
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ats -d atsdatabase"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     networks:
       - bomcurriculo
 
   rabbitmq:
     image: rabbitmq:4-management-alpine
     container_name: bomcurriculo-rabbitmq
-    restart: always
+    restart: unless-stopped
     hostname: bomcurriculo-rabbitmq
-    ports:
-      - "5672:5672"
-      - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-bomcurriculo}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-bomcurriculo}
       RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-/}
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
     command: >
       sh -c "rabbitmq-plugins enable --offline rabbitmq_prometheus && rabbitmq-server"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 15s
@@ -92,10 +44,85 @@ services:
     networks:
       - bomcurriculo
 
+  backend:
+    container_name: bomcurriculo-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./backend:/var/www/html
+    env_file:
+      - ./backend/.env
+    ports:
+      - "9000:9000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - bomcurriculo
+
+  redis:
+    image: redis:7-alpine
+    container_name: bomcurriculo-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bomcurriculo
+  frontend:
+    container_name: bomcurriculo-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+    env_file:
+      - ./frontend/.env
+    depends_on:
+      - backend
+    networks:
+      - bomcurriculo
+
+  bot:
+    container_name: bomcurriculo-bot
+    build:
+      context: ./bot
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./bot/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - bomcurriculo
+
   loki:
     image: grafana/loki:3.3.2
     container_name: bomcurriculo-loki
-    restart: always
+    restart: unless-stopped
     command: -config.file=/etc/loki/loki-config.yml
     volumes:
       - ./observability/loki/loki-config.yml:/etc/loki/loki-config.yml:ro
@@ -106,7 +133,7 @@ services:
   promtail:
     image: grafana/promtail:3.3.2
     container_name: bomcurriculo-promtail
-    restart: always
+    restart: unless-stopped
     command: -config.file=/etc/promtail/promtail-config.yml
     volumes:
       - ./observability/promtail/promtail-config.yml:/etc/promtail/promtail-config.yml:ro
@@ -120,20 +147,22 @@ services:
   prometheus:
     image: prom/prometheus:v3.1.0
     container_name: bomcurriculo-prometheus
-    restart: always
+    restart: unless-stopped
     command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.retention.time=60d
     volumes:
       - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
+    depends_on:
+      - cadvisor
     networks:
       - bomcurriculo
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:v0.49.1
     container_name: bomcurriculo-cadvisor
-    restart: always
+    restart: unless-stopped
     privileged: true
     devices:
       - /dev/kmsg
@@ -142,6 +171,7 @@ services:
       - /var/run:/var/run:ro
       - /sys:/sys:ro
       - /var/lib/docker:/var/lib/docker:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
       - /dev/disk:/dev/disk:ro
     networks:
       - bomcurriculo
@@ -149,7 +179,7 @@ services:
   grafana:
     image: grafana/grafana:11.4.0
     container_name: bomcurriculo-grafana
-    restart: always
+    restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
@@ -170,7 +200,10 @@ networks:
     driver: bridge
 
 volumes:
+  postgres_data:
   rabbitmq_data:
+  frontend_node_modules:
   loki_data:
   prometheus_data:
   grafana_data:
+  redis_data:
