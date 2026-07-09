@@ -29,7 +29,7 @@ export default function Card({
       <header className="flex items-start justify-between gap-3">
         <div
           aria-hidden="true"
-          className="flex size-10 md:size-12 shrink-0 items-center justify-center rounded-xl bg-[#DCE1FF]"
+          className="flex size-10 md:size-12 shrink-0 items-center justify-center rounded-xl bg-brand-primary-tint"
         >
           <FileText className="size-6 text-brand-secondary" />
         </div>

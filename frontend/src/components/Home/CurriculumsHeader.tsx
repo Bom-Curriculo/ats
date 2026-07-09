@@ -12,12 +12,12 @@ export default function CurriculumsHeader() {
         <div className="flex w-full items-center gap-3 md:contents">
           <div
             role="status"
-            className="flex h-9 min-w-0 flex-1 items-center justify-center gap-2 rounded-lg bg-[#DCE1FF] px-2.5 text-sm font-medium whitespace-nowrap text-[#001550] md:flex-none md:px-4 lg:h-11"
+            className="flex h-9 min-w-0 flex-1 items-center justify-center gap-2 rounded-lg bg-brand-primary-tint px-2.5 text-sm font-medium whitespace-nowrap text-brand-secondary md:flex-none md:px-4 lg:h-11"
           >
             <List className="size-4 shrink-0" />
             <span className="truncate">2/5 Currículos</span>
           </div>
-          <Button className="h-9 lg:h-11 min-w-0 flex-1 gap-2 md:px-4 bg-[#D3E4FE] text-[#00072B] hover:bg-[#D3E4FE]/90 md:flex-none">
+          <Button className="h-9 lg:h-11 min-w-0 flex-1 gap-2 md:px-4 bg-brand-primary-tint text-brand-secondary hover:bg-brand-primary-tint/90 md:flex-none">
             <ListFilter className="size-4 shrink-0" />
             <span className="truncate">Filtrar</span>
           </Button>
