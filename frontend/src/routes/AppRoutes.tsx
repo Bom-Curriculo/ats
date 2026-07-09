@@ -6,6 +6,7 @@ import Register from "@/pages/auth/register";
 import Dashboard from "@/pages/dashboard/Dashboard";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { ProtectedRoute } from "@/components/protectRouter";
+import MyCurriculum from "@/pages/dashboard/my-curriculum/MyCurriculum";
 
 export function AppRoutes() {
   return (
@@ -18,6 +19,7 @@ export function AppRoutes() {
         <Route element={<DashboardLayout />}>
           <Route path="/" element={<Dashboard />} />
           <Route path="/Dashboard" element={<Dashboard />} />
+          <Route path="/my-curriculum" element={<MyCurriculum />} />
         </Route>
       </Route>
     </Routes>

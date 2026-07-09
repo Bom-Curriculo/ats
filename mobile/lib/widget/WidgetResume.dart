@@ -1,6 +1,7 @@
 
 import 'package:bomcurriculo/view/resume/ViewGenerateResume.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../service/API.dart';
 
@@ -49,12 +50,13 @@ class _WidgetResume extends State<WidgetResume> {
     return GestureDetector(
       onTap: () async {
         if (widget.type=='analyze') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const ViewGenerateResume(),
-            ),
-          );
+          context.go("/resume/generate-resume");
+          //Navigator.push(
+          //  context,
+          //  MaterialPageRoute(
+          //    builder: (context) => const ViewGenerateResume(),
+          //  ),
+          //);
         } else if (widget.type=='ready') {
             final file = await API().download(
               widget.downloadURL,

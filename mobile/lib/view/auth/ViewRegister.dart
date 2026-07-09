@@ -5,6 +5,7 @@ import 'package:bomcurriculo/util/Translation.dart';
 import 'package:bomcurriculo/view/ViewHome.dart';
 import 'package:bomcurriculo/view/auth/ViewLogin.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../service/API.dart';
 import '../../service/DB.dart';
@@ -102,12 +103,15 @@ class _ViewRegister extends State<ViewRegister> {
         errorText = '';
       });
 
+      final fcm = await DB.instance.getFCM();
+
       API api = API();
       var response = await api.post('auth/register', {
         'name': controllerName.text,
         'email': controllerEmail.text,
         'password': controllerPassword.text,
-        'password_confirm': controllerRetypePassword.text
+        'password_confirm': controllerRetypePassword.text,
+        'fcm': fcm
       });
 
       var body = jsonDecode(response.body);
@@ -118,10 +122,11 @@ class _ViewRegister extends State<ViewRegister> {
         }
         String user = jsonEncode(body['data']['user']);
         await DB.instance.saveUser(user);
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const ViewHome()),
-        );
+        context.go("/");
+        //Navigator.push(
+        //  context,
+        //  MaterialPageRoute(builder: (context) => const ViewHome()),
+        //);
         
       } else if (response.statusCode==422) {
 
@@ -195,10 +200,11 @@ class _ViewRegister extends State<ViewRegister> {
           SizedBox(height: 30.0),
           GestureDetector(
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ViewLogin()),
-              );
+              context.go("/auth/login");
+              //Navigator.push(
+              //  context,
+              //  MaterialPageRoute(builder: (context) => const ViewLogin()),
+              //);
             },
             child: Text(Translation.instance.translate('Back to login')),
           ),

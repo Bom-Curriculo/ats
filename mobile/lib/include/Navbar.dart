@@ -70,13 +70,15 @@ class _NavbarState extends State<Navbar> {
 
     await getLogged();
 
-    //context.go("/auth/login");
+    context.go("/auth/login");
+    /*
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => const ViewLogin(),
       ),
     );
+     */
   }
 
   @override
@@ -88,14 +90,17 @@ class _NavbarState extends State<Navbar> {
         {
           'title': Translation.instance.translate('Login'),
           'widget': const ViewLogin(),
+          'action': () async => context.go("/auth/login")
         },
         {
           'title': Translation.instance.translate('Register'),
           'widget': const ViewRegister(),
+          'action': () async => context.go("/auth/register")
         },
         {
           'title': Translation.instance.translate('Forgot password'),
           'widget': const ViewForgotPassword(),
+          'action': () async => context.go("/auth/forgot-password")
         }
       ];
     } else {
@@ -103,14 +108,17 @@ class _NavbarState extends State<Navbar> {
         {
           'title': Translation.instance.translate('Home'),
           'widget': const ViewHome(),
+          'action': () async => context.go("/")
         },
         {
           'title': Translation.instance.translate('New resume'),
           'widget': const ViewNewResume(),
+          'action': () async => context.go("/resume/new-resume")
         },
         {
           'title': Translation.instance.translate('Generate resume'),
           'widget': const ViewGenerateResume(),
+          'action': () async => context.go("/resume/generate-resume")
         },
         {
           'title': Translation.instance.translate('Logout'),
@@ -126,13 +134,17 @@ class _NavbarState extends State<Navbar> {
       titleSpacing: 11.0,
       title: GestureDetector(
         onTap: () {
-          //context.go("/");
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => isLogged?ViewHome():ViewLogin(),
-            ),
-          );
+          if (isLogged) {
+            context.go("/");
+          } else {
+            context.go("/auth/login");
+          }
+          //Navigator.push(
+          //  context,
+          //  MaterialPageRoute(
+          //    builder: (context) => isLogged?ViewHome():ViewLogin(),
+          //  ),
+          //);
         },
         child: Text(
           appTitle,
@@ -154,11 +166,10 @@ class _NavbarState extends State<Navbar> {
               item();
               return;
             }
-
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => item as Widget),
-            );
+            //Navigator.push(
+            //  context,
+            //  MaterialPageRoute(builder: (_) => item as Widget),
+            //);
           },
           itemBuilder: (BuildContext context) {
             return links.map((link) {
