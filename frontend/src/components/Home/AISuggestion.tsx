@@ -27,8 +27,8 @@ export default function AISuggestion({
           <Bot className="size-5 lg:size-7" />
         </span>
         <div>
-          <h3 className="font-bold text-sm lg:text-base text-[#03206E]">Dica da IA para o seu currículo de {role}</h3>
-          <p className="mt-1 text-xs lg:text-sm text-gray-600">
+          <h3 className="font-bold text-sm lg:text-base xl:text-lg text-[#03206E]">Dica da IA para o seu currículo de {role}</h3>
+          <p className="mt-1 text-xs lg:text-sm xl:text-base text-gray-600">
             Identificamos que a palavra-chave "{keyword}" está em alta para as vagas que você analisa. Adicione
             experiências relacionadas para aumentar seu ATS score em até {scoreIncrease}%.
           </p>
