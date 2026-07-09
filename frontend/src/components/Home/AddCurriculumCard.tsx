@@ -34,10 +34,10 @@ export default function AddCurriculumCard({
     <button
       type="button"
       onClick={onCreate}
-      className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-[#B9C6FF] bg-[#F5F7FF] p-8 text-center transition-colors hover:border-[#1A56DB] hover:bg-[#EEF1FF]"
+      className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-[#B9C6FF] bg-[#F5F7FF] p-8 text-center transition-colors hover:border-[#2E7BFF] hover:bg-[#EEF1FF]"
     >
       <span aria-hidden="true" className="flex size-12 items-center justify-center rounded-full bg-[#DCE1FF]">
-        <CirclePlus className="size-5 text-[#1A56DB]" />
+        <CirclePlus className="size-5 text-[#2E7BFF]" />
       </span>
       <span className="block font-bold text-[#03206E]">Criar Novo Currículo</span>
       <span className="block text-sm text-gray-500">

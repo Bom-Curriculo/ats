@@ -3,7 +3,7 @@ import { Button } from "../ui/button";
 
 export default function CurriculumsHeader() {
   return (
-    <header className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+    <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
       <div>
         <h1 className="text-2xl lg:text-3xl font-bold text-[#03206E] tracking-wide">Meus Currículos</h1>
         <span className="text-sm lg:text-base text-gray-600">Gerencie e otimize suas aplicações para o mercado</span>
@@ -22,7 +22,7 @@ export default function CurriculumsHeader() {
             <span className="truncate">Filtrar</span>
           </Button>
         </div>
-        <Button className="w-full h-9 lg:h-11 gap-2 md:px-4 bg-[#1A56DB] text-white hover:bg-[#1A56DB]/90 md:w-auto">
+        <Button className="w-full h-9 lg:h-11 gap-2 md:px-4 bg-[#2E7BFF] text-white hover:bg-[#2E7BFF]/90 md:w-auto">
           <Plus className="size-4" />
           <span className="truncate">Adicionar Currículo</span>
         </Button>

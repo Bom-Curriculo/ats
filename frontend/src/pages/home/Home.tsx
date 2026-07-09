@@ -35,13 +35,13 @@ const curriculums: (CurriculumCardProps & { id: string })[] = [
     updatedLabel: "há 3 dias",
     tags: ["Python", "Pandas", "SQL", "Machine Learning", "TensorFlow", "Power BI"],
   },
-  {
-    id: "5",
-    fileName: "Curriculo_DevOps_Engineer.pdf",
-    matchPercentage: 88,
-    updatedLabel: "há 6 horas",
-    tags: ["AWS", "Kubernetes", "Docker", "Terraform", "CI/CD", "Linux"],
-  },
+  // {
+  //   id: "5",
+  //   fileName: "Curriculo_DevOps_Engineer.pdf",
+  //   matchPercentage: 88,
+  //   updatedLabel: "há 6 horas",
+  //   tags: ["AWS", "Kubernetes", "Docker", "Terraform", "CI/CD", "Linux"],
+  // },
 ];
 
 export default function Home() {
@@ -50,7 +50,7 @@ export default function Home() {
       <Header />
       <div className="p-6">
         <CurriculumsHeader />
-        <section aria-label="Lista de currículos" className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-3">
+        <section aria-label="Lista de currículos" className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
           {curriculums.map(({ id, ...card }) => (
             <Card key={id} {...card} />
           ))}
