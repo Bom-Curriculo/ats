@@ -30,3 +30,7 @@ Route::middleware('auth:system')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+Route::get('/teste', function(){
+
+});

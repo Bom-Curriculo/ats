@@ -35,4 +35,14 @@ return [
         ],
     ],
 
+    'firebase' => [
+        'mobile' => [
+            'credential' => [
+                'projectId' => '',
+                'clientEmail' => '',
+                'privateKey' => '',
+            ]
+        ],
+    ],
+
 ];
