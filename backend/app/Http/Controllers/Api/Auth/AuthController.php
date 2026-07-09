@@ -23,6 +23,10 @@ class AuthController extends Controller
 
         $user = User::query()->where('email', $request->email)->first();
 
+        if (! $user || ! Hash::check($request->password, $user->password)) {
+            return ResponseData::error('Invalid credentials', ['Email or password is incorrect'], 401);
+        }
+
         if($request->filled('fcm'))
         {
             $fcm = $user->devices()->where('fcm_token', $request->fcm)->exists();
@@ -31,10 +35,6 @@ class AuthController extends Controller
                     'fcm_token' => $request->fcm,
                 ]);
             }
-        }
-
-        if (! $user || ! Hash::check($request->password, $user->password)) {
-            return ResponseData::error('Invalid credentials', ['Email or password is incorrect'], 401);
         }
 
         $token = $user->createToken('api-token')->plainTextToken;
