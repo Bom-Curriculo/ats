@@ -2,6 +2,7 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 class DB {
+
   static const String _databaseName = "database.db";
   static const int _databaseVersion = 1;
 

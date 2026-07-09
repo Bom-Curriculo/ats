@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:bomcurriculo/include/BodyAuth.dart';
+import 'package:bomcurriculo/util/Translation.dart';
 import 'package:bomcurriculo/view/ViewHome.dart';
 import 'package:bomcurriculo/view/auth/ViewLogin.dart';
 import 'package:flutter/material.dart';
@@ -33,6 +34,17 @@ class _ViewRegister extends State<ViewRegister> {
   String errorRetypePassword='';
   String errorText='';
 
+  void getTranslation() async {
+    await Translation.instance.load("pt-BR");
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getTranslation();
+  }
+
   void doRegister() async {
 
     bool error = false;
@@ -48,28 +60,28 @@ class _ViewRegister extends State<ViewRegister> {
 
     // Valida nome
     if (controllerName.text=="") {
-      errorName = 'Type your name';
+      errorName = Translation.instance.translate('Type your name');
       error = true;
     }
 
     // Valida email
     if (controllerEmail.text=="") {
-      errorEmail = 'Type your email';
+      errorEmail = Translation.instance.translate('Type your email');
       error = true;
     } else if (!Validation().isEmail(controllerEmail.text)) {
-      errorEmail = 'Incorrect email';
+      errorEmail = Translation.instance.translate('Incorrect email');
       error = true;
     }
 
     // Valida senha
     if (controllerPassword.text=="") {
-      errorPassword='Type your password';
+      errorPassword=Translation.instance.translate('Type your password');
       error = true;
     } else if (controllerRetypePassword.text=="") {
-      errorRetypePassword='Retype your password';
+      errorRetypePassword=Translation.instance.translate('Retype your password');
       error = true;
     } else if (controllerPassword.text!=controllerRetypePassword.text) {
-      errorRetypePassword='Your password doesn\'t match';
+      errorRetypePassword=Translation.instance.translate('Your password doesn\'t match');
       error = true;
     }
 
@@ -110,14 +122,30 @@ class _ViewRegister extends State<ViewRegister> {
           context,
           MaterialPageRoute(builder: (context) => const ViewHome()),
         );
-      } else {
-        print(body);
+        
+      } else if (response.statusCode==422) {
+
+        final Map<String, dynamic> errors = body['data']['errors'];
+
+        final List<String> messages = [];
+
+        errors.forEach((key, value) {
+          if (value is List) {
+            messages.addAll(value.map((e) => e.toString()));
+          } else if (value != null) {
+            messages.add(value.toString());
+          }
+        });
+
+        final errorString = messages.join('\n');
+
         setState(() {
           loading=false;
           errorName = '';
           errorEmail = '';
           errorPassword='';
-          errorText=body['message'];
+          errorText=errorString;
+          //errorText=body['message'];
         });
       }
 
@@ -131,7 +159,7 @@ class _ViewRegister extends State<ViewRegister> {
       child: Column(
         children: [
           WidgetInputText(
-              title: 'Name',
+              title: Translation.instance.translate('Name'),
               controller: controllerName,
               error: errorName,
               maxLength: 128
@@ -143,26 +171,24 @@ class _ViewRegister extends State<ViewRegister> {
               maxLength: 64
           ),
           WidgetInputText(
-              title: 'Type your password',
+              title: Translation.instance.translate('Type your password'),
               controller: controllerPassword,
               error: errorPassword,
               isPassword: true,
               maxLength: 64
           ),
           WidgetInputText(
-              title: 'Retype your password',
+              title: Translation.instance.translate('Retype your password'),
               controller: controllerRetypePassword,
               error: errorRetypePassword,
               isPassword: true,
               maxLength: 64
           ),
-
           WidgetError(text:errorText),
-
           GestureDetector(
             onTap: doRegister,
             child: WidgetButton(
-                title: loading ? 'Loading...' : 'Register',
+                title: loading ? '${Translation.instance.translate('Loading')}...' : Translation.instance.translate('Register'),
                 color: loading ? Colors.black26 : Colors.blue
             ),
           ),
@@ -174,7 +200,7 @@ class _ViewRegister extends State<ViewRegister> {
                 MaterialPageRoute(builder: (context) => const ViewLogin()),
               );
             },
-            child: Text('Back to login'),
+            child: Text(Translation.instance.translate('Back to login')),
           ),
           SizedBox(height: 15.0),
         ],

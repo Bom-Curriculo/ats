@@ -3,49 +3,42 @@
 namespace App\Http\Controllers\Api\Auth;
 
 use App\Helpers\ResponseData;
+use App\Http\ApiRequests\Auth\{ LoginRequest, RegisterRequest, ResetPasswordRequest, VerifyOtpRequest, ForgotPasswordRequest };
 use App\Http\Controllers\Controller;
-
-use App\Http\ApiRequests\Auth\{
-    LoginRequest,
-    RegisterRequest,
-    ResetPasswordRequest,
-    VerifyOtpRequest,
-    ForgotPasswordRequest
-};
-
 use App\Mail\UserResetPasswordMail;
 use App\Models\PasswordResetOtp;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\{ Auth, Hash, Mail };
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
 
-    public function login(LoginRequest $request)
-    {
+   public function login(LoginRequest $request)
+{
+    try {
 
-        try{
-            if (!auth()->attempt($request->only('email', 'password'))) {
-                return ResponseData::error('Invalid credentials', ['Email or password is incorrect'], 401);
-            }
+        $user = User::where('email', $request->email)->first();
 
-            $user = auth()->user();
-            $token = $user->createToken('api-token')->plainTextToken;
-
-            return ResponseData::success('Login successful', [
-                'token' => $token,
-                'user'  => $user
-            ]);
-
-        }catch(Exception $e){
-            return ResponseData::error('Login failed', [$e->getMessage()], 500);
+        if (! $user || ! Hash::check($request->password, $user->password)) {
+            return ResponseData::error('Invalid credentials', ['Email or password is incorrect'], 401);
         }
 
+        $token = $user->createToken('api-token')->plainTextToken;
+
+        return ResponseData::success('Login successful', [
+            'token' => $token,
+            'user'  => $user
+        ]);
+
+    } catch (Exception $e) {
+
+        return ResponseData::error('Login failed', [$e->getMessage()], 500);
+        
     }
+}
 
     public function register(RegisterRequest $request)
     {
