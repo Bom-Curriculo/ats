@@ -17,8 +17,7 @@ export function AppRoutes() {
 
       <Route element={<ProtectedRoute />}>
         <Route element={<DashboardLayout />}>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/Dashboard" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/my-curriculum" element={<MyCurriculum />} />
         </Route>
       </Route>
