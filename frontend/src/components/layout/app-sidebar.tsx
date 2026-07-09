@@ -72,8 +72,8 @@ export default function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarContent className="border-b border-solid border-gray-300">
-        <div className="border-b border-gray-300 ">
+      <SidebarContent className="border-b border-solid border-sidebar-border">
+        <div className="border-b border-sidebar-border ">
           <div className="p-4 ">
             <div className="flex gap-1">
               <img
@@ -91,7 +91,7 @@ export default function AppSidebar() {
                 Bom<span className="text-brand-primary"> Currículo</span>
               </h1>
             </div>
-            <span className="text-gray-400 text-sm">Otimização ATS</span>
+            <span className="text-muted-foreground text-sm">Otimização ATS</span>
           </div>
         </div>
 
@@ -128,7 +128,7 @@ export default function AppSidebar() {
             <CircleQuestionMarkIcon size={16} /> <h1>Ajuda</h1>
           </div>
           <div className="flex gap-1 items-center">
-            <Button  onClick={() => logoutMutation.mutate()} className="text-red-500 bg-transparent hover:bg-transparent">
+            <Button  onClick={() => logoutMutation.mutate()} className="text-destructive bg-transparent hover:bg-transparent">
               <LogOut/> Desconectar
             </Button>
           </div>

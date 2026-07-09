@@ -25,6 +25,9 @@
  * Gráficos (recharts recebe cor via prop JS fill/stroke, não aceita classe Tailwind — usar o hex que espelha o token):
  *   --color-chart-grid #E5E7EB -> linhas de grid e bordas sutis de gráficos.
  *
+ * border-input-border-strong -> borda escura/grossa intencional dos inputs de login/registro (equivale a text-foreground,
+ *   já reage a dark mode). Não usar border-border ali: border-border é sutil/clara e descaracteriza o campo.
+ *
  * Cores fora desse conjunto (ex: tons únicos usados 1x) devem virar token novo aqui, não hex solto no componente.
  */
 @theme inline {
@@ -67,6 +70,7 @@
     --color-brand-secondary-foreground: #ffffff;
     --color-brand-secondary: #03206e;
     --color-chart-grid: #e5e7eb;
+    --color-input-border-strong: var(--foreground);
     --radius-sm: calc(var(--radius) * 0.6);
     --radius-md: calc(var(--radius) * 0.8);
     --radius-lg: var(--radius);

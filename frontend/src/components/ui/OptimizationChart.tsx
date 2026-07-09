@@ -37,7 +37,7 @@ export function OptimizationChart() {
       75%
     </span>
 
-    <span className="text-sm text-gray-500">
+    <span className="text-sm text-muted-foreground">
       ATS SCORE
     </span>
   </div>

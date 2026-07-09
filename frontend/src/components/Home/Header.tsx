@@ -146,7 +146,7 @@ export function Header() {
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem
-                  className="cursor-pointer text-red-500 rounded-none"
+                  className="cursor-pointer text-destructive rounded-none"
                   onClick={() => logoutMutation.mutate()}
                 >
                   <LogOut className="mr-2 h-4 w-4" />
@@ -233,7 +233,7 @@ export function Header() {
 
                 <button
                   onClick={() => logoutMutation.mutate()}
-                  className="flex items-center gap-2 text-red-500"
+                  className="flex items-center gap-2 text-destructive"
                 >
                   <LogOut size={18} />
                   Desconectar
