@@ -1,7 +1,6 @@
 export default function MyCurriculum() {
-  return(
+  return 
     <div>
       
     </div>
-  )
 }
