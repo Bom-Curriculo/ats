@@ -1,11 +1,11 @@
 import { UploadCloud } from "lucide-react";
 import { Button } from "../ui/button";
 
-interface HomeEmptyStateProps {
+interface UploadCurriculumProps {
   onUpload?: () => void;
 }
 
-export default function HomeEmptyState({ onUpload }: HomeEmptyStateProps) {
+export default function UploadCurriculum({ onUpload }: UploadCurriculumProps) {
   return (
     <div role="status" className="flex w-full flex-col items-center justify-center gap-4 rounded-2xl p-12 text-center">
       <span aria-hidden="true" className="flex size-14 items-center justify-center rounded-full bg-brand-primary-tint">

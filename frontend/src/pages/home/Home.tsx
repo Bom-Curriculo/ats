@@ -4,7 +4,7 @@ import Card, { type CurriculumCardProps } from "@/components/Home/Card";
 import AddCurriculumCard from "@/components/Home/AddCurriculumCard";
 import AISuggestion from "@/components/Home/AISuggestion";
 import { Skeleton } from "@/components/ui/skeleton";
-import HomeEmptyState from "@/components/Home/HomeEmptyState";
+import UploadCurriculum from "@/components/Home/UploadCurriculum";
 
 const CURRICULUM_LIMIT = 5;
 
@@ -65,7 +65,7 @@ export default function Home() {
           </section>
         ) : showEmptyState ? (
           <div className="flex flex-1 items-center justify-center">
-            <HomeEmptyState />
+            <UploadCurriculum />
           </div>
         ) : (
           <section
