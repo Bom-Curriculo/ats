@@ -67,7 +67,7 @@ export default function Home() {
           </section>
         ) : showEmptyState ? (
           <div className="flex flex-1 items-center justify-center">
-            <HomeEmptyState onUpload={() => navigate("/my-resume/upload")} />
+            <HomeEmptyState onUpload={() => navigate("/resume-upload")} />
           </div>
         ) : (
           <section
