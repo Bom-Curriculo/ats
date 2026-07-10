@@ -1,6 +1,6 @@
 import { ChartSpline, Clock, Download, FileText, Trash2, Zap } from "lucide-react";
 
-export interface CurriculumCardProps {
+export interface ResumeCardProps {
   fileName: string;
   matchPercentage: number;
   updatedLabel: string;
@@ -11,7 +11,7 @@ export interface CurriculumCardProps {
   onDelete?: () => void;
 }
 
-export default function Card({
+export default function ResumeCard({
   fileName,
   matchPercentage,
   updatedLabel,
@@ -20,7 +20,7 @@ export default function Card({
   onDownload,
   onMatch,
   onDelete,
-}: CurriculumCardProps) {
+}: ResumeCardProps) {
   const visibleTags = tags.slice(0, maxVisibleTags);
   const hiddenCount = tags.length - visibleTags.length;
 

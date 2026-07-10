@@ -1,14 +1,15 @@
+import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Home/Header";
-import CurriculumsHeader from "@/components/Home/CurriculumsHeader";
-import Card, { type CurriculumCardProps } from "@/components/Home/Card";
-import AddCurriculumCard from "@/components/Home/AddCurriculumCard";
+import ResumesHeader from "@/components/Home/ResumesHeader";
+import ResumeCard, { type ResumeCardProps } from "@/components/Home/ResumeCard";
+import AddResumeCard from "@/components/Home/AddResumeCard";
 import AISuggestion from "@/components/Home/AISuggestion";
 import { Skeleton } from "@/components/ui/skeleton";
-import UploadCurriculum from "@/components/Home/UploadCurriculum";
+import HomeEmptyState from "@/components/Home/HomeEmptyState";
 
-const CURRICULUM_LIMIT = 5;
+const RESUME_LIMIT = 5;
 
-const curriculums: (CurriculumCardProps & { id: string })[] = [
+const resumes: (ResumeCardProps & { id: string })[] = [
   {
     id: "1",
     fileName: "Curriculo_Engenheiro_Senior.pdf",
@@ -47,6 +48,7 @@ const curriculums: (CurriculumCardProps & { id: string })[] = [
 ];
 
 export default function Home() {
+  const navigate = useNavigate();
   const showEmptyState = true;
   const isLoading = false;
   const aiSuggestion = false;
@@ -55,7 +57,7 @@ export default function Home() {
     <div className="flex min-h-screen flex-col">
       <Header />
       <div className="flex flex-1 flex-col p-6">
-        {!showEmptyState && <CurriculumsHeader />}
+        {!showEmptyState && <ResumesHeader />}
 
         {isLoading ? (
           <section className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -65,17 +67,17 @@ export default function Home() {
           </section>
         ) : showEmptyState ? (
           <div className="flex flex-1 items-center justify-center">
-            <UploadCurriculum />
+            <HomeEmptyState onUpload={() => navigate("/my-resume/upload")} />
           </div>
         ) : (
           <section
             aria-label="Lista de currículos"
             className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3"
           >
-            {curriculums.map(({ id, ...card }) => (
-              <Card key={id} {...card} />
+            {resumes.map(({ id, ...card }) => (
+              <ResumeCard key={id} {...card} />
             ))}
-            <AddCurriculumCard isLimitReached={curriculums.length >= CURRICULUM_LIMIT} limit={CURRICULUM_LIMIT} />
+            <AddResumeCard isLimitReached={resumes.length >= RESUME_LIMIT} limit={RESUME_LIMIT} />
           </section>
         )}
 

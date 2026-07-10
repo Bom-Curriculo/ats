@@ -32,7 +32,7 @@ const items = [
   },
   {
     title: "Meus Curriculos",
-    url: "/my-curriculum",
+    url: "/my-resume",
     icon: FileText,
   },
   {

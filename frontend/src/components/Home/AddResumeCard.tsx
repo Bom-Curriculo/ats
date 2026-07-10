@@ -1,16 +1,16 @@
 import { CirclePlus, Lock } from "lucide-react";
 
-interface AddCurriculumCardProps {
+interface AddResumeCardProps {
   isLimitReached: boolean;
   limit?: number;
   onCreate?: () => void;
 }
 
-export default function AddCurriculumCard({
+export default function AddResumeCard({
   isLimitReached,
   limit = 5,
   onCreate,
-}: AddCurriculumCardProps) {
+}: AddResumeCardProps) {
   if (isLimitReached) {
     return (
       <article

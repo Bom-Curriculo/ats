@@ -117,7 +117,7 @@ export default function GeneralView() {
                     Meus Currículos
                 </h2>
                 <Link
-                    to="/my-curriculum"
+                    to="/my-resume"
                     className="text-brand-primary text-sm font-medium hover:underline"
                 >
                     Ver todos
