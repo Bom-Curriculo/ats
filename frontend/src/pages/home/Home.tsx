@@ -1,13 +1,18 @@
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { Header } from "@/components/Home/Header";
 import ResumesHeader from "@/components/Home/ResumesHeader";
-import ResumeCard, { type ResumeCardProps } from "@/components/Home/ResumeCard";
-import AddResumeCard from "@/components/Home/AddResumeCard";
+import { type ResumeCardProps } from "@/components/Home/ResumeCard";
 import AISuggestion from "@/components/Home/AISuggestion";
-import { Skeleton } from "@/components/ui/skeleton";
 import HomeEmptyState from "@/components/Home/HomeEmptyState";
+import ResumeListSkeleton from "@/components/Home/ResumeListSkeleton";
+import ResumeProcessingState from "@/components/Home/ResumeProcessingState";
+import ResumeList from "@/components/Home/ResumeList";
+import { ResumeUploadStage } from "@/components/resume-upload/ResumeUploadStage";
+import { useResumeFile } from "@/hooks/use-resume-file";
 
 const RESUME_LIMIT = 5;
+
+type OnboardingStage = "empty" | "uploading" | "processing";
 
 const resumes: (ResumeCardProps & { id: string })[] = [
   {
@@ -48,10 +53,21 @@ const resumes: (ResumeCardProps & { id: string })[] = [
 ];
 
 export default function Home() {
-  const navigate = useNavigate();
+  const [stage, setStage] = useState<OnboardingStage>("empty");
+  const { file, error, acceptedExtensions, maxSizeMB, selectFile, removeFile } = useResumeFile();
   const showEmptyState = true;
   const isLoading = false;
   const aiSuggestion = false;
+
+  function handleCancelUpload() {
+    removeFile();
+    setStage("empty");
+  }
+
+  function handleConfirmUpload() {
+    // envia o curriculo para o back
+    setStage("processing");
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -60,25 +76,26 @@ export default function Home() {
         {!showEmptyState && <ResumesHeader />}
 
         {isLoading ? (
-          <section className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {Array.from({ length: 3 }).map((_, index) => (
-              <Skeleton key={index} className="h-48 rounded-2xl" />
-            ))}
-          </section>
+          <ResumeListSkeleton />
+        ) : stage === "processing" ? (
+          <ResumeProcessingState />
+        ) : stage === "uploading" ? (
+          <ResumeUploadStage
+            file={file}
+            error={error}
+            acceptedExtensions={acceptedExtensions}
+            maxSizeMB={maxSizeMB}
+            onFileSelected={selectFile}
+            onRemoveFile={removeFile}
+            onCancel={handleCancelUpload}
+            onContinue={handleConfirmUpload}
+          />
         ) : showEmptyState ? (
           <div className="flex flex-1 items-center justify-center">
-            <HomeEmptyState onUpload={() => navigate("/resume-upload")} />
+            <HomeEmptyState onUpload={() => setStage("uploading")} />
           </div>
         ) : (
-          <section
-            aria-label="Lista de currículos"
-            className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3"
-          >
-            {resumes.map(({ id, ...card }) => (
-              <ResumeCard key={id} {...card} />
-            ))}
-            <AddResumeCard isLimitReached={resumes.length >= RESUME_LIMIT} limit={RESUME_LIMIT} />
-          </section>
+          <ResumeList resumes={resumes} limit={RESUME_LIMIT} />
         )}
 
         {aiSuggestion && <AISuggestion />}
