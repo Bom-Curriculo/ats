@@ -21,19 +21,19 @@ export default function GeneralView() {
                 <div>
                     <h1 className="text-4xl font-bold leading-tight">
                         Bem-vindo,{" "}
-                        <span className="text-blue-700">
+                        <span className="text-brand-primary">
                             {user?.name}
                         </span>
                     </h1>
 
-                    <p className="text-gray-500 mt-1">
+                    <p className="text-muted-foreground mt-1">
                         Seus currículos otimizados em um só lugar.
                     </p>
                 </div>
 
-                <div className="flex items-center gap-3 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5">
+                <div className="flex items-center gap-3 rounded-full border border-brand-primary/20 bg-brand-primary/5 px-3 py-1.5">
                     <Avatar className="size-8">
-                        <AvatarFallback className="size-full bg-blue-600 text-white text-xs font-semibold">
+                        <AvatarFallback className="size-full bg-brand-primary text-white text-xs font-semibold">
                             {user?.name?.[0]}
                         </AvatarFallback>
                     </Avatar>
@@ -50,19 +50,19 @@ export default function GeneralView() {
 
                 {/* PERFORMANCE */}
 
-                <div className="rounded-2xl border border-gray-200 bg-white p-6">
+                <div className="rounded-2xl border border-border bg-card p-6">
                     <div className="flex gap-8">
                         <div className="flex-shrink-0">
                             <OptimizationChart />
                         </div>
                         <div className="flex flex-col flex-1">
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-muted-foreground">
                                 Melhor que 92% dos candidatos
                             </p>
                             <h2 className="text-3xl font-bold mt-1">
                                 Performance Geral
                             </h2>
-                            <p className="mt-4 text-gray-600 leading-7">
+                            <p className="mt-4 text-muted-foreground leading-7">
                                 Sua pontuação média de otimização está excelente.
                                 Foque em adicionar palavras-chave específicas para
                                 as vagas de Product Designer para atingir a nota máxima.
@@ -83,7 +83,7 @@ export default function GeneralView() {
 
                 {/* IA */}
 
-                <div className="rounded-2xl border border-l-4 border-blue-600 bg-blue-50 p-6">
+                <div className="rounded-2xl border border-l-4 border-brand-primary bg-brand-primary/5 p-6">
                     <div className="flex items-center gap-3 mb-6">
                         ⭐
                         <h3 className="font-bold text-lg">
@@ -92,19 +92,19 @@ export default function GeneralView() {
                     </div>
                     <div className="space-y-5">
                         <div className="flex gap-3">
-                            <div className="w-2 h-2 rounded-full bg-blue-600 mt-2" />
-                            <p className="text-sm text-gray-700">
+                            <div className="w-2 h-2 rounded-full bg-brand-primary mt-2" />
+                            <p className="text-sm text-muted-foreground">
                                 Inclua métricas quantitativas na seção de experiências para aumentar o score em até 15%.
                             </p>
                         </div>
                         <div className="flex gap-3">
-                            <div className="w-2 h-2 rounded-full bg-blue-600 mt-2" />
-                            <p className="text-sm text-gray-700">
+                            <div className="w-2 h-2 rounded-full bg-brand-primary mt-2" />
+                            <p className="text-sm text-muted-foreground">
                                 A skill "Agile Methodology" é recorrente nas vagas que você analisou.
                             </p>
                         </div>
                     </div>
-                    <button className="mt-8 w-full rounded-lg border-2 border-blue-600 py-2 font-medium text-blue-600 hover:bg-blue-100">
+                    <button className="mt-8 w-full rounded-lg border-2 border-brand-primary py-2 font-medium text-brand-primary hover:bg-brand-primary/15">
                         Otimizar agora
                     </button>
                 </div>
@@ -117,8 +117,8 @@ export default function GeneralView() {
                     Meus Currículos
                 </h2>
                 <Link
-                    to="/my-curriculum"
-                    className="text-blue-600 text-sm font-medium hover:underline"
+                    to="/my-resume"
+                    className="text-brand-primary text-sm font-medium hover:underline"
                 >
                     Ver todos
                 </Link>
@@ -127,10 +127,10 @@ export default function GeneralView() {
             {/* SEGUNDA LINHA */}
 
             <section className="grid grid-cols-[1fr_1fr_340px] gap-6">
-                <div className="rounded-2xl border border-gray-200 bg-white p-6 min-h-[290px]">
+                <div className="rounded-2xl border border-border bg-card p-6 min-h-[290px]">
                     teste1
                 </div>
-                <div className="rounded-2xl border border-gray-200 bg-white p-6 min-h-[290px]">
+                <div className="rounded-2xl border border-border bg-card p-6 min-h-[290px]">
                     teste2
                 </div>
                 <ApplicationProgress />

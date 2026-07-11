@@ -6,20 +6,19 @@ import Register from "@/pages/auth/register";
 import Dashboard from "@/pages/dashboard/Dashboard";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { ProtectedRoute } from "@/components/protectRouter";
-import MyCurriculum from "@/pages/dashboard/my-curriculum/MyCurriculum";
+import MyResume from "@/pages/dashboard/my-resume/MyResume";
 
 export function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
       <Route element={<ProtectedRoute />}>
+        <Route path="/" element={<Home />} />
         <Route element={<DashboardLayout />}>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/Dashboard" element={<Dashboard />} />
-          <Route path="/my-curriculum" element={<MyCurriculum />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/my-resume" element={<MyResume />} />
         </Route>
       </Route>
     </Routes>

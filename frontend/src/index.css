@@ -5,6 +5,36 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * TOKENS DE COR — nunca gray-, slate-, blue- ou red- do Tailwind nem hex solto. Sempre um token daqui.
+ * Não existe o token que você precisa? Crie em @theme inline e adicione uma linha aqui, não invente hex no componente.
+ *
+ * MARCA (valor fixo, não muda no dark — fica fora de --primary/--secondary pra não quebrar variantes do shadcn)
+ *   brand-primary        #2E7BFF — ações, links/ícones ativos, CTA principal
+ *   brand-secondary      #03206E — fundo escuro de destaque, títulos fortes, CTA escuro
+ *   brand-*-foreground   branco — texto/ícone em cima das duas acima
+ *   brand-primary-tint   #DCE1FF — fundo de ícone/badge (tom próprio, não é opacidade do primary)
+ *   tint leve genérico: use opacidade (bg-brand-primary/10) em vez de criar hex novo
+ *
+ * NEUTROS (shadcn, já reagem a light/dark sozinhos)
+ *   background / foreground     fundo e texto padrão da página
+ *   card / card-foreground      cards, painéis, blocos flutuantes sobre o background
+ *   muted / muted-foreground    fundo sutil e texto secundário — substitui gray-/slate- claros e médios
+ *   secondary / secondary-fg    só pra Button variant="secondary"; não usar em conteúdo só porque "é a mesma cor" de muted
+ *   border                      borda neutra sutil — substitui border-gray-/slate-
+ *   destructive                 erro/ação destrutiva — substitui red-*
+ *   popover / accent / ring     uso interno dos componentes shadcn; raro escrever à mão
+ *
+ * ESPECIAIS
+ *   sidebar-border (e demais sidebar-*)   dentro de <Sidebar>, usar essas em vez de border/muted genéricos
+ *   input-border-strong                   borda grossa intencional dos inputs de login/registro (= foreground, já reage a dark)
+ *   chart-grid #E5E7EB                    grid dos gráficos recharts — recharts não lê classe Tailwind, então usa o hex
+ *                                          direto no componente, comentado apontando pra cá
+ *
+ * Token novo: cor de marca ou uso pontual = valor fixo em @theme inline. Cor que precisa variar por tema = declarar
+ * em :root/.dark e expor como --color-x: var(--x) (ou aliasar outro token, ex. --color-input-border-strong: var(--foreground)).
+ */
+ 
 @theme inline {
     --font-heading: var(--font-sans);
     --font-sans: 'Geist Variable', sans-serif;
@@ -39,6 +69,13 @@
     --color-card: var(--card);
     --color-foreground: var(--foreground);
     --color-background: var(--background);
+    --color-brand-primary-foreground: #ffffff;
+    --color-brand-primary: #2e7bff;
+    --color-brand-primary-tint: #dce1ff;
+    --color-brand-secondary-foreground: #ffffff;
+    --color-brand-secondary: #03206e;
+    --color-chart-grid: #e5e7eb;
+    --color-input-border-strong: var(--foreground);
     --radius-sm: calc(var(--radius) * 0.6);
     --radius-md: calc(var(--radius) * 0.8);
     --radius-lg: var(--radius);

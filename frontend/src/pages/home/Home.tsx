@@ -1,12 +1,20 @@
+import { useState } from "react";
 import { Header } from "@/components/Home/Header";
-import CurriculumsHeader from "@/components/Home/CurriculumsHeader";
-import Card, { type CurriculumCardProps } from "@/components/Home/Card";
-import AddCurriculumCard from "@/components/Home/AddCurriculumCard";
+import ResumesHeader from "@/components/Home/ResumesHeader";
+import { type ResumeCardProps } from "@/components/Home/ResumeCard";
 import AISuggestion from "@/components/Home/AISuggestion";
+import HomeEmptyState from "@/components/Home/HomeEmptyState";
+import ResumeListSkeleton from "@/components/Home/ResumeListSkeleton";
+import ResumeProcessingState from "@/components/Home/ResumeProcessingState";
+import ResumeList from "@/components/Home/ResumeList";
+import { ResumeUploadStage } from "@/components/resume-upload/ResumeUploadStage";
+import { useResumeFile } from "@/hooks/use-resume-file";
 
-const CURRICULUM_LIMIT = 5;
+const RESUME_LIMIT = 5;
 
-const curriculums: (CurriculumCardProps & { id: string })[] = [
+type OnboardingStage = "empty" | "uploading" | "processing";
+
+const resumes: (ResumeCardProps & { id: string })[] = [
   {
     id: "1",
     fileName: "Curriculo_Engenheiro_Senior.pdf",
@@ -35,29 +43,63 @@ const curriculums: (CurriculumCardProps & { id: string })[] = [
     updatedLabel: "há 3 dias",
     tags: ["Python", "Pandas", "SQL", "Machine Learning", "TensorFlow", "Power BI"],
   },
-  {
-    id: "5",
-    fileName: "Curriculo_DevOps_Engineer.pdf",
-    matchPercentage: 88,
-    updatedLabel: "há 6 horas",
-    tags: ["AWS", "Kubernetes", "Docker", "Terraform", "CI/CD", "Linux"],
-  },
+  // {
+  //   id: "5",
+  //   fileName: "Curriculo_DevOps_Engineer.pdf",
+  //   matchPercentage: 88,
+  //   updatedLabel: "há 6 horas",
+  //   tags: ["AWS", "Kubernetes", "Docker", "Terraform", "CI/CD", "Linux"],
+  // },
 ];
 
 export default function Home() {
+  const [stage, setStage] = useState<OnboardingStage>("empty");
+  const { file, error, acceptedExtensions, maxSizeMB, selectFile, removeFile } = useResumeFile();
+  const showEmptyState = true;
+  const isLoading = false;
+  const aiSuggestion = false;
+
+  function handleCancelUpload() {
+    removeFile();
+    setStage("empty");
+  }
+
+  function handleConfirmUpload() {
+    // envia o curriculo para o back
+    setStage("processing");
+  }
+
   return (
-    <>
+    <div className="flex min-h-screen flex-col">
       <Header />
-      <div className="p-6">
-        <CurriculumsHeader />
-        <section aria-label="Lista de currículos" className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-3">
-          {curriculums.map(({ id, ...card }) => (
-            <Card key={id} {...card} />
-          ))}
-          <AddCurriculumCard isLimitReached={curriculums.length >= CURRICULUM_LIMIT} limit={CURRICULUM_LIMIT} />
-        </section>
-        <AISuggestion />
+      <div className="flex flex-1 flex-col p-6">
+        {!showEmptyState && <ResumesHeader />}
+
+        {isLoading ? (
+          <ResumeListSkeleton />
+        ) : stage === "processing" ? (
+          <ResumeProcessingState />
+        ) : stage === "uploading" ? (
+          <ResumeUploadStage
+            file={file}
+            error={error}
+            acceptedExtensions={acceptedExtensions}
+            maxSizeMB={maxSizeMB}
+            onFileSelected={selectFile}
+            onRemoveFile={removeFile}
+            onCancel={handleCancelUpload}
+            onContinue={handleConfirmUpload}
+          />
+        ) : showEmptyState ? (
+          <div className="flex flex-1 items-center justify-center">
+            <HomeEmptyState onUpload={() => setStage("uploading")} />
+          </div>
+        ) : (
+          <ResumeList resumes={resumes} limit={RESUME_LIMIT} />
+        )}
+
+        {aiSuggestion && <AISuggestion />}
       </div>
-    </>
+    </div>
   );
 }

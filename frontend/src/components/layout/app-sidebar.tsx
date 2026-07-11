@@ -27,12 +27,12 @@ import { useNavigate } from "react-router-dom";
 const items = [
   {
     title: "Visão Geral",
-    url: "/",
+    url: "/dashboard",
     icon: LayoutDashboard,
   },
   {
     title: "Meus Curriculos",
-    url: "/my-curriculum",
+    url: "/my-resume",
     icon: FileText,
   },
   {
@@ -72,8 +72,8 @@ export default function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarContent className="border-b border-solid border-gray-300">
-        <div className="border-b border-gray-300 ">
+      <SidebarContent className="border-b border-solid border-sidebar-border">
+        <div className="border-b border-sidebar-border ">
           <div className="p-4 ">
             <div className="flex gap-1">
               <img
@@ -87,11 +87,11 @@ export default function AppSidebar() {
                 alt="BomCurriculo"
                 className="hidden h-10 w-auto dark:block"
               />
-              <h1 className="text-[#03206E] dark:text-white flex items-center text-xl gap-1 font-semibold">
-                Bom<span className="text-blue-500"> Currículo</span>
+              <h1 className="text-brand-secondary dark:text-white flex items-center text-xl gap-1 font-semibold">
+                Bom<span className="text-brand-primary"> Currículo</span>
               </h1>
             </div>
-            <span className="text-gray-400 text-sm">Otimização ATS</span>
+            <span className="text-muted-foreground text-sm">Otimização ATS</span>
           </div>
         </div>
 
@@ -102,7 +102,7 @@ export default function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
-                    className="py-4 hover:bg-[#03206E] dark:hover:bg-blue-500 "
+                    className="py-4 hover:bg-brand-secondary dark:hover:bg-brand-primary "
                   >
                     <a
                       href={item.url}
@@ -120,7 +120,7 @@ export default function AppSidebar() {
       </SidebarContent>
       <footer className="p-4">
         <div className="flex flex-col gap-2">
-          <Button className="bg-[#03206E] dark:bg-blue-500 p-6 hover:bg-[#03206E]">
+          <Button className="bg-brand-secondary dark:bg-brand-primary p-6 hover:bg-brand-secondary">
             {/** Tds os botoes aqui criar o component */} <Plus /> Novo
             Currículo
           </Button>
@@ -128,7 +128,7 @@ export default function AppSidebar() {
             <CircleQuestionMarkIcon size={16} /> <h1>Ajuda</h1>
           </div>
           <div className="flex gap-1 items-center">
-            <Button  onClick={() => logoutMutation.mutate()} className="text-red-500 bg-transparent hover:bg-transparent">
+            <Button  onClick={() => logoutMutation.mutate()} className="text-destructive bg-transparent hover:bg-transparent">
               <LogOut/> Desconectar
             </Button>
           </div>
