@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 
 import '../config.dart';
 import '../service/DB.dart';
+import '../theme/AppColors.dart';
 
 class Navbar extends StatefulWidget implements PreferredSizeWidget {
   const Navbar({super.key, this.onMenuChanged});
@@ -60,7 +61,10 @@ class _NavbarState extends State<Navbar> {
 
   Future<void> logout(BuildContext context) async {
     try {
-      var response = await API().get('auth/logout');
+      final fcm = await DB.instance.getFCM();
+      var response = await API().post('auth/logout',{
+        ?fcm: fcm
+      });
       print(response.body);
     } catch (_) {}
 
@@ -150,8 +154,9 @@ class _NavbarState extends State<Navbar> {
           appTitle,
           style: const TextStyle(
             fontWeight: FontWeight.w700,
-            fontSize: 18.0,
-            color: Colors.black,
+            fontSize: 25.0,
+            color: AppColorsLight.brandPrimary,
+            //color: Colors.black,
           ),
         ),
       ),

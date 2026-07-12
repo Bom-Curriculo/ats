@@ -1,11 +1,14 @@
 
 import 'package:flutter/material.dart';
 
+import '../theme/AppColors.dart';
+
 class WidgetButton extends StatefulWidget {
   const WidgetButton({
     super.key,
     required this.title,
-    this.color = Colors.blue
+    //this.color = Colors.blue
+    this.color = AppColorsLight.brandPrimary
   });
 
   final String title;

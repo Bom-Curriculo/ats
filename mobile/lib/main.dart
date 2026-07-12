@@ -37,6 +37,12 @@ void main() async {
 
   await DB.instance.saveFCM(token!);
 
+  final fcm = await DB.instance.getFCM();
+
+  print("##########################");
+  print(fcm);
+  print("##########################");
+
   await NotificationService.init(
     onNotificationTap: (data) {
       final route = data['route'] ?? '/';

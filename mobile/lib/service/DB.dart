@@ -3,7 +3,7 @@ import 'package:sqflite/sqflite.dart';
 
 class DB {
 
-  static const String _databaseName = "database.db";
+  static const String _databaseName = "mydb.db";
   static const int _databaseVersion = 1;
 
   static const String _table = "storage";

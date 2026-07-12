@@ -106,13 +106,17 @@ class _ViewRegister extends State<ViewRegister> {
       final fcm = await DB.instance.getFCM();
 
       API api = API();
-      var response = await api.post('auth/register', {
+      var payload={
         'name': controllerName.text,
         'email': controllerEmail.text,
         'password': controllerPassword.text,
         'password_confirm': controllerRetypePassword.text,
         'fcm': fcm
-      });
+      };
+      print("**********************************");
+      print(payload);
+      print("**********************************");
+      var response = await api.post('auth/register', payload);
 
       var body = jsonDecode(response.body);
 
@@ -150,6 +154,15 @@ class _ViewRegister extends State<ViewRegister> {
           errorEmail = '';
           errorPassword='';
           errorText=errorString;
+          //errorText=body['message'];
+        });
+      } else {
+        setState(() {
+          loading=false;
+          errorName = '';
+          errorEmail = '';
+          errorPassword='';
+          errorText='';
           //errorText=body['message'];
         });
       }

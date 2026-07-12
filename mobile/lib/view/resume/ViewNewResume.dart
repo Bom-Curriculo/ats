@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:bomcurriculo/include/Body.dart';
 import 'package:bomcurriculo/util/Translation.dart';
-import 'package:bomcurriculo/view/ViewHome.dart';
 import 'package:bomcurriculo/widget/WidgetButton.dart';
 import 'package:bomcurriculo/widget/WidgetInputText.dart';
 import 'package:file_picker/file_picker.dart';
@@ -114,20 +113,30 @@ class _ViewNewResume extends State<ViewNewResume> {
       }
     }
 
+    print("###############################");
+    print(data);
+    print("###############################");
+
+    var files = [
+      {
+        "field": "resume_cv",
+        "path": resumeFile!.path,
+      },
+      {
+        "field": "resume_linkedin",
+        "path": linkedinFile!.path,
+      },
+    ];
+
+    print("###############################");
+    print(files);
+    print("###############################");
+
     //"client/resumes/new-resume",
     final response = await API().upload(
-      "client/resumes/validate-resume",
+      "client/resumes/new-resume",
       data,
-      [
-        {
-          "field": "resume_cv",
-          "path": resumeFile!.path,
-        },
-        {
-          "field": "resume_linkedin",
-          "path": linkedinFile!.path,
-        },
-      ],
+      files,
     );
     print(response.body);
     context.go("/");
