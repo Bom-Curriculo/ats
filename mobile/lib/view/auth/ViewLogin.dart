@@ -87,11 +87,15 @@ class _ViewLogin extends State<ViewLogin> {
       final fcm = await DB.instance.getFCM();
 
       API api = API();
-      var response = await api.post('auth/login', {
+      var payload = {
         'email': controllerEmail.text,
         'password': controllerPassword.text,
         'fcm': fcm
-      });
+      };
+      print("**********************************");
+      print(payload);
+      print("**********************************");
+      var response = await api.post('auth/login', payload);
 
       var body =  jsonDecode(response.body);
 
@@ -131,7 +135,13 @@ class _ViewLogin extends State<ViewLogin> {
           errorText=errorString;
         });
       } else {
-
+        setState(() {
+          loading=false;
+          errorEmail = '';
+          errorPassword='';
+          //errorText=body['message'];
+          errorText='';
+        });
       }
 
     }

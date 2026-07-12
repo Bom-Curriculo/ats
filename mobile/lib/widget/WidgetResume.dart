@@ -1,4 +1,5 @@
 
+import 'package:bomcurriculo/theme/AppColors.dart';
 import 'package:bomcurriculo/view/resume/ViewGenerateResume.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -90,7 +91,7 @@ class _WidgetResume extends State<WidgetResume> {
                         Text(
                           widget.score.toString(),
                           style: TextStyle(
-                            color: widget.type=="ready"?Colors.blue:Color(0xff999999),
+                            color: widget.type=="ready"?AppColorsLight.brandPrimary:Color(0xff999999),
                             fontSize: 26,
                             fontWeight: FontWeight.bold,
                           ),

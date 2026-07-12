@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:bomcurriculo/include/Navbar.dart';
+import 'package:bomcurriculo/service/API.dart';
 import 'package:bomcurriculo/util/Translation.dart';
 import 'package:bomcurriculo/view/resume/ViewNewResume.dart';
 import 'package:bomcurriculo/widget/WidgetButton.dart';
@@ -10,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../service/DB.dart';
+import '../theme/AppColors.dart';
 
 class ViewHome extends StatefulWidget {
   const ViewHome({super.key});
@@ -39,6 +41,7 @@ class _ViewHomeState extends State<ViewHome> {
   String country = '';
   String linkedinLink = '';
 
+  /*
   var items = [
     {
       'type': 'fail',
@@ -79,6 +82,9 @@ class _ViewHomeState extends State<ViewHome> {
      */
   ];
 
+   */
+  var items = [];
+
   void getTranslation() async {
     await Translation.instance.load("pt-BR");
     setState(() {});
@@ -96,7 +102,44 @@ class _ViewHomeState extends State<ViewHome> {
       loading = true;
     });
 
+
+
     try {
+
+      //http://127.0.0.1:8000/api/client/resumes/files?type=cv
+      var response = await API().get('client/user/resumes');
+      //var response = await API().get('client/resumes/files?type=cv');
+      var body = jsonDecode(response.body);
+
+      //var userWebData = body['data']['user'];
+      var userWebData = body['data']['data'];
+      //var userWebData = body;
+
+      print("*******************************");
+      print(userWebData);
+      print("*******************************");
+
+      for (var data in userWebData) {
+        String status = data['status'];
+        String title = '---';
+        String subtitle='Em  prsamento';
+        String score='---';
+        if (status=='pending') {
+          subtitle='Em processamento';
+        } else if (status=='fail') {
+          subtitle='Falha ao processar currículo';
+        }
+        items.add({
+          'uuid': data['id'],
+          'type': status,
+          'title': title,
+          'subtitle': subtitle,
+          'score': score,
+          'downloadURL': data['original_file_path_cv']
+        });
+      }
+
+
       final user = await DB.instance.getUser();
 
       final userData = jsonDecode(user!);
@@ -156,7 +199,7 @@ class _ViewHomeState extends State<ViewHome> {
                         TextSpan(
                           text: name,
                           style: TextStyle(
-                            color: Colors.blue,
+                            color: AppColorsLight.brandPrimary,
                             fontWeight: FontWeight(800),
                           ),
                         ),
