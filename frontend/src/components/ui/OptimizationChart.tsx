@@ -1,5 +1,4 @@
 import { PieChart, Pie, Cell } from "recharts";
-import { Badge } from "././badge";
 
 const data = [
   { name: "Otimizado", value: 75 },
@@ -11,11 +10,6 @@ const COLORS = ["#2e7bff", "#e5e7eb"]; // espelha --color-brand-primary e --colo
 export function OptimizationChart() {
   return (
     <div className="flex flex-col items-center">
-
-      <Badge className="mb-4 bg-brand-primary text-white">
-        MÉDIA GLOBAL
-      </Badge>
-
       <div className="relative w-[180px] h-[180px]">
   <PieChart width={180} height={180}>
     <Pie
