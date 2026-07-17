@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Header } from "@/components/Home/Header";
 import ResumesHeader from "@/components/Home/ResumesHeader";
 import { type ResumeCardProps } from "@/components/Home/ResumeCard";
@@ -8,11 +8,34 @@ import ResumeListSkeleton from "@/components/Home/ResumeListSkeleton";
 import ResumeProcessingState from "@/components/Home/ResumeProcessingState";
 import ResumeList from "@/components/Home/ResumeList";
 import { ResumeUploadStage } from "@/components/resume-upload/ResumeUploadStage";
+import { ResumeReviewStage, type ReviewSection } from "@/components/resume-upload/ResumeReviewStage";
 import { useResumeFile } from "@/hooks/use-resume-file";
 
 const RESUME_LIMIT = 5;
 
-type OnboardingStage = "empty" | "uploading" | "processing";
+type OnboardingStage = "empty" | "uploading" | "processing" | "reviewing";
+
+// TODO: substituir pelos dados retornados pela IA/backend (Gustavo)
+const reviewSections: ReviewSection[] = [
+  {
+    id: "experiences",
+    title: "Experiências",
+    items: [
+      { id: "exp-1", title: "Bom Currículo", description: "De: 02/06/2025 à 02/07/2026" },
+      { id: "exp-2", title: "Faculdade Uniasselvi", description: "De: 02/06/2025 à 02/07/2026" },
+      { id: "exp-3", title: "WhiteHats", description: "De: 02/06/2025 à 02/07/2026" },
+    ],
+  },
+  {
+    id: "skills",
+    title: "Habilidades",
+    items: [
+      { id: "skill-php", title: "PHP", description: "15 anos de experiência" },
+      { id: "skill-laravel", title: "Laravel", description: "8 anos de experiência" },
+      { id: "skill-react", title: "React", description: "5 anos de experiência" },
+    ],
+  },
+];
 
 const resumes: (ResumeCardProps & { id: string })[] = [
   {
@@ -69,6 +92,20 @@ export default function Home() {
     setStage("processing");
   }
 
+  function handleGenerateResume(selectedItemIds: string[]) {
+    // TODO: enviar os dados confirmados pro backend gerar o currículo
+    console.log("Itens confirmados:", selectedItemIds);
+    setStage("empty");
+  }
+
+  useEffect(() => {
+    if (stage !== "processing") return;
+
+    // TODO: substituir pela espera real da resposta da IA/backend
+    const timeout = setTimeout(() => setStage("reviewing"), 2000);
+    return () => clearTimeout(timeout);
+  }, [stage]);
+
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
@@ -79,6 +116,8 @@ export default function Home() {
           <ResumeListSkeleton />
         ) : stage === "processing" ? (
           <ResumeProcessingState />
+        ) : stage === "reviewing" ? (
+          <ResumeReviewStage sections={reviewSections} onGenerate={handleGenerateResume} />
         ) : stage === "uploading" ? (
           <ResumeUploadStage
             file={file}
