@@ -30,7 +30,7 @@ export default function MyResume() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <ResumesHeader />
+      <ResumesHeader count={resumes.length} limit={RESUME_LIMIT} />
 
       {isLoading ? (
         <ResumeListSkeleton />
