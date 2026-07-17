@@ -30,6 +30,7 @@
  *   input-border-strong                   borda grossa intencional dos inputs de login/registro (= foreground, já reage a dark)
  *   chart-grid #E5E7EB                    grid dos gráficos recharts — recharts não lê classe Tailwind, então usa o hex
  *                                          direto no componente, comentado apontando pra cá
+ *   success #16A34A / success-foreground  branco — check/indicador positivo (ex.: checklist de formatação ATS)
  *
  * Token novo: cor de marca ou uso pontual = valor fixo em @theme inline. Cor que precisa variar por tema = declarar
  * em :root/.dark e expor como --color-x: var(--x) (ou aliasar outro token, ex. --color-input-border-strong: var(--foreground)).
@@ -74,6 +75,8 @@
     --color-brand-primary-tint: #dce1ff;
     --color-brand-secondary-foreground: #ffffff;
     --color-brand-secondary: #03206e;
+    --color-success-foreground: #ffffff;
+    --color-success: #16a34a;
     --color-chart-grid: #e5e7eb;
     --color-input-border-strong: var(--foreground);
     --radius-sm: calc(var(--radius) * 0.6);
