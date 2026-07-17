@@ -117,9 +117,18 @@ export function Login() {
               </div>
 
               <div>
-                <label className="mb-2 block font-medium text-foreground">
-                  Senha
-                </label>
+                <div className="mb-2 flex items-center justify-between">
+                  <label className="block font-medium text-foreground">
+                    Senha
+                  </label>
+
+                  <Link
+                    to="/forgot-password"
+                    className="text-sm text-muted-foreground hover:text-foreground hover:underline"
+                  >
+                    Esqueceu sua senha?
+                  </Link>
+                </div>
 
                 <Input
                   type="password"
