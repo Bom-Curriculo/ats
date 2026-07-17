@@ -16,9 +16,9 @@ export function AppRoutes() {
 
       <Route element={<ProtectedRoute />}>
         <Route path="/" element={<Home />} />
+        <Route path="/my-resume" element={<MyResume />} />
         <Route element={<DashboardLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/my-resume" element={<MyResume />} />
         </Route>
       </Route>
     </Routes>
