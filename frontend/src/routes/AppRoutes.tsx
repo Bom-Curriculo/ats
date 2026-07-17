@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import Home from "../pages/home/Home";
 import { Login } from "@/pages/auth/login";
 import Register from "@/pages/auth/register";
+import { ForgotPassword } from "@/pages/auth/forgot-password";
 import Dashboard from "@/pages/dashboard/Dashboard";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { ProtectedRoute } from "@/components/protectRouter";
@@ -14,6 +15,7 @@ export function AppRoutes() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
 
       <Route element={<ProtectedRoute />}>
         <Route path="/" element={<Home />} />
