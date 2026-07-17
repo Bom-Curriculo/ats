@@ -2,7 +2,6 @@ import {
   ChartColumnBigIcon,
   CircleQuestionMarkIcon,
   FileText,
-  HomeIcon,
   LayoutDashboard,
   LogOut,
   Plus,
@@ -22,7 +21,7 @@ import { Button } from "../ui/button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { LogoutApi } from "@/api/auth/logout-api";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 
 const items = [
   {
@@ -45,16 +44,12 @@ const items = [
     url: "/settings",
     icon: SettingsIcon,
   },
-  {
-    title: "Voltar ao site",
-    url: "/",
-    icon: HomeIcon,
-  },
 ];
 
 export default function AppSidebar() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
 
   const logoutMutation = useMutation({
     mutationFn: LogoutApi,
@@ -102,15 +97,16 @@ export default function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
-                    className="py-4 hover:bg-brand-secondary dark:hover:bg-brand-primary "
+                    isActive={pathname === item.url}
+                    className="py-4 data-[active=true]:bg-brand-primary/10 data-[active=true]:font-medium data-[active=true]:text-brand-primary hover:bg-brand-secondary hover:text-white dark:hover:bg-brand-primary"
                   >
-                    <a
-                      href={item.url}
-                      className="flex items-center gap-3  hover:text-white "
+                    <NavLink
+                      to={item.url}
+                      className="flex items-center gap-3"
                     >
                       <item.icon className={"w-5! h-5!"} />
                       <span>{item.title}</span>
-                    </a>
+                    </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -119,19 +115,25 @@ export default function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <footer className="p-4">
-        <div className="flex flex-col gap-2">
-          <Button className="bg-brand-secondary dark:bg-brand-primary p-6 hover:bg-brand-secondary">
-            {/** Tds os botoes aqui criar o component */} <Plus /> Novo
-            Currículo
+        <div className="flex flex-col gap-1">
+          <Button className="mb-2 bg-brand-secondary p-6 hover:bg-brand-secondary dark:bg-brand-primary">
+            <Plus /> Novo Currículo
           </Button>
-          <div className="flex gap-1 items-center">
-            <CircleQuestionMarkIcon size={16} /> <h1>Ajuda</h1>
-          </div>
-          <div className="flex gap-1 items-center">
-            <Button  onClick={() => logoutMutation.mutate()} className="text-destructive bg-transparent hover:bg-transparent">
-              <LogOut/> Desconectar
-            </Button>
-          </div>
+
+          <button
+            type="button"
+            className="flex items-center justify-start gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <CircleQuestionMarkIcon size={18} /> Ajuda
+          </button>
+
+          <button
+            type="button"
+            onClick={() => logoutMutation.mutate()}
+            className="flex items-center justify-start gap-2 rounded-lg px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
+          >
+            <LogOut size={18} /> Sair
+          </button>
         </div>
       </footer>
     </Sidebar>
