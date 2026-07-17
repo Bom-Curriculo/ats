@@ -9,6 +9,8 @@ import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { ProtectedRoute } from "@/components/protectRouter";
 import MyResume from "@/pages/dashboard/my-resume/MyResume";
 import Editor from "@/pages/dashboard/editor/Editor";
+import JobAnalysis from "@/pages/dashboard/job-analysis/JobAnalysis";
+import JobDetails from "@/pages/dashboard/job-analysis/JobDetails";
 
 export function AppRoutes() {
   return (
@@ -23,6 +25,8 @@ export function AppRoutes() {
         <Route element={<DashboardLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/my-resume" element={<MyResume />} />
+          <Route path="/job-analysis" element={<JobAnalysis />} />
+          <Route path="/job-analysis/:id" element={<JobDetails />} />
         </Route>
       </Route>
     </Routes>
