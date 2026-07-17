@@ -1,5 +1,6 @@
 import { ThemeProvider } from "./providers/theme-provider";
 import { AppRoutes } from "./routes/AppRoutes";
+import { Toaster } from "./components/ui/sonner";
 
 
 function App() {
@@ -9,6 +10,7 @@ function App() {
       storageKey="vite-ui-theme"
     >
         <AppRoutes />
+        <Toaster position="top-right" richColors />
     </ThemeProvider>
   );
 }
