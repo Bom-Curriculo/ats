@@ -1,5 +1,8 @@
 <?php
 
+use App\Jobs\Api\RabbitMQ\Resumes\ResumeProcessingPublisher;
+use Illuminate\Support\Facades\Storage;
+
 it('creates resume processing job with correct data', function () {
 
     $user = authUser([
@@ -11,9 +14,6 @@ it('creates resume processing job with correct data', function () {
 
     expect($job->user_id)->toBe($user->id);
 });
-
-use App\Jobs\Api\RabbitMQ\Resumes\ResumeProcessingPublisher;
-use Illuminate\Support\Facades\Storage;
 
 it('generates temporary urls for resumes', function () {
 
