@@ -6,7 +6,6 @@ use App\Http\ApiRequests\CustomRequest;
 
 class VerifyOtpRequest extends CustomRequest
 {
-    
     public function rules(): array
     {
         return [

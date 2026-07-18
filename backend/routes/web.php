@@ -18,20 +18,18 @@ Route::middleware('auth:system')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::get('/users', function(){
+    Route::get('/users', function () {
         return view('system.pages.users.index', [
             'users' => User::orderByDesc('created_at')->get(),
         ]);
     })->name('users');
 
-    Route::get('/resumes', function(){
-        
-    })->name('resumes');
+    Route::get('/resumes', function () {})->name('resumes');
 
 });
 
 require __DIR__.'/auth.php';
 
-Route::get('/teste', function(Request $request){
-    return \App\Actions\SendPushNotificationAction::send(User::query()->first(), 'Seu currículo está pronto', 'Preparamos seu currículo. Confira.');
+Route::get('/teste', function (Request $request) {
+    return SendPushNotificationAction::send(User::query()->first(), 'Seu currículo está pronto', 'Preparamos seu currículo. Confira.');
 });

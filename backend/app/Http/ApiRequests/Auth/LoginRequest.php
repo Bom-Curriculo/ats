@@ -13,15 +13,15 @@ class LoginRequest extends CustomRequest
                 'required',
                 'email',
                 'min:5',
-                'max:128'
+                'max:128',
             ],
             'password' => [
                 'required',
                 'string',
                 'min:8',
-                'max:64'
+                'max:64',
             ],
-            'fcm' => ['nullable', 'string']
+            'fcm' => ['nullable', 'string'],
         ];
     }
 }

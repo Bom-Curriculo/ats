@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\SystemUser;
 use App\Models\User;
 
 return [
@@ -84,7 +85,7 @@ return [
 
         'system_users' => [
             'driver' => 'eloquent',
-            'model' => App\Models\SystemUser::class,
+            'model' => SystemUser::class,
         ],
 
         // 'users' => [

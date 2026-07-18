@@ -7,10 +7,10 @@ use Kreait\Firebase\Exception\FirebaseException;
 use Kreait\Firebase\Exception\MessagingException;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Messaging;
-use Kreait\Firebase\Messaging\CloudMessage;
-use Kreait\Firebase\Messaging\Notification;
 use Kreait\Firebase\Messaging\AndroidConfig;
 use Kreait\Firebase\Messaging\ApnsConfig;
+use Kreait\Firebase\Messaging\CloudMessage;
+use Kreait\Firebase\Messaging\Notification;
 
 class PushNotificationService
 {
@@ -29,7 +29,7 @@ class PushNotificationService
             throw new Exception('Service Firebase Mobile is not configured');
         }
 
-        $factory = (new Factory())->withServiceAccount([
+        $factory = (new Factory)->withServiceAccount([
             'type' => 'service_account',
             'project_id' => $this->config['credential']['projectId'],
             'client_email' => $this->config['credential']['clientEmail'],

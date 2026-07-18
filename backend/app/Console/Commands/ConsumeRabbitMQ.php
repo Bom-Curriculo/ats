@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\Log;
 #[Description('Consumer RabbitMQ Resumes Worker')]
 class ConsumeRabbitMQ extends Command
 {
-    
     public function handle(ConsumerRabbitMQService $consumer)
     {
         $queue = config('queue.connections.rabbitmq_consumer.queue');

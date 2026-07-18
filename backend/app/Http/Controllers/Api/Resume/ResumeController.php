@@ -8,7 +8,6 @@ use App\Http\Controllers\Api\User\Traits\UserProcessRelationsTrait;
 use App\Http\Controllers\Api\User\Traits\UserUploadsTrait;
 use App\Http\Controllers\Controller;
 use App\Models\ResumeAnalytic;
-use App\Models\UserResume;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -17,17 +16,16 @@ use Illuminate\Validation\ValidationException;
 
 class ResumeController extends Controller
 {
-
     use UserProcessRelationsTrait, UserUploadsTrait;
 
     public function storeNewResume(NewResumeRequest $request)
     {
 
-        try{
+        try {
 
-            DB::transaction(function() use ($request){
+            DB::transaction(function () use ($request) {
                 $user = $request->user();
-                
+
                 $resumeCV = $request->file('resume_cv');
                 $resumeLinkedin = $request->file('resume_linkedin');
 
@@ -35,14 +33,14 @@ class ResumeController extends Controller
                 $pathResumeLinkedin = null;
                 $skills = $request->input('skills', []);
 
-                if(!empty($resumeCV)){
+                if (! empty($resumeCV)) {
                     $pathResumeCv = $this->storeCvResume($request, $user);
                 }
 
-                if(!empty($resumeLinkedin)){
+                if (! empty($resumeLinkedin)) {
                     $pathResumeLinkedin = $this->storeLinkedinResume($request, $user);
                 }
-                
+
                 $user->update([
                     'resume_cv' => $pathResumeCv ?? $user->resumeCV,
                     'resume_linkedin' => $pathResumeLinkedin ?? $user->resume_linkedin,
@@ -50,21 +48,21 @@ class ResumeController extends Controller
                     'site_link' => $request->input('site_link', $user->site_link),
                 ]);
 
-                if(!empty($pathResumeCv) || !empty($pathResumeLinkedin)){
+                if (! empty($pathResumeCv) || ! empty($pathResumeLinkedin)) {
                     $user->resumes()->create([
                         'original_file_path_cv' => $pathResumeCv,
-                        'original_file_path_linkedin' => $pathResumeLinkedin
+                        'original_file_path_linkedin' => $pathResumeLinkedin,
                     ]);
                 }
                 $this->processSkillsUser($skills, $user);
 
             });
-            
+
             return ResponseData::success('User Updated', ['message' => 'User and upload has been updated.'], 200);
 
-        }catch(ValidationException $exception){
+        } catch (ValidationException $exception) {
             return ResponseData::error('Validation error', ['errors' => $exception->errors()], 422);
-        }catch(Exception $exception){
+        } catch (Exception $exception) {
             return ResponseData::error('Server Error', ['errors' => $exception->getMessage()], 500);
         }
     }
@@ -81,22 +79,22 @@ class ResumeController extends Controller
             default => $user->resume_cv,
         };
 
-        if(!$typeFile || !Storage::exists($typeFile))
-        {
+        if (! $typeFile || ! Storage::exists($typeFile)) {
             return ResponseData::error('Not Found', [
-                'error' => 'The requested file has not found.'
+                'error' => 'The requested file has not found.',
             ], 404);
         }
 
         $fileUrl = Storage::temporaryUrl($typeFile, now()->addDay());
 
         return ResponseData::success('success', [
-            'file_url' => $fileUrl
+            'file_url' => $fileUrl,
         ], 200);
 
     }
 
-    public function resumeAnalytics(Request $request){
+    public function resumeAnalytics(Request $request)
+    {
         return ResponseData::success(
             'Success',
             $request->user()->resumeAnalytics()->orderByDesc('created_at')->get()->toArray(),
@@ -104,16 +102,17 @@ class ResumeController extends Controller
         );
     }
 
-    public function showPendingResume(Request $request, int $resume){
+    public function showPendingResume(Request $request, int $resume)
+    {
 
         $resume = (int) $request->resume;
         $resume = ResumeAnalytic::find($resume);
 
-        if(!$resume || $resume->user_id !== $request->user()->id){
+        if (! $resume || $resume->user_id !== $request->user()->id) {
             return ResponseData::error(
                 'Not found',
                 [
-                    'error' => 'Resume not found'
+                    'error' => 'Resume not found',
                 ],
                 404
             );
@@ -125,5 +124,4 @@ class ResumeController extends Controller
             200
         );
     }
-
 }

@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'processed_file_path',
     'status',
     'processed_at',
-    'observation'
+    'observation',
 ])]
 class UserResume extends Model
 {
@@ -32,16 +32,16 @@ class UserResume extends Model
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'status' => UserResumeEnum::class
+            'status' => UserResumeEnum::class,
         ];
     }
 
-    public function user() : BelongsTo
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function analytic() : HasOne
+    public function analytic(): HasOne
     {
         return $this->hasOne(ResumeAnalytic::class, 'user_resume_id', 'id');
     }

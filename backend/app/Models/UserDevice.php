@@ -8,14 +8,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'user_id',
-    'fcm_token'
+    'fcm_token',
 ])]
 class UserDevice extends Model
 {
-
-  public function user(): BelongsTo
-  {
-      return $this->belongsTo(User::class);
-  }
-
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 }

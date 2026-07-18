@@ -8,22 +8,22 @@ use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
-class ProcessResumeResponse {
-
+class ProcessResumeResponse
+{
     public static function handle(array $data = [], bool $useFake = false)
     {
 
-        try{
+        try {
 
-            if($useFake){
+            if ($useFake) {
                 $data = self::fakeData();
             }
 
             $resumeProcesses = (array) ResumeResponseDTO::fromData($data)->handle()->toArray();
             ResumeProcessingConsumer::dispatch($resumeProcesses)
-                                        ->onConnection('redis');
+                ->onConnection('redis');
 
-        }catch(Exception $exception){
+        } catch (Exception $exception) {
             Log::channel('rabbit_resumes')->error(
                 'Consumer Resume Process failed',
                 [
@@ -31,9 +31,9 @@ class ProcessResumeResponse {
                     'class' => __CLASS__,
                     'exception' => $exception,
                 ]
-            );      
+            );
         }
-        
+
     }
 
     protected static function fakeData(): array
@@ -54,10 +54,10 @@ class ProcessResumeResponse {
             'result' => [
 
                 // Score of resume
-                'score' => rand(0,100), 
+                'score' => rand(0, 100),
 
                 // Suggestion
-                'suggestion' => 'Maybe anything', 
+                'suggestion' => 'Maybe anything',
 
                 // Header to generate resume
                 'header' => [
@@ -69,10 +69,10 @@ class ProcessResumeResponse {
                     'emails' => 'test@example.com / company@exampe.com',
                     'links' => [
                         // Return as the key the original name.
-                        'Portfolio' => '',    
+                        'Portfolio' => '',
                     ],
                 ],
-                
+
                 // Experiences
                 'experiences' => [
                     [
@@ -91,12 +91,12 @@ class ProcessResumeResponse {
                 // Projects
                 'projects' => [
                     [
-                        'title'        => 'Bom Curriculo',
-                        'date'         => '2026',
+                        'title' => 'Bom Curriculo',
+                        'date' => '2026',
                         'technologies' => null, // null | string
-                        'description'  => null, // null | string
-                        'url'          => null, // null | string
-                    ]   
+                        'description' => null, // null | string
+                        'url' => null, // null | string
+                    ],
                 ],
 
                 // Qualifications
@@ -104,33 +104,33 @@ class ProcessResumeResponse {
                     [
                         /**
                          * type property
-                         * 
+                         *
                          * pt_BR: Tipo de instituição
-                         * 
-                         * Enum: 
-                         *  elementary_education, 
-                         *  high_school, 
-                         *  extracurricular_course, 
+                         *
+                         * Enum:
+                         *  elementary_education,
+                         *  high_school,
+                         *  extracurricular_course,
                          *  technical_course
                          *  undergraduate_degree
                          *  postgraduate_degree
                          *  master_degree
                          *  doctorate_degree
-                        */
+                         */
                         'type' => 'elementary_education',
                         'institution' => 'Instituicao',
                         'title' => 'Curso',
                         'start' => '2026-01-01',
-                        'end' => null,  // Null | Date              
-                        'is_coursing' => true // Boolean,
+                        'end' => null,  // Null | Date
+                        'is_coursing' => true, // Boolean,
                     ],
                 ],
 
                 // Skills
                 'skills' => [
                     [
-                        'name' => 'PHP', 
-                        'years' => null // Null | int
+                        'name' => 'PHP',
+                        'years' => null, // Null | int
                     ],
                 ],
 
@@ -139,21 +139,21 @@ class ProcessResumeResponse {
                     [
                         /**
                          * level property
-                         * 
+                         *
                          * pt_BR: Nível
-                         * 
-                         * Enum: 
-                         *  beginner, 
-                         *  intermediate, 
-                         *  advanced, 
+                         *
+                         * Enum:
+                         *  beginner,
+                         *  intermediate,
+                         *  advanced,
                          *  fluent
-                         *  native                        
-                        */
+                         *  native
+                         */
                         'level' => 'native',
                         'language' => 'portugues',
                     ],
                 ],
-                
+
                 // Another informations
                 'others' => [
                     // all another informations here,
@@ -161,15 +161,14 @@ class ProcessResumeResponse {
                     // just to persist on database
                     'something' => 'teste',
                     'data' => [
-                        'test'
-                    ]
+                        'test',
+                    ],
                 ],
-                
+
             ],
 
             // Bot Errors
-            'error' => ''
+            'error' => '',
         ];
     }
-
 }

@@ -7,7 +7,6 @@ use App\Http\Controllers\System\Auth\EmailVerificationPromptController;
 use App\Http\Controllers\System\Auth\NewPasswordController;
 use App\Http\Controllers\System\Auth\PasswordController;
 use App\Http\Controllers\System\Auth\PasswordResetLinkController;
-use App\Http\Controllers\System\Auth\RegisteredUserController;
 use App\Http\Controllers\System\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 

@@ -21,8 +21,7 @@ class ResumeProcessingConsumer implements ShouldQueue
      */
     public function __construct(
         public array $resume
-    )
-    {
+    ) {
         //
     }
 
@@ -32,17 +31,17 @@ class ResumeProcessingConsumer implements ShouldQueue
     public function handle(): void
     {
         ResumeAnalytic::query()->create($this->resume['resume'] ?? $this->resume);
-        if($this->resume['resume_id'] || $this->resume->resume_id ){
+        if ($this->resume['resume_id'] || $this->resume->resume_id) {
             $resume = UserResume::find($this->resume['resume_id'] ?? $this->resume->resume_id);
-            if($resume){
+            if ($resume) {
                 $resume->update([
-                    'status' => UserResumeEnum::ANALYZE
+                    'status' => UserResumeEnum::ANALYZE,
                 ]);
             }
         }
 
         $user = User::query()->find($this->resume['user_id']);
-        if($user){
+        if ($user) {
 
             /**
              * For success
@@ -79,7 +78,7 @@ class ResumeProcessingConsumer implements ShouldQueue
         Log::channel('rabbit_resumes')->error('Job ResumeProcessingConsumer failed definitively', [
             'exception' => $exception->getMessage(),
             'payload' => $this->resume,
-            'trace' => $exception->getTraceAsString()
+            'trace' => $exception->getTraceAsString(),
         ]);
     }
 }
