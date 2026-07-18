@@ -2,11 +2,11 @@
 
 namespace App\Enums;
 
-enum UserLanguageLevelEnum : string
+enum UserLanguageLevelEnum: string
 {
-    case BEGINNER     = 'beginner';
+    case BEGINNER = 'beginner';
     case INTERMEDIATE = 'intermediate';
-    case ADVANCED     = 'advanced';
-    case FLUENT       = 'fluent';
-    case NATIVE       = 'native';
+    case ADVANCED = 'advanced';
+    case FLUENT = 'fluent';
+    case NATIVE = 'native';
 }

@@ -14,11 +14,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'title',
     'start',
     'end',
-    'is_coursing'
+    'is_coursing',
 ])]
 class UserQualification extends Model
 {
-
     /**
      * Get the attributes that should be cast.
      *
@@ -27,14 +26,14 @@ class UserQualification extends Model
     protected function casts(): array
     {
         return [
-            'start'       => 'date',
-            'end'         => 'date',
+            'start' => 'date',
+            'end' => 'date',
             'is_coursing' => 'boolean',
-            'type'        => UserQualificationTypeEnum::class
+            'type' => UserQualificationTypeEnum::class,
         ];
     }
 
-    public function user() : BelongsTo
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }

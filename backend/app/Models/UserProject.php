@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'date',
     'technologies',
     'description',
-    'url'
+    'url',
 ])]
 class UserProject extends Model
 {

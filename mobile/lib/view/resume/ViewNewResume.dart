@@ -92,7 +92,6 @@ class _ViewNewResume extends State<ViewNewResume> {
   }
 
   void validateResume() async {
-
     if (resumeFile == null || linkedinFile == null) {
       return;
     }
@@ -118,14 +117,8 @@ class _ViewNewResume extends State<ViewNewResume> {
     print("###############################");
 
     var files = [
-      {
-        "field": "resume_cv",
-        "path": resumeFile!.path,
-      },
-      {
-        "field": "resume_linkedin",
-        "path": linkedinFile!.path,
-      },
+      {"field": "resume_cv", "path": resumeFile!.path},
+      {"field": "resume_linkedin", "path": linkedinFile!.path},
     ];
 
     print("###############################");
@@ -156,7 +149,9 @@ class _ViewNewResume extends State<ViewNewResume> {
         child: Column(
           children: [
             Text(
-              Translation.instance.translate('Fill data correctly to generate your resume'),
+              Translation.instance.translate(
+                'Fill data correctly to generate your resume',
+              ),
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 30.0),
@@ -197,19 +192,22 @@ class _ViewNewResume extends State<ViewNewResume> {
               },
             ),
             WidgetInputText(
-                title: Translation.instance.translate('GitHub URL'),
-                controller: controllerGitHubURL,
-                httpsPrefix: 'https://github.com/'
+              title: Translation.instance.translate('GitHub URL'),
+              controller: controllerGitHubURL,
+              httpsPrefix: 'https://github.com/',
             ),
             WidgetInputText(
-                title: Translation.instance.translate('Your site URL'),
-                controller: controllerWebsiteURL,
-                httpsPrefix: 'https://'
+              title: Translation.instance.translate('Your site URL'),
+              controller: controllerWebsiteURL,
+              httpsPrefix: 'https://',
             ),
 
             Column(
               children: List.generate(skills.length, (index) {
-                return WidgetInputText(title: Translation.instance.translate('Skill'), controller: skills[index]);
+                return WidgetInputText(
+                  title: Translation.instance.translate('Skill'),
+                  controller: skills[index],
+                );
               }),
             ),
 
@@ -217,7 +215,9 @@ class _ViewNewResume extends State<ViewNewResume> {
 
             GestureDetector(
               onTap: validateResume,
-              child: WidgetButton(title: Translation.instance.translate('Validate data')),
+              child: WidgetButton(
+                title: Translation.instance.translate('Validate data'),
+              ),
             ),
           ],
         ),

@@ -13,12 +13,19 @@ class ResumeProcessingPublisher implements ShouldQueue
     use Queueable;
 
     public $user_id = null;
+
     public $resume_id = null;
+
     public $resume_cv = null;
+
     public $resume_linkedin = null;
+
     public $expires_link;
+
     public $github_link;
+
     public $site_link;
+
     private $userResume = null;
 
     /**
@@ -29,41 +36,39 @@ class ResumeProcessingPublisher implements ShouldQueue
         User $user,
         ?UserResume $userResume = null
 
-    )
-    {
+    ) {
         $this->user_id = $user->id;
         $this->expires_link = now()->addDay();
 
-        if($userResume && $userResume->id !== null)
-        {
+        if ($userResume && $userResume->id !== null) {
 
             $this->resume_id = $userResume->id;
 
-            if(!empty($userResume->original_file_path_cv)){
+            if (! empty($userResume->original_file_path_cv)) {
                 $this->resume_cv = Storage::temporaryUrl($userResume->original_file_path_cv, $this->expires_link);
             }
 
-            if(!empty($userResume->original_file_path_linkedin)){
+            if (! empty($userResume->original_file_path_linkedin)) {
                 $this->resume_linkedin = Storage::temporaryUrl($userResume->original_file_path_linkedin, $this->expires_link);
             }
 
-        }else{
+        } else {
 
-            if(!empty($user->resume_cv)){
+            if (! empty($user->resume_cv)) {
                 $this->resume_cv = Storage::temporaryUrl($user->resume_cv, $this->expires_link);
             }
 
-            if(!empty($user->resume_linkedin)){
+            if (! empty($user->resume_linkedin)) {
                 $this->resume_linkedin = Storage::temporaryUrl($user->resume_linkedin, $this->expires_link);
             }
 
         }
 
-        if(!empty($user->github_link)){
+        if (! empty($user->github_link)) {
             $this->github_link = $user->github_link;
         }
 
-        if(!empty($user->site_link)){
+        if (! empty($user->site_link)) {
             $this->site_link = $user->site_link;
         }
 
@@ -77,5 +82,4 @@ class ResumeProcessingPublisher implements ShouldQueue
     /**
      * Execute the job.
      */
-    
 }

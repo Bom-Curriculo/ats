@@ -20,7 +20,6 @@ class ViewHome extends StatefulWidget {
 }
 
 class _ViewHomeState extends State<ViewHome> {
-
   bool loading = false;
 
   String name = '';
@@ -102,10 +101,7 @@ class _ViewHomeState extends State<ViewHome> {
       loading = true;
     });
 
-
-
     try {
-
       //http://127.0.0.1:8000/api/client/resumes/files?type=cv
       var response = await API().get('client/user/resumes');
       //var response = await API().get('client/resumes/files?type=cv');
@@ -122,12 +118,12 @@ class _ViewHomeState extends State<ViewHome> {
       for (var data in userWebData) {
         String status = data['status'];
         String title = '---';
-        String subtitle='Em  prsamento';
-        String score='---';
-        if (status=='pending') {
-          subtitle='Em processamento';
-        } else if (status=='fail') {
-          subtitle='Falha ao processar currículo';
+        String subtitle = 'Em  prsamento';
+        String score = '---';
+        if (status == 'pending') {
+          subtitle = 'Em processamento';
+        } else if (status == 'fail') {
+          subtitle = 'Falha ao processar currículo';
         }
         items.add({
           'uuid': data['id'],
@@ -135,10 +131,9 @@ class _ViewHomeState extends State<ViewHome> {
           'title': title,
           'subtitle': subtitle,
           'score': score,
-          'downloadURL': data['original_file_path_cv']
+          'downloadURL': data['original_file_path_cv'],
         });
       }
-
 
       final user = await DB.instance.getUser();
 
@@ -161,59 +156,57 @@ class _ViewHomeState extends State<ViewHome> {
       state = userData['state'] ?? '';
       country = userData['country'] ?? '';
       linkedinLink = userData['linkedin_link'] ?? '';
-    } catch (e) {
-
-    }
+    } catch (e) {}
 
     setState(() {
       loading = false;
     });
   }
 
-
-
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: const Navbar(),
-      body: loading?Center(child: CircularProgressIndicator()):SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(30.0),
+      body: loading
+          ? Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
-
-                  RichText(
-                    text: TextSpan(
-                      style: TextStyle(fontSize: 30, color: Colors.black),
+                  Padding(
+                    padding: const EdgeInsets.all(30.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        TextSpan(
-                          text: "${Translation.instance.translate('Welcome')}, ",
-                          style: TextStyle(fontWeight: FontWeight(800)),
-                        ),
+                        RichText(
+                          text: TextSpan(
+                            style: TextStyle(fontSize: 30, color: Colors.black),
+                            children: [
+                              TextSpan(
+                                text:
+                                    "${Translation.instance.translate('Welcome')}, ",
+                                style: TextStyle(fontWeight: FontWeight(800)),
+                              ),
 
-                        TextSpan(
-                          text: name,
-                          style: TextStyle(
-                            color: AppColorsLight.brandPrimary,
-                            fontWeight: FontWeight(800),
+                              TextSpan(
+                                text: name,
+                                style: TextStyle(
+                                  color: AppColorsLight.brandPrimary,
+                                  fontWeight: FontWeight(800),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                  Text(
-                    Translation.instance.translate('Seus Currículos otimizados em um só lugar'),
-                    style: TextStyle(fontWeight: FontWeight(700)),
-                  ),
+                        Text(
+                          Translation.instance.translate(
+                            'Seus Currículos otimizados em um só lugar',
+                          ),
+                          style: TextStyle(fontWeight: FontWeight(700)),
+                        ),
 
-                  const SizedBox(height: 15),
+                        const SizedBox(height: 15),
 
-                  /*
+                        /*
                   Text(
                     Translation.instance.translate('My resumes'),
                     style: TextStyle(
@@ -225,37 +218,43 @@ class _ViewHomeState extends State<ViewHome> {
 
                    */
 
-                  //WidgetScore(),
+                        //WidgetScore(),
+                        Column(
+                          children: items.map((item) {
+                            return WidgetResume(
+                              type: item['type'] ?? "",
+                              title: item['title'] ?? "",
+                              subtitle: item['subtitle'] ?? "",
+                              score: item['score'] ?? "",
+                              downloadURL: item['downloadURL'] ?? "",
+                            );
+                          }).toList(),
+                        ),
 
-                  Column(children: items.map((item){
-                    return WidgetResume(
-                        type: item['type']??"",
-                        title: item['title']??"",
-                        subtitle: item['subtitle']??"",
-                        score: item['score']??"",
-                        downloadURL: item['downloadURL']??""
-                    );
-                  }).toList()),
-
-                  items.length<5?GestureDetector(
-                    onTap: () {
-                      context.go("/resume/new-resume");
-                      //Navigator.push(
-                      //  context,
-                      //  MaterialPageRoute(
-                      //    builder: (context) => const ViewNewResume(),
-                      //  ),
-                      //);
-                    },
-                    child: WidgetButton(title: Translation.instance.translate('Generate new resume'))
-                  ):SizedBox()
-
+                        items.length < 5
+                            ? GestureDetector(
+                                onTap: () {
+                                  context.go("/resume/new-resume");
+                                  //Navigator.push(
+                                  //  context,
+                                  //  MaterialPageRoute(
+                                  //    builder: (context) => const ViewNewResume(),
+                                  //  ),
+                                  //);
+                                },
+                                child: WidgetButton(
+                                  title: Translation.instance.translate(
+                                    'Generate new resume',
+                                  ),
+                                ),
+                              )
+                            : SizedBox(),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 }

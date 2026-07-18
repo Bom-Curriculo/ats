@@ -2,20 +2,20 @@
 
 namespace App\Actions;
 
-use Exception;
-use Illuminate\Http\Request;
+use App\Models\User;
 use App\Services\Firebase\PushNotificationService;
+use Exception;
+use Illuminate\Http\JsonResponse;
 use Kreait\Firebase\Exception\FirebaseException;
 use Kreait\Firebase\Exception\MessagingException;
-use App\Models\User;
 
 class SendPushNotificationAction
 {
-    public static function send(User $user, $title, $body): \Illuminate\Http\JsonResponse
+    public static function send(User $user, $title, $body): JsonResponse
     {
         try {
 
-            $service = new PushNotificationService();
+            $service = new PushNotificationService;
 
             foreach ($user->devices as $device) {
 
@@ -23,11 +23,12 @@ class SendPushNotificationAction
                     token: $device->fcm_token,
                     payload: [
                         'title' => $title,
-                        'body' => $body
+                        'body' => $body,
                     ]
                 );
 
             }
+
             return response()->json([
                 'success' => true,
             ]);

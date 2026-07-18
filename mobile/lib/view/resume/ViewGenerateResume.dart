@@ -129,9 +129,7 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
     getTranslation();
   }
 
-  void generateResume() async {
-
-  }
+  void generateResume() async {}
 
   @override
   Widget build(BuildContext context) {
@@ -204,7 +202,9 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      Translation.instance.translate(personal['title']),
+                                      Translation.instance.translate(
+                                        personal['title'],
+                                      ),
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
@@ -319,7 +319,9 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      Translation.instance.translate(experience['title']),
+                                      Translation.instance.translate(
+                                        experience['title'],
+                                      ),
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
@@ -386,11 +388,13 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                        Translation.instance.translate(item['title']),
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                        ),
+                                      Translation.instance.translate(
+                                        item['title'],
+                                      ),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
                                     ),
                                     Text(item['institution']),
                                   ],
@@ -445,7 +449,9 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
                               child: Padding(
                                 padding: const EdgeInsets.all(10),
                                 child: Text(
-                                  Translation.instance.translate(course['title']),
+                                  Translation.instance.translate(
+                                    course['title'],
+                                  ),
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -504,7 +510,9 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      Translation.instance.translate(skill['title']),
+                                      Translation.instance.translate(
+                                        skill['title'],
+                                      ),
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
@@ -568,7 +576,9 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      Translation.instance.translate(language['title']),
+                                      Translation.instance.translate(
+                                        language['title'],
+                                      ),
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
@@ -591,7 +601,9 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
 
               GestureDetector(
                 onTap: generateResume,
-                child: WidgetButton(title: Translation.instance.translate('Generate resume')),
+                child: WidgetButton(
+                  title: Translation.instance.translate('Generate resume'),
+                ),
               ),
 
               const SizedBox(height: 20),

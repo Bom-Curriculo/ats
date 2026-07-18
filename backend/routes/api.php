@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Route;
 
 // Unauthenticated routes
 Route::group([
-    'prefix' => 'auth'
+    'prefix' => 'auth',
 ], function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class, 'register']);
@@ -23,19 +23,19 @@ Route::group([
 Route::group([
 
     'middleware' => 'auth:sanctum',
-    'prefix'     => 'client'
+    'prefix' => 'client',
 
 ], function () {
 
-    Route::prefix('/user')->group(function(){
-    
+    Route::prefix('/user')->group(function () {
+
         Route::get('/', [AuthController::class, 'user']);
         Route::put('/update', [UserController::class, 'update']);
         Route::get('/resumes', UserResumeController::class);
 
     });
 
-    Route::prefix('/resumes')->group(function(){
+    Route::prefix('/resumes')->group(function () {
 
         Route::get('/files', [ResumeController::class, 'getResumesFiles']);
         Route::post('/new-resume', [ResumeController::class, 'storeNewResume']);
@@ -44,13 +44,13 @@ Route::group([
 
     });
 
-    Route::prefix('/services')->group(function(){
+    Route::prefix('/services')->group(function () {
 
-        Route::prefix('/rabbitmq')->group(function(){
+        Route::prefix('/rabbitmq')->group(function () {
 
             Route::post('/process', ProducerResumesService::class);
 
         });
     });
-   
+
 });

@@ -27,9 +27,9 @@ class MakeApiRequestCommand extends Command
         if (str_contains($name, '/')) {
             $subPath = dirname($name);
 
-            $namespace .= '\\' . str_replace('/', '\\', $subPath);
+            $namespace .= '\\'.str_replace('/', '\\', $subPath);
 
-            $directory .= '/' . $subPath;
+            $directory .= '/'.$subPath;
         }
 
         File::ensureDirectoryExists($directory);

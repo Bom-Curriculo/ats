@@ -1,11 +1,14 @@
 <?php
 
+use App\Http\Controllers\Api\User\Traits\UserProcessRelationsTrait;
+
 it('syncs user skills correctly', function () {
 
     $user = authUser();
 
-    $service = new class {
-        use \App\Http\Controllers\Api\User\Traits\UserProcessRelationsTrait;
+    $service = new class
+    {
+        use UserProcessRelationsTrait;
     };
 
     $service->processSkillsUser([
@@ -22,11 +25,12 @@ it('replaces old skills when syncing', function () {
 
     $user->skills()->create([
         'name' => 'Old Skill',
-        'years' => 1
+        'years' => 1,
     ]);
 
-    $service = new class {
-        use \App\Http\Controllers\Api\User\Traits\UserProcessRelationsTrait;
+    $service = new class
+    {
+        use UserProcessRelationsTrait;
     };
 
     $service->processSkillsUser([

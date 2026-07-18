@@ -1,8 +1,10 @@
 <?php
 
+use App\Helpers\ResponseData;
+
 it('returns correct response structure for success', function () {
 
-    $response = \App\Helpers\ResponseData::success(
+    $response = ResponseData::success(
         'OK',
         ['name' => 'Gustavo'],
         200

@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import '../util/Translation.dart';
@@ -10,7 +9,6 @@ class WidgetScore extends StatefulWidget {
 }
 
 class _WidgetScore extends State<WidgetScore> {
-
   void getTranslation() async {
     await Translation.instance.load("pt-BR");
     setState(() {});
@@ -21,7 +19,6 @@ class _WidgetScore extends State<WidgetScore> {
     super.initState();
     getTranslation();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -45,10 +42,7 @@ class _WidgetScore extends State<WidgetScore> {
                     height: 90,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.blue,
-                        width: 5,
-                      ),
+                      border: Border.all(color: Colors.blue, width: 5),
                     ),
                     child: const Center(
                       child: Column(
@@ -61,10 +55,7 @@ class _WidgetScore extends State<WidgetScore> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          Text(
-                            "ATS SCORE",
-                            style: TextStyle(fontSize: 10),
-                          ),
+                          Text("ATS SCORE", style: TextStyle(fontSize: 10)),
                         ],
                       ),
                     ),
@@ -108,13 +99,17 @@ class _WidgetScore extends State<WidgetScore> {
                         const SizedBox(height: 8),
 
                         Text(
-                          Translation.instance.translate('Your medium score are excelent'),
+                          Translation.instance.translate(
+                            'Your medium score are excelent',
+                          ),
                         ),
 
                         const SizedBox(height: 4),
 
                         Text(
-                          Translation.instance.translate('Focus on adding keywords specific to Product Designer roles to achieve the maximum score'),
+                          Translation.instance.translate(
+                            'Focus on adding keywords specific to Product Designer roles to achieve the maximum score',
+                          ),
                         ),
 
                         const SizedBox(height: 12),
@@ -124,12 +119,16 @@ class _WidgetScore extends State<WidgetScore> {
                           children: [
                             Chip(
                               padding: const EdgeInsets.all(2.0),
-                              label: Text(Translation.instance.translate('Keywords')),
+                              label: Text(
+                                Translation.instance.translate('Keywords'),
+                              ),
                               backgroundColor: Colors.blue.shade50,
                             ),
                             Chip(
                               padding: const EdgeInsets.all(2.0),
-                              label: Text(Translation.instance.translate('Formatting')),
+                              label: Text(
+                                Translation.instance.translate('Formatting'),
+                              ),
                               backgroundColor: Colors.blue.shade50,
                             ),
                           ],
