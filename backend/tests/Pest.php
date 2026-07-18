@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -16,7 +17,7 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
-    ->in('Feature');
+    ->in('Feature', 'Unit');
 
 /*
 |--------------------------------------------------------------------------
@@ -44,7 +45,37 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * Cria um usuário (App\Models\User) para testes que só precisam do model,
+ * sem autenticação via API (ex.: testes de trait/serviço que operam
+ * diretamente sobre um usuário já existente). Aceita overrides de atributos,
+ * repassados direto pra factory (ex.: authUser(['password' => bcrypt('x')])).
+ *
+ * @param  array<string, mixed>  $attributes
+ */
+function authUser(array $attributes = []): User
 {
-    // ..
+    return User::factory()->create($attributes);
+}
+
+/**
+ * Cria um usuário e autentica via Sanctum, devolvendo o usuário e os
+ * headers prontos para requests às rotas protegidas por auth:sanctum
+ * (grupo /api/client/*). Aceita os mesmos overrides de atributos que authUser().
+ *
+ * @param  array<string, mixed>  $attributes
+ * @return array{user: User, headers: array<string, string>}
+ */
+function actingAsUser(array $attributes = []): array
+{
+    $user = authUser($attributes);
+
+    $token = $user->createToken('test-token')->plainTextToken;
+
+    return [
+        'user' => $user,
+        'headers' => [
+            'Authorization' => 'Bearer '.$token,
+        ],
+    ];
 }
