@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\User;
+use App\Models\SystemUser;
 
 test('login screen can be rendered', function () {
     $response = $this->get('/login');
@@ -9,33 +9,33 @@ test('login screen can be rendered', function () {
 });
 
 test('users can authenticate using the login screen', function () {
-    $user = User::factory()->create();
+    $user = SystemUser::factory()->create();
 
     $response = $this->post('/login', [
         'email' => $user->email,
         'password' => 'password',
     ]);
 
-    $this->assertAuthenticated();
+    $this->assertAuthenticated('system');
     $response->assertRedirect(route('dashboard', absolute: false));
 });
 
 test('users can not authenticate with invalid password', function () {
-    $user = User::factory()->create();
+    $user = SystemUser::factory()->create();
 
     $this->post('/login', [
         'email' => $user->email,
         'password' => 'wrong-password',
     ]);
 
-    $this->assertGuest();
+    $this->assertGuest('system');
 });
 
 test('users can logout', function () {
-    $user = User::factory()->create();
+    $user = SystemUser::factory()->create();
 
-    $response = $this->actingAs($user)->post('/logout');
+    $response = $this->actingAs($user, 'system')->post('/logout');
 
-    $this->assertGuest();
+    $this->assertGuest('system');
     $response->assertRedirect('/');
 });
