@@ -1,4 +1,3 @@
-
 import 'package:bomcurriculo/theme/AppColors.dart';
 import 'package:bomcurriculo/view/resume/ViewGenerateResume.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +12,7 @@ class WidgetResume extends StatefulWidget {
     required this.title,
     required this.subtitle,
     required this.score,
-    required this.downloadURL
+    required this.downloadURL,
   });
 
   final String type; // pending, analyze, ready, fail
@@ -27,30 +26,28 @@ class WidgetResume extends StatefulWidget {
 }
 
 class _WidgetResume extends State<WidgetResume> {
-
   @override
   Widget build(BuildContext context) {
-
     IconData icon = Icons.access_time_sharp;
     Color? color = Colors.black12;
     Color? colorBorder = Colors.grey.shade300;
-    if (widget.type=="pending") {
+    if (widget.type == "pending") {
       color = Color(0x09000000);
-    } else if (widget.type=="analyze") {
+    } else if (widget.type == "analyze") {
       color = Color(0x33ffff00);
       colorBorder = Color(0x77cccc00);
       icon = Icons.chevron_right;
-    } else if (widget.type=="ready") {
+    } else if (widget.type == "ready") {
       color = Colors.white;
       icon = Icons.download;
-    } else if (widget.type=="fail") {
+    } else if (widget.type == "fail") {
       color = Color(0x22ff0000);
       colorBorder = Color(0x22cc0000);
     }
 
     return GestureDetector(
       onTap: () async {
-        if (widget.type=='analyze') {
+        if (widget.type == 'analyze') {
           context.go("/resume/generate-resume");
           //Navigator.push(
           //  context,
@@ -58,11 +55,9 @@ class _WidgetResume extends State<WidgetResume> {
           //    builder: (context) => const ViewGenerateResume(),
           //  ),
           //);
-        } else if (widget.type=='ready') {
-            final file = await API().download(
-              widget.downloadURL,
-            );
-            print(file.path);
+        } else if (widget.type == 'ready') {
+          final file = await API().download(widget.downloadURL);
+          print(file.path);
         }
       },
       child: Column(
@@ -91,15 +86,14 @@ class _WidgetResume extends State<WidgetResume> {
                         Text(
                           widget.score.toString(),
                           style: TextStyle(
-                            color: widget.type=="ready"?AppColorsLight.brandPrimary:Color(0xff999999),
+                            color: widget.type == "ready"
+                                ? AppColorsLight.brandPrimary
+                                : Color(0xff999999),
                             fontSize: 26,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        Text(
-                          "SCORE",
-                          style: TextStyle(fontSize: 10),
-                        ),
+                        Text("SCORE", style: TextStyle(fontSize: 10)),
                       ],
                     ),
                     SizedBox(width: 4.0),
@@ -127,12 +121,7 @@ class _WidgetResume extends State<WidgetResume> {
                         ],
                       ),
                     ),
-                    Column(
-                      children: [
-                        SizedBox(height: 10),
-                        Icon(icon),
-                      ],
-                    )
+                    Column(children: [SizedBox(height: 10), Icon(icon)]),
                   ],
                 ),
                 /*

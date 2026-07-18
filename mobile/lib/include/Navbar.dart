@@ -27,7 +27,6 @@ class Navbar extends StatefulWidget implements PreferredSizeWidget {
 }
 
 class _NavbarState extends State<Navbar> {
-
   bool isLogged = false;
 
   @override
@@ -51,10 +50,10 @@ class _NavbarState extends State<Navbar> {
     //print(jwt);
     //print("-----------------------------");
 
-    if (jwt==null) {
-      isLogged=false;
+    if (jwt == null) {
+      isLogged = false;
     } else {
-      isLogged=true;
+      isLogged = true;
     }
     setState(() {});
   }
@@ -62,9 +61,7 @@ class _NavbarState extends State<Navbar> {
   Future<void> logout(BuildContext context) async {
     try {
       final fcm = await DB.instance.getFCM();
-      var response = await API().post('auth/logout',{
-        ?fcm: fcm
-      });
+      var response = await API().post('auth/logout', {?fcm: fcm});
       print(response.body);
     } catch (_) {}
 
@@ -94,35 +91,35 @@ class _NavbarState extends State<Navbar> {
         {
           'title': Translation.instance.translate('Login'),
           'widget': const ViewLogin(),
-          'action': () async => context.go("/auth/login")
+          'action': () async => context.go("/auth/login"),
         },
         {
           'title': Translation.instance.translate('Register'),
           'widget': const ViewRegister(),
-          'action': () async => context.go("/auth/register")
+          'action': () async => context.go("/auth/register"),
         },
         {
           'title': Translation.instance.translate('Forgot password'),
           'widget': const ViewForgotPassword(),
-          'action': () async => context.go("/auth/forgot-password")
-        }
+          'action': () async => context.go("/auth/forgot-password"),
+        },
       ];
     } else {
       links = [
         {
           'title': Translation.instance.translate('Home'),
           'widget': const ViewHome(),
-          'action': () async => context.go("/")
+          'action': () async => context.go("/"),
         },
         {
           'title': Translation.instance.translate('New resume'),
           'widget': const ViewNewResume(),
-          'action': () async => context.go("/resume/new-resume")
+          'action': () async => context.go("/resume/new-resume"),
         },
         {
           'title': Translation.instance.translate('Generate resume'),
           'widget': const ViewGenerateResume(),
-          'action': () async => context.go("/resume/generate-resume")
+          'action': () async => context.go("/resume/generate-resume"),
         },
         {
           'title': Translation.instance.translate('Logout'),

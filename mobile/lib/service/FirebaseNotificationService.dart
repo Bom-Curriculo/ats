@@ -37,8 +37,10 @@ class NotificationService {
     );
 
     await _fln.initialize(
-      settings:
-          const InitializationSettings(android: androidInit, iOS: iosInit),
+      settings: const InitializationSettings(
+        android: androidInit,
+        iOS: iosInit,
+      ),
       onDidReceiveNotificationResponse: (NotificationResponse resp) {
         final payload = resp.payload;
         if (payload != null && payload.isNotEmpty) {
@@ -53,7 +55,8 @@ class NotificationService {
 
     await _fln
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.createNotificationChannel(_channel);
 
     await _messaging.setForegroundNotificationPresentationOptions(
@@ -67,8 +70,9 @@ class NotificationService {
       onNotificationTap(initialMsg!.data);
     }
 
-    FirebaseMessaging.onMessageOpenedApp
-        .listen((msg) => onNotificationTap(msg.data));
+    FirebaseMessaging.onMessageOpenedApp.listen(
+      (msg) => onNotificationTap(msg.data),
+    );
 
     FirebaseMessaging.onMessage.listen((RemoteMessage msg) async {
       final data = msg.data;
