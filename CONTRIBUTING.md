@@ -32,6 +32,15 @@ Description of what you have fixed. You can also upload screenshots if needed.
 
 ```
 
+## Before opening a PR
+
+- **Backend (PHP):** run `vendor/bin/pint` before committing — it auto-fixes code style. If you don't have PHP installed, run it via Docker:
+  `docker run --rm -v ${PWD}/backend:/app -w /app php:8.4-cli vendor/bin/pint`
+- **Mobile (Flutter):** run `dart format .` inside `mobile/` before committing. Without Flutter installed:
+  `docker run --rm -v ${PWD}/mobile:/app -w /app dart:stable dart format .`
+- **Keep your branch up to date** with `development` before opening/merging your PR — CI runs against your branch's current state, so a stale branch can show failures that were already fixed elsewhere.
+- **Keep PRs focused**: don't mix formatting-only changes with bug fixes or new features in the same PR — it makes review and rollback much easier.
+
 ## Coding Style
 
 - Keep code readable.
@@ -86,6 +95,15 @@ Resposta.
 Descrição do que foi feito. Você pode adicionar alguma print se necessário.
 
 ```
+
+## Antes de abrir um PR
+
+- **Backend (PHP):** rode `vendor/bin/pint` antes de commitar — ele corrige o estilo de código automaticamente. Se não tiver PHP instalado, rode via Docker:
+  `docker run --rm -v ${PWD}/backend:/app -w /app php:8.4-cli vendor/bin/pint`
+- **Mobile (Flutter):** rode `dart format .` dentro de `mobile/` antes de commitar. Sem Flutter instalado:
+  `docker run --rm -v ${PWD}/mobile:/app -w /app dart:stable dart format .`
+- **Mantenha sua branch atualizada** com a `development` antes de abrir/mergear o PR — o CI roda em cima do estado atual da sua branch, então uma branch desatualizada pode mostrar falhas que já foram corrigidas em outro lugar.
+- **Mantenha os PRs focados**: não misture mudanças só de formatação com correção de bug ou feature nova no mesmo PR — facilita muito a revisão e um eventual rollback.
 
 ## Padrão de código
 
