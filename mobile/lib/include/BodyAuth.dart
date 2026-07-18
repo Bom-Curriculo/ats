@@ -26,12 +26,9 @@ class _BodyAuth extends State<BodyAuth> {
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(45.0),
-                    child: SingleChildScrollView(child: Column(
-                      children: [
-                        WidgetLogo(),
-                        widget.child,
-                      ],
-                    )),
+                    child: SingleChildScrollView(
+                      child: Column(children: [WidgetLogo(), widget.child]),
+                    ),
                   ),
                 ),
               ],

@@ -17,9 +17,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // 2. Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Dentro do seu main(), após await Firebase.initializeApp(...)
   final messaging = FirebaseMessaging.instance;
@@ -61,10 +59,7 @@ void main() async {
 class MyApp extends StatelessWidget {
   final bool logged;
 
-  const MyApp({
-    super.key,
-    required this.logged,
-  });
+  const MyApp({super.key, required this.logged});
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +68,8 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: appTitle,
       theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple)),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+      ),
     );
   }
 }

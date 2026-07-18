@@ -25,12 +25,7 @@ class _WidgetInputFile extends State<WidgetInputFile> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            widget.title,
-            style: const TextStyle(
-              fontSize: 16.0,
-            ),
-          ),
+          Text(widget.title, style: const TextStyle(fontSize: 16.0)),
           const SizedBox(height: 5.0),
           GestureDetector(
             onTap: widget.onTap,
@@ -47,10 +42,7 @@ class _WidgetInputFile extends State<WidgetInputFile> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(
-                      Icons.upload_file,
-                      size: 20.0,
-                    ),
+                    const Icon(Icons.upload_file, size: 20.0),
                     const SizedBox(width: 10.0),
                     Expanded(
                       child: Text(
@@ -66,10 +58,7 @@ class _WidgetInputFile extends State<WidgetInputFile> {
                       ),
                     ),
                     const SizedBox(width: 10.0),
-                    const Icon(
-                      Icons.folder_open,
-                      size: 20.0,
-                    ),
+                    const Icon(Icons.folder_open, size: 20.0),
                   ],
                 ),
               ),

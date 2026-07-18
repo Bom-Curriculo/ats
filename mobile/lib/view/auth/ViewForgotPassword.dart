@@ -17,14 +17,13 @@ class ViewForgotPassword extends StatefulWidget {
 }
 
 class _ViewForgotPassword extends State<ViewForgotPassword> {
-
   bool loading = false;
 
   final FocusNode focusEmail = FocusNode();
   final controllerEmail = TextEditingController();
 
-  String errorEmail='';
-  String errorText='';
+  String errorEmail = '';
+  String errorText = '';
 
   void getTranslation() async {
     await Translation.instance.load("pt-BR");
@@ -39,7 +38,6 @@ class _ViewForgotPassword extends State<ViewForgotPassword> {
   }
 
   void doSendEmail() async {
-
     bool error = false;
 
     // Reseta erros
@@ -49,7 +47,7 @@ class _ViewForgotPassword extends State<ViewForgotPassword> {
     });
 
     // Valida email
-    if (controllerEmail.text=="") {
+    if (controllerEmail.text == "") {
       errorEmail = Translation.instance.translate('Type your email');
       error = true;
     } else if (!Validation().isEmail(controllerEmail.text)) {
@@ -59,22 +57,20 @@ class _ViewForgotPassword extends State<ViewForgotPassword> {
 
     // Se tiver erro
     if (error) {
-      setState((){});
+      setState(() {});
       return;
     }
 
     // Se não tiver erro
     if (!error) {
       setState(() {
-        loading=true;
+        loading = true;
         errorEmail = '';
         errorText = '';
       });
 
       API api = API();
-      await api.post('auth/forgot-password', {
-        'email': controllerEmail.text
-      });
+      await api.post('auth/forgot-password', {'email': controllerEmail.text});
 
       context.go("/auth/verify-otp");
       //Navigator.push(
@@ -83,13 +79,9 @@ class _ViewForgotPassword extends State<ViewForgotPassword> {
       //);
 
       setState(() {
-        loading=false;
+        loading = false;
       });
-
-
-
     }
-
   }
 
   @override
@@ -98,22 +90,26 @@ class _ViewForgotPassword extends State<ViewForgotPassword> {
       child: Column(
         children: [
           Text(
-            Translation.instance.translate('Forgot your password? Type your email to receive OTP code to change your password'),
+            Translation.instance.translate(
+              'Forgot your password? Type your email to receive OTP code to change your password',
+            ),
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 30.0),
           WidgetInputText(
-              title: 'Email',
-              controller: controllerEmail,
-              error: errorEmail,
+            title: 'Email',
+            controller: controllerEmail,
+            error: errorEmail,
             focusNode: focusEmail,
           ),
           WidgetError(text: errorText),
           GestureDetector(
             onTap: doSendEmail,
             child: WidgetButton(
-                title: loading ? '${Translation.instance.translate('Loading')}...' : Translation.instance.translate('Recover password'),
-                color: loading ? Colors.black26 : Colors.blue
+              title: loading
+                  ? '${Translation.instance.translate('Loading')}...'
+                  : Translation.instance.translate('Recover password'),
+              color: loading ? Colors.black26 : Colors.blue,
             ),
           ),
         ],

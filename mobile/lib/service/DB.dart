@@ -2,7 +2,6 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 class DB {
-
   static const String _databaseName = "mydb.db";
   static const int _databaseVersion = 1;
 
@@ -30,11 +29,7 @@ class DB {
     final databasesPath = await getDatabasesPath();
     final path = join(databasesPath, _databaseName);
 
-    return openDatabase(
-      path,
-      version: _databaseVersion,
-      onCreate: _onCreate,
-    );
+    return openDatabase(path, version: _databaseVersion, onCreate: _onCreate);
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -49,14 +44,10 @@ class DB {
   Future<void> _save(String key, String value) async {
     final db = await database;
 
-    await db.insert(
-      _table,
-      {
-        columnKey: key,
-        columnValue: value,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert(_table, {
+      columnKey: key,
+      columnValue: value,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<String?> _get(String key) async {
@@ -79,11 +70,7 @@ class DB {
   Future<void> _delete(String key) async {
     final db = await database;
 
-    await db.delete(
-      _table,
-      where: "$columnKey = ?",
-      whereArgs: [key],
-    );
+    await db.delete(_table, where: "$columnKey = ?", whereArgs: [key]);
   }
 
   Future<void> saveJWT(String jwt) async {

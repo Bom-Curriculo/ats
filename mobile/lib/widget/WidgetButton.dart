@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import '../theme/AppColors.dart';
@@ -8,7 +7,7 @@ class WidgetButton extends StatefulWidget {
     super.key,
     required this.title,
     //this.color = Colors.blue
-    this.color = AppColorsLight.brandPrimary
+    this.color = AppColorsLight.brandPrimary,
   });
 
   final String title;
@@ -31,11 +30,8 @@ class _WidgetButton extends State<WidgetButton> {
         padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 25.0),
         child: Center(
           child: Text(
-              widget.title,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16.0
-              ),
+            widget.title,
+            style: TextStyle(color: Colors.white, fontSize: 16.0),
           ),
         ),
       ),

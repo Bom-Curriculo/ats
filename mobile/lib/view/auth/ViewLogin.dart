@@ -22,15 +22,14 @@ class ViewLogin extends StatefulWidget {
 }
 
 class _ViewLogin extends State<ViewLogin> {
-
   bool loading = false;
 
   final controllerEmail = TextEditingController();
   final controllerPassword = TextEditingController();
 
-  String errorEmail='';
-  String errorPassword='';
-  String errorText='';
+  String errorEmail = '';
+  String errorPassword = '';
+  String errorText = '';
 
   void getTranslation() async {
     await Translation.instance.load("pt-BR");
@@ -44,18 +43,17 @@ class _ViewLogin extends State<ViewLogin> {
   }
 
   void doLogin() async {
-
     bool error = false;
 
     // Reseta erros
     setState(() {
       errorEmail = '';
-      errorPassword='';
-      errorText='';
+      errorPassword = '';
+      errorText = '';
     });
 
     // Valida email
-    if (controllerEmail.text=="") {
+    if (controllerEmail.text == "") {
       errorEmail = Translation.instance.translate('Type your email');
       error = true;
     } else if (!Validation().isEmail(controllerEmail.text)) {
@@ -64,24 +62,24 @@ class _ViewLogin extends State<ViewLogin> {
     }
 
     // Valida senha
-    if (controllerPassword.text=="") {
-      errorPassword=Translation.instance.translate('Type your password');
+    if (controllerPassword.text == "") {
+      errorPassword = Translation.instance.translate('Type your password');
       error = true;
     }
 
     // Se tiver erro
     if (error) {
-      setState((){});
+      setState(() {});
       return;
     }
 
     // Se não tiver erro
     if (!error) {
       setState(() {
-        loading=true;
+        loading = true;
         errorEmail = '';
-        errorPassword='';
-        errorText='';
+        errorPassword = '';
+        errorText = '';
       });
 
       final fcm = await DB.instance.getFCM();
@@ -90,17 +88,17 @@ class _ViewLogin extends State<ViewLogin> {
       var payload = {
         'email': controllerEmail.text,
         'password': controllerPassword.text,
-        'fcm': fcm
+        'fcm': fcm,
       };
       print("**********************************");
       print(payload);
       print("**********************************");
       var response = await api.post('auth/login', payload);
 
-      var body =  jsonDecode(response.body);
+      var body = jsonDecode(response.body);
 
-      if (response.statusCode==200) {
-        if (body['data']['token']!="") {
+      if (response.statusCode == 200) {
+        if (body['data']['token'] != "") {
           await DB.instance.saveJWT(body['data']['token']);
         }
         String user = jsonEncode(body['data']['user']);
@@ -111,8 +109,7 @@ class _ViewLogin extends State<ViewLogin> {
         //  context,
         //  MaterialPageRoute(builder: (context) => const ViewHome()),
         //);
-      } else if (response.statusCode==422) {
-
+      } else if (response.statusCode == 422) {
         final Map<String, dynamic> errors = body['data']['errors'];
 
         final List<String> messages = [];
@@ -128,24 +125,22 @@ class _ViewLogin extends State<ViewLogin> {
         final errorString = messages.join('\n');
 
         setState(() {
-          loading=false;
+          loading = false;
           errorEmail = '';
-          errorPassword='';
+          errorPassword = '';
           //errorText=body['message'];
-          errorText=errorString;
+          errorText = errorString;
         });
       } else {
         setState(() {
-          loading=false;
+          loading = false;
           errorEmail = '';
-          errorPassword='';
+          errorPassword = '';
           //errorText=body['message'];
-          errorText='';
+          errorText = '';
         });
       }
-
     }
-
   }
 
   @override
@@ -154,17 +149,17 @@ class _ViewLogin extends State<ViewLogin> {
       child: Column(
         children: [
           WidgetInputText(
-              title: 'Email',
-              error: errorEmail,
-              controller: controllerEmail,
-              maxLength: 128
+            title: 'Email',
+            error: errorEmail,
+            controller: controllerEmail,
+            maxLength: 128,
           ),
           WidgetInputText(
-              title: Translation.instance.translate('Password'),
-              error: errorPassword,
-              controller: controllerPassword,
-              isPassword: true,
-              maxLength: 64
+            title: Translation.instance.translate('Password'),
+            error: errorPassword,
+            controller: controllerPassword,
+            isPassword: true,
+            maxLength: 64,
           ),
 
           WidgetError(text: errorText),
@@ -172,8 +167,10 @@ class _ViewLogin extends State<ViewLogin> {
           GestureDetector(
             onTap: doLogin,
             child: WidgetButton(
-                title: loading ? '${Translation.instance.translate('Loading')}...' : Translation.instance.translate('Login'),
-                color: loading ? Colors.black26 : Colors.blue
+              title: loading
+                  ? '${Translation.instance.translate('Loading')}...'
+                  : Translation.instance.translate('Login'),
+              color: loading ? Colors.black26 : Colors.blue,
             ),
           ),
 
