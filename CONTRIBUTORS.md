@@ -32,6 +32,7 @@ Contributors will be added here after their first accepted Pull Request.
 | Caio Vieira             | Ci & Docker    | https://linkedin.com/in/caioviier                       |
 | Willian                 | CI             | https://williancagol.vercel.app                         |
 | Caio Vinícius Ferreira  | CI             | https://linkedin.com/in/caio-vin%C3%ADcius-ferreira     |
+| Pedro Migliori          | React & CI     | https://www.linkedin.com/in/akamigliori/                |               |
 
 ---
 
@@ -65,3 +66,4 @@ Os colaboradores serão adicionados aqui após o primeiro Pull Request aceito.
 | Caio Vieira             | Ci & Docker    | https://linkedin.com/in/caioviier                       |
 | Willian                 | CI             | https://williancagol.vercel.app                         |
 | Caio Vinícius Ferreira  | CI             | https://linkedin.com/in/caio-vin%C3%ADcius-ferreira     |
+| Pedro Migliori          | React & CI     | https://www.linkedin.com/in/akamigliori/                |               | 
