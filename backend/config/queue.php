@@ -1,5 +1,7 @@
 <?php
 
+use PhpAmqpLib\Connection\AMQPLazyConnection;
+
 return [
 
     /*
@@ -92,7 +94,7 @@ return [
         'rabbitmq_producer' => [
             'driver' => 'rabbitmq',
             'queue' => env('RABBITMQ_PRODUCER', 'default'),
-            'connection' => PhpAmqpLib\Connection\AMQPLazyConnection::class,
+            'connection' => AMQPLazyConnection::class,
             'hosts' => [
                 [
                     'host' => env('RABBITMQ_HOST', '127.0.0.1'),
@@ -113,7 +115,7 @@ return [
         'rabbitmq_consumer' => [
             'driver' => 'rabbitmq',
             'queue' => env('RABBITMQ_CONSUMER', 'default_consumer'),
-            'connection' => PhpAmqpLib\Connection\AMQPLazyConnection::class,
+            'connection' => AMQPLazyConnection::class,
             'hosts' => [
                 [
                     'host' => env('RABBITMQ_HOST', '127.0.0.1'),
@@ -123,11 +125,11 @@ return [
                     'vhost' => env('RABBITMQ_VHOST', '/'),
                 ],
             ],
-            
+
             'options' => [
                 'queue' => [
                     'declare' => true,
-                    'bind' => true
+                    'bind' => true,
                 ],
             ],
         ],

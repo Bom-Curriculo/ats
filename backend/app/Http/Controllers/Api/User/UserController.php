@@ -13,16 +13,15 @@ use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
-
     use UserProcessRelationsTrait, UserUploadsTrait;
 
     public function update(UpdateUserRequest $request)
     {
-        
-        try{
 
-            DB::transaction(function() use ($request){
-                
+        try {
+
+            DB::transaction(function () use ($request) {
+
                 $user = $request->user();
 
                 $this->processSkillsUser($request->input('skills', []), $user);
@@ -35,15 +34,15 @@ class UserController extends Controller
                 $pathResumeLinkedin = $user->resume_linkedin;
                 $pathCertificatePCD = $user->path_certificate_pcd;
 
-                if(!empty($request->file('resume_cv'))){
+                if (! empty($request->file('resume_cv'))) {
                     $pathResumeCv = $this->storeCvResume($request, $user);
                 }
 
-                if(!empty($request->file('resume_linkedin'))){
+                if (! empty($request->file('resume_linkedin'))) {
                     $pathResumeLinkedin = $this->storeLinkedinResume($request, $user);
                 }
 
-                if(!empty($request->file('path_certificate_pcd'))){
+                if (! empty($request->file('path_certificate_pcd'))) {
                     $pathCertificatePCD = $this->storePcdCertificate($request, $user);
                 }
 
@@ -55,39 +54,37 @@ class UserController extends Controller
                     'skills',
                     'experiences',
                     'qualifications',
-                    'languages'
+                    'languages',
                 ]);
 
                 // Override Files path to request
                 $data = array_merge([
                     'resume_cv' => $pathResumeCv,
                     'resume_linkedin' => $pathResumeLinkedin,
-                    'path_certificate_pcd' => $pathCertificatePCD
+                    'path_certificate_pcd' => $pathCertificatePCD,
                 ], $request);
-                
 
                 $user->update($data);
             });
-            
+
             return ResponseData::success('Success', [
                 'user' => $request->user()->load(['skills', 'experiences', 'qualifications', 'languages', 'projects']),
             ]);
 
-        }catch(ValidationException $validator){
+        } catch (ValidationException $validator) {
 
             return ResponseData::error('Validation failed.', [
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ],
-            422);
+                422);
 
-        }catch(Exception $exception){
+        } catch (Exception $exception) {
 
             return ResponseData::error('Server error', [
-                'error' => $exception->getMessage()
+                'error' => $exception->getMessage(),
             ],
-            500);
+                500);
 
         }
     }
-
 }

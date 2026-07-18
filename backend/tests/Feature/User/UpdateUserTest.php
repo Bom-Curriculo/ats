@@ -8,7 +8,7 @@ it('updates user profile', function () {
         ->withHeaders($auth['headers'])
         ->putJson('/api/client/user/update', [
             'name' => 'New Name',
-            'city' => 'São Paulo'
+            'city' => 'São Paulo',
         ]);
 
     $response->assertOk();

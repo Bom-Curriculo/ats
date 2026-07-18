@@ -2,10 +2,10 @@
 
 namespace App\Enums;
 
-enum UserResumeEnum : string
+enum UserResumeEnum: string
 {
     case PENDING = 'pending';
     case ANALYZE = 'analyze';
-    case READY   = 'ready';
-    case FAIL    = 'fail';
+    case READY = 'ready';
+    case FAIL = 'fail';
 }

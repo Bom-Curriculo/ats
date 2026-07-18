@@ -5,18 +5,17 @@ namespace App\Services\RabbitMQ\Resume\DTO;
 use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 
-final class ResumeResponseDTO 
+final class ResumeResponseDTO
 {
-
     private const REQUIREMENTS = [
         'analysis_request_id',
         'resume_id',
         'user_id',
         'status',
         'result',
-        'error'
+        'error',
     ];
-  
+
     public function __construct(
         public string $analysis_request_id,
         public string $user_resume_id,
@@ -33,9 +32,8 @@ final class ResumeResponseDTO
         public array $skills = [],
         public array $languages = [],
         public array $others = [],
- 
-    ) {}
 
+    ) {}
 
     public static function fromData(array|object $data): self
     {
@@ -43,13 +41,13 @@ final class ResumeResponseDTO
         $dataArray = is_object($data) ? (array) $data : $data;
 
         foreach (self::REQUIREMENTS as $requirement) {
-            if (!array_key_exists($requirement, $dataArray)) {
-                
+            if (! array_key_exists($requirement, $dataArray)) {
+
                 Log::channel('rabbit_resumes')->error('RabbitMQ Consumer fail', [
                     'error' => "Missing required field from BOT: {$requirement}",
-                    'payload' => $dataArray
+                    'payload' => $dataArray,
                 ]);
-                
+
                 throw new InvalidArgumentException("Missing required field: {$requirement}");
             }
         }
@@ -81,63 +79,69 @@ final class ResumeResponseDTO
 
     public function debug()
     {
-        dd($this); 
+        dd($this);
     }
 
     public function toArray(): array
     {
         return [
             'analysis_request_id' => $this->analysis_request_id,
-            'user_resume_id'      => $this->user_resume_id,
-            'user_id'             => $this->user_id,
-            'status'              => $this->status,
-            'error'               => $this->error,
-            'header'              => $this->header,
-            'experiences'         => $this->experiences,
-            'projects'            => $this->projects,
-            'qualifications'      => $this->qualifications,
-            'skills'              => $this->skills,
-            'languages'           => $this->languages,
-            'others'              => $this->others,
+            'user_resume_id' => $this->user_resume_id,
+            'user_id' => $this->user_id,
+            'status' => $this->status,
+            'error' => $this->error,
+            'header' => $this->header,
+            'experiences' => $this->experiences,
+            'projects' => $this->projects,
+            'qualifications' => $this->qualifications,
+            'skills' => $this->skills,
+            'languages' => $this->languages,
+            'others' => $this->others,
         ];
     }
 
-    protected function processheader(){
-        
+    protected function processheader()
+    {
+
         // Implement: Header Validation
 
         $this->header = $this->result['header'] ?? [];
     }
 
-    protected function processSkills(){
+    protected function processSkills()
+    {
 
         // Implement: Skills Validation
 
         $this->skills = $this->result['skills'] ?? [];
     }
 
-    protected function processExperiences(){
+    protected function processExperiences()
+    {
 
         // Implement: Experiences Validation
 
         $this->experiences = $this->result['experiences'] ?? [];
     }
 
-    protected function processProjects(){
+    protected function processProjects()
+    {
 
         // Implement: Projects Validation
 
         $this->projects = $this->result['projects'] ?? [];
     }
 
-    protected function processQualifications(){
+    protected function processQualifications()
+    {
 
         // Implement: Qualifications Validation
 
         $this->qualifications = $this->result['qualifications'] ?? [];
     }
 
-    protected function processLanguages(){
+    protected function processLanguages()
+    {
 
         // Implement: Languages Validation
 
@@ -145,11 +149,10 @@ final class ResumeResponseDTO
     }
 
     protected function proccessOthers()
-    {   
+    {
 
         // Don't implements validations here
 
         $this->others = $this->result['others'] ?? [];
     }
-
 }

@@ -1,14 +1,14 @@
-<?php 
+<?php
 
 it('can login successfully', function () {
 
     $user = authUser([
-        'password' => bcrypt('password')
+        'password' => bcrypt('password'),
     ]);
 
     $response = $this->postJson('/api/auth/login', [
         'email' => $user->email,
-        'password' => 'password'
+        'password' => 'password',
     ]);
 
     $response->assertOk()
@@ -17,7 +17,7 @@ it('can login successfully', function () {
             'message',
             'data' => [
                 'token',
-                'user'
-            ]
+                'user',
+            ],
         ]);
 });

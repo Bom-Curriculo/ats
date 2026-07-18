@@ -12,22 +12,21 @@ class UserResumeController extends Controller
 {
     public function __invoke(Request $request)
     {
-        try{   
+        try {
 
-            $resumes =  UserResume::where('user_id', $request->user()->id)
-                            ->orderByDesc('created_at')
-                            ->get();
+            $resumes = UserResume::where('user_id', $request->user()->id)
+                ->orderByDesc('created_at')
+                ->get();
 
             return ResponseData::success('Success', [
-                'data' => $resumes
+                'data' => $resumes,
             ]);
 
-        }catch(Exception $exception)
-        {
-             return ResponseData::error('Server error', [
-                'error' => $exception->getMessage()
+        } catch (Exception $exception) {
+            return ResponseData::error('Server error', [
+                'error' => $exception->getMessage(),
             ],
-            500);
+                500);
         }
     }
 }

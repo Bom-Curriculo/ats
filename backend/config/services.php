@@ -39,9 +39,9 @@ return [
         'mobile' => [
             'credential' => [
                 'projectId' => env('FIREBASE_MOBILE_PROJECT_ID'),
-                'clientEmail' => env("FIREBASE_MOBILE_CLIENT_EMAIL"),
-                'privateKey' => env("FIREBASE_MOBILE_PRIVATE_KEY"),
-            ]
+                'clientEmail' => env('FIREBASE_MOBILE_CLIENT_EMAIL'),
+                'privateKey' => env('FIREBASE_MOBILE_PRIVATE_KEY'),
+            ],
         ],
     ],
 

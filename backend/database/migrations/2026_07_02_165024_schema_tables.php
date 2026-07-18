@@ -15,11 +15,11 @@ return new class extends Migration
     public function up(): void
     {
 
-        Schema::create('user_experiences', function(Blueprint $table){
+        Schema::create('user_experiences', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')
-                    ->constrained('users')
-                    ->onDelete('cascade');
+                ->constrained('users')
+                ->onDelete('cascade');
 
             $table->string('company');
             $table->string('role');
@@ -34,11 +34,11 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('user_qualifications', function(Blueprint $table){
+        Schema::create('user_qualifications', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')
-                    ->constrained('users')
-                    ->onDelete('cascade');
+                ->constrained('users')
+                ->onDelete('cascade');
 
             $table->enum('type', [
                 UserQualificationTypeEnum::ELEMENTARY->value,
@@ -48,7 +48,7 @@ return new class extends Migration
                 UserQualificationTypeEnum::GRADUATE_DEGREE->value,
                 UserQualificationTypeEnum::POSTGRADUATE_DEGREE->value,
                 UserQualificationTypeEnum::MASTER_DEGREE->value,
-                UserQualificationTypeEnum::DOCTORATE_DEGREE->value
+                UserQualificationTypeEnum::DOCTORATE_DEGREE->value,
             ]);
 
             $table->string('institution');
@@ -60,11 +60,11 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('user_languages', function(Blueprint $table){
+        Schema::create('user_languages', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')
-                    ->constrained('users')
-                    ->onDelete('cascade');
+                ->constrained('users')
+                ->onDelete('cascade');
 
             $table->string('language');
             $table->enum('level', [
@@ -72,21 +72,21 @@ return new class extends Migration
                 UserLanguageLevelEnum::INTERMEDIATE->value,
                 UserLanguageLevelEnum::ADVANCED->value,
                 UserLanguageLevelEnum::FLUENT->value,
-                UserLanguageLevelEnum::NATIVE->value
+                UserLanguageLevelEnum::NATIVE->value,
             ]);
 
             $table->timestamps();
         });
 
-        Schema::table('users', function(Blueprint $table){
+        Schema::table('users', function (Blueprint $table) {
             $table->string('social_name')->nullable()->after('name');
             $table->string('phone')->nullable()->after('social_name');
             $table->text('resume')->nullable()->after('phone');
             $table->string('resume_email')->nullable()->after('email');
             $table->enum('gender', [
-                UserGenderEnum::MALE->value, 
-                UserGenderEnum::FEMALE->value, 
-                UserGenderEnum::ANOTHER->value
+                UserGenderEnum::MALE->value,
+                UserGenderEnum::FEMALE->value,
+                UserGenderEnum::ANOTHER->value,
             ])->nullable()->after('name');
             $table->boolean('is_pcd')->default(false)->after('gender');
             $table->string('path_certificate_pcd')->nullable()->after('is_pcd');
@@ -117,7 +117,7 @@ return new class extends Migration
             'city',
             'state',
             'country',
-            'linkedin_link'
+            'linkedin_link',
         ]);
     }
 };

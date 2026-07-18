@@ -11,7 +11,7 @@ it('returns authenticated user', function () {
     $response->assertOk()
         ->assertJsonStructure([
             'data' => [
-                'user'
-            ]
+                'user',
+            ],
         ]);
 });

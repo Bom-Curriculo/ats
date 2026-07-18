@@ -22,6 +22,7 @@ class RegisteredUserController extends Controller
     public function create(): View
     {
         return redirect()->route('login');
+
         return view('system.auth.register');
     }
 

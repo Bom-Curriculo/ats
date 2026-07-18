@@ -22,7 +22,7 @@ return new class extends Migration
                 UserResumeEnum::PENDING->value,
                 UserResumeEnum::ANALYZE->value,
                 UserResumeEnum::READY->value,
-                UserResumeEnum::FAIL->value
+                UserResumeEnum::FAIL->value,
             ])->default(
                 UserResumeEnum::PENDING->value,
             );

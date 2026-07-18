@@ -29,14 +29,14 @@ class ResumeAnalytic extends Model
     protected function casts(): array
     {
         return [
-            'error'          => 'array',
-            'header'         => 'array',
-            'experiences'    => 'array',
-            'projects'       => 'array',
+            'error' => 'array',
+            'header' => 'array',
+            'experiences' => 'array',
+            'projects' => 'array',
             'qualifications' => 'array',
-            'skills'         => 'array',
-            'languages'      => 'array',
-            'others'         => 'array',
+            'skills' => 'array',
+            'languages' => 'array',
+            'others' => 'array',
         ];
     }
 

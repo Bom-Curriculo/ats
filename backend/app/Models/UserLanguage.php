@@ -9,11 +9,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'language',
-    'level'
+    'level',
 ])]
 class UserLanguage extends Model
 {
-   
     /**
      * Get the attributes that should be cast.
      *
@@ -22,11 +21,11 @@ class UserLanguage extends Model
     protected function casts(): array
     {
         return [
-            'level' => UserLanguageLevelEnum::class
+            'level' => UserLanguageLevelEnum::class,
         ];
     }
 
-    public function user() : BelongsTo
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
