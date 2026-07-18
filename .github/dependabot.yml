@@ -11,6 +11,11 @@ updates:
           - "*"
     commit-message:
       prefix: "chore(frontend)"
+    ignore:
+      # typescript-eslint@8.x exige typescript <6.1.0; liberar quando o
+      # peer dependency for atualizado, evitando ERESOLVE no npm ci.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
 
   # Backend - assets/vite (npm)
   - package-ecosystem: "npm"
