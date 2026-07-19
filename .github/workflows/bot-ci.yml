@@ -1,0 +1,43 @@
+name: Bot CI
+
+on:
+  push:
+    branches: [main, development]
+    paths:
+      - "bot/**"
+      - ".github/workflows/bot-ci.yml"
+  pull_request:
+    branches: [main, development]
+    paths:
+      - "bot/**"
+      - ".github/workflows/bot-ci.yml"
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: bot
+
+jobs:
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8
+        with:
+          python-version: "3.11"
+
+      - name: Copy config.yaml
+        run: cp config.yaml.example config.yaml
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run tests
+        run: uv run pytest
