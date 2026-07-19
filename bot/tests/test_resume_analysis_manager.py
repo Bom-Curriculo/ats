@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 
-from app.models.resume_analysis import ResumeAnalysisResult, ResumeHeader, SkillItem
+from app.models.resume_analysis import BuiltResumeResult, ResumeHeader, ResumeScoreResult, SkillItem
 from app.providers.base import AIProviderError
 from app.providers.mock import MockProvider
 from app.services.ai.resume_analysis_manager import ResumeAnalysisManager
@@ -10,13 +10,17 @@ from app.services.ai.resume_analysis_manager import ResumeAnalysisManager
 RESUME_TEXT = "COMPETÊNCIAS\nPython, FastAPI, SQL."
 
 
-def make_result(score: int = 70) -> ResumeAnalysisResult:
-    return ResumeAnalysisResult(score=score, suggestion="Adicione métricas de impacto.")
+def make_score(score: int = 70) -> ResumeScoreResult:
+    return ResumeScoreResult(score=score, suggestion="Adicione métricas de impacto.")
+
+
+def make_built(score: int = 70) -> BuiltResumeResult:
+    return BuiltResumeResult(score=score)
 
 
 class ProviderFake(MockProvider):
     def __init__(self, name: str, should_fail: bool = False, prompts: list | None = None):
-        super().__init__(model=f"modelo-{name}", structured_response=make_result())
+        super().__init__(model=f"modelo-{name}", structured_response=make_built())
         self.name = name
         self.should_fail = should_fail
         self._prompts = prompts
@@ -41,7 +45,7 @@ def test_uses_first_configured_provider_in_chain(monkeypatch) -> None:
     calls = []
 
     result = asyncio.run(
-        ResumeAnalysisManager().extract_resume(
+        ResumeAnalysisManager().build_resume(
             RESUME_TEXT, lambda name: calls.append(name) or ProviderFake(name)
         )
     )
@@ -56,12 +60,12 @@ def test_falls_back_to_next_provider_on_failure(monkeypatch) -> None:
     monkeypatch.setenv("IA_PROVIDER_CHAIN", "groq,gemini")
 
     result = asyncio.run(
-        ResumeAnalysisManager().extract_resume(
+        ResumeAnalysisManager().build_resume(
             RESUME_TEXT, lambda name: ProviderFake(name, should_fail=name == "groq")
         )
     )
 
-    assert isinstance(result, ResumeAnalysisResult)
+    assert isinstance(result, BuiltResumeResult)
 
 
 def test_skips_providers_without_configuration(monkeypatch) -> None:
@@ -72,13 +76,13 @@ def test_skips_providers_without_configuration(monkeypatch) -> None:
     calls = []
 
     result = asyncio.run(
-        ResumeAnalysisManager().extract_resume(
+        ResumeAnalysisManager().build_resume(
             RESUME_TEXT, lambda name: calls.append(name) or ProviderFake(name)
         )
     )
 
     assert calls == ["gemini"]
-    assert isinstance(result, ResumeAnalysisResult)
+    assert isinstance(result, BuiltResumeResult)
 
 
 def test_raises_when_every_provider_fails(monkeypatch) -> None:
@@ -88,7 +92,7 @@ def test_raises_when_every_provider_fails(monkeypatch) -> None:
 
     with pytest.raises(AIProviderError):
         asyncio.run(
-            ResumeAnalysisManager().extract_resume(
+            ResumeAnalysisManager().build_resume(
                 RESUME_TEXT, lambda name: ProviderFake(name, should_fail=True)
             )
         )
@@ -106,10 +110,10 @@ def test_invalid_structured_response_tries_next_provider(monkeypatch) -> None:
             return MockProvider(structured_response=None)
         return ProviderFake(name)
 
-    result = asyncio.run(ResumeAnalysisManager().extract_resume(RESUME_TEXT, factory))
+    result = asyncio.run(ResumeAnalysisManager().build_resume(RESUME_TEXT, factory))
 
     assert calls == ["groq", "gemini"]
-    assert isinstance(result, ResumeAnalysisResult)
+    assert isinstance(result, BuiltResumeResult)
 
 
 @pytest.mark.parametrize("selected,forbidden", [("groq", "deepseek"), ("deepseek", "groq")])
@@ -119,7 +123,7 @@ def test_pinned_provider_never_calls_others(monkeypatch, selected, forbidden) ->
     calls = []
 
     asyncio.run(
-        ResumeAnalysisManager().extract_resume(
+        ResumeAnalysisManager().build_resume(
             RESUME_TEXT, lambda name: calls.append(name) or ProviderFake(name)
         )
     )
@@ -147,7 +151,7 @@ def test_provider_failure_is_sanitized(monkeypatch, category, status) -> None:
 
     with pytest.raises(AIProviderError) as captured:
         asyncio.run(
-            ResumeAnalysisManager().extract_resume(RESUME_TEXT, lambda name: FailingProvider(name))
+            ResumeAnalysisManager().build_resume(RESUME_TEXT, lambda name: FailingProvider(name))
         )
 
     assert captured.value.category == category
@@ -160,12 +164,10 @@ def test_merges_github_and_portfolio_into_header_links_regardless_of_ai_output(m
     monkeypatch.setenv("IA_PROVIDER", "groq")
     monkeypatch.setenv("GROQ_API_KEY", "chave-ficticia-para-teste")
 
-    ai_result = ResumeAnalysisResult(
-        score=70, suggestion="ok", header=ResumeHeader(links={"Other": "https://example.com"})
-    )
+    ai_result = BuiltResumeResult(score=70, header=ResumeHeader(links={"Other": "https://example.com"}))
 
     result = asyncio.run(
-        ResumeAnalysisManager().extract_resume(
+        ResumeAnalysisManager().build_resume(
             RESUME_TEXT,
             lambda name: MockProvider(structured_response=ai_result),
             github_url="https://github.com/pedroaruana",
@@ -182,12 +184,12 @@ def test_merges_additional_skills_without_duplicating_existing_ones(monkeypatch)
     monkeypatch.setenv("IA_PROVIDER", "groq")
     monkeypatch.setenv("GROQ_API_KEY", "chave-ficticia-para-teste")
 
-    ai_result = ResumeAnalysisResult(
-        score=70, suggestion="ok", skills=[SkillItem(name="Python"), SkillItem(name="docker")]
+    ai_result = BuiltResumeResult(
+        score=70, skills=[SkillItem(name="Python"), SkillItem(name="docker")]
     )
 
     result = asyncio.run(
-        ResumeAnalysisManager().extract_resume(
+        ResumeAnalysisManager().build_resume(
             RESUME_TEXT,
             lambda name: MockProvider(structured_response=ai_result),
             additional_skills=[SkillItem(name="Docker", years=3), SkillItem(name="GraphQL", years=1)],
@@ -203,12 +205,10 @@ def test_additional_skill_years_overrides_ai_guess_for_an_existing_skill(monkeyp
     monkeypatch.setenv("IA_PROVIDER", "groq")
     monkeypatch.setenv("GROQ_API_KEY", "chave-ficticia-para-teste")
 
-    ai_result = ResumeAnalysisResult(
-        score=70, suggestion="ok", skills=[SkillItem(name="PHP", years=2)]
-    )
+    ai_result = BuiltResumeResult(score=70, skills=[SkillItem(name="PHP", years=2)])
 
     result = asyncio.run(
-        ResumeAnalysisManager().extract_resume(
+        ResumeAnalysisManager().build_resume(
             RESUME_TEXT,
             lambda name: MockProvider(structured_response=ai_result),
             additional_skills=[SkillItem(name="PHP", years=5)],
@@ -218,3 +218,35 @@ def test_additional_skill_years_overrides_ai_guess_for_an_existing_skill(monkeyp
     php_skills = [skill for skill in result.skills if skill.name.lower() == "php"]
     assert len(php_skills) == 1
     assert php_skills[0].years == 5
+
+
+def test_score_resume_uses_first_configured_provider_in_chain(monkeypatch) -> None:
+    configure_keys(monkeypatch)
+    monkeypatch.setenv("IA_PROVIDER", "auto")
+    monkeypatch.setenv("IA_PROVIDER_CHAIN", "groq,gemini")
+    calls = []
+
+    def factory(name):
+        calls.append(name)
+        return MockProvider(structured_response=make_score(85))
+
+    result = asyncio.run(ResumeAnalysisManager().score_resume(RESUME_TEXT, factory))
+
+    assert calls == ["groq"]
+    assert isinstance(result, ResumeScoreResult)
+    assert result.score == 85
+
+
+def test_score_resume_falls_back_to_next_provider_on_failure(monkeypatch) -> None:
+    configure_keys(monkeypatch)
+    monkeypatch.setenv("IA_PROVIDER", "auto")
+    monkeypatch.setenv("IA_PROVIDER_CHAIN", "groq,gemini")
+
+    def factory(name):
+        if name == "groq":
+            return MockProvider(simulated_error=AIProviderError("boom"))
+        return MockProvider(structured_response=make_score())
+
+    result = asyncio.run(ResumeAnalysisManager().score_resume(RESUME_TEXT, factory))
+
+    assert isinstance(result, ResumeScoreResult)

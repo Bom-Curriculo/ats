@@ -1,22 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Literal
-
-PayloadFormat = Literal["json", "laravel"]
-
-
-@dataclass(frozen=True)
-class ParsedRabbitMQPayload:
-    format: PayloadFormat
-    data: dict[str, Any]
-
-
-class RabbitMQPayloadParserInterface(ABC):
-    """Recognize clean JSON or a legacy serialized Laravel job payload."""
-
-    @abstractmethod
-    def parse(self, body: bytes | str) -> ParsedRabbitMQPayload:
-        ...
+from typing import Literal
 
 
 class ResumeFileFetcherInterface(ABC):

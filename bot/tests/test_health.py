@@ -6,7 +6,7 @@ from dependency_injector import providers
 from httpx import ASGITransport, AsyncClient
 
 from app.main import app
-from app.models.resume_analysis import ResumeAnalysisResult
+from app.models.resume_analysis import ResumeScoreResult
 
 
 async def request_app(method: str, path: str, **parameters):
@@ -24,15 +24,11 @@ def test_health_behavior_01() -> None:
 
 
 class FakeResumeAnalysisManager:
-    async def extract_resume(self, resume_text: str, **_kwargs) -> ResumeAnalysisResult:
-        return ResumeAnalysisResult(
-            score=80,
-            suggestion="Adicione métricas de impacto.",
-            professional_summary="Desenvolvedor backend com foco em Python e APIs REST.",
-        )
+    async def score_resume(self, resume_text: str, **_kwargs) -> ResumeScoreResult:
+        return ResumeScoreResult(score=80, suggestion="Adicione métricas de impacto.")
 
 
-def test_analyze_endpoint_returns_structured_result() -> None:
+def test_analyze_endpoint_returns_score_and_suggestion() -> None:
     app.container.resume_analysis_manager.override(providers.Object(FakeResumeAnalysisManager()))
     resume_text = (
         "Desenvolvedor backend com experiência em Python, FastAPI e SQL. "
@@ -52,10 +48,7 @@ def test_analyze_endpoint_returns_structured_result() -> None:
         app.container.resume_analysis_manager.reset_override()
 
     assert response.status_code == 200
-    result = response.json()
-    assert result["score"] == 80
-    assert result["suggestion"] == "Adicione métricas de impacto."
-    assert result["professional_summary"] == "Desenvolvedor backend com foco em Python e APIs REST."
+    assert response.json() == {"score": 80, "suggestion": "Adicione métricas de impacto."}
 
 
 def test_analyze_endpoint_rejects_empty_resume_text() -> None:
@@ -82,14 +75,14 @@ BASE_RESUME_TEXT = (
 
 
 class SpyResumeAnalysisManager:
-    """Captures every argument extract_resume was called with, for assertion."""
+    """Captures every argument score_resume was called with, for assertion."""
 
     def __init__(self) -> None:
         self.calls: list[dict] = []
 
-    async def extract_resume(self, resume_text: str, **kwargs) -> ResumeAnalysisResult:
+    async def score_resume(self, resume_text: str, **kwargs) -> ResumeScoreResult:
         self.calls.append({"resume_text": resume_text, **kwargs})
-        return ResumeAnalysisResult(score=80, suggestion="Adicione métricas de impacto.")
+        return ResumeScoreResult(score=80, suggestion="Adicione métricas de impacto.")
 
 
 def test_analyze_endpoint_forwards_every_supporting_source() -> None:

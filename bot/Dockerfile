@@ -18,6 +18,4 @@ COPY . .
 
 EXPOSE 8000
 
-# HTTP API (Quart/ASGI). Run the RabbitMQ worker separately with:
-#   uv run python -m app.workers.rabbitmq_worker
 CMD ["hypercorn", "app.main:app", "--bind", "0.0.0.0:8000"]

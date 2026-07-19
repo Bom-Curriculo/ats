@@ -15,7 +15,6 @@ dependencies = [
     "langchain-ollama==1.1.0",
     "langchain-openai==1.3.3",
     "markitdown[docx,pdf]==0.1.6",
-    "pika==1.3.2",
     "prometheus-client==0.25.0",
     "pydantic==2.12.5",
     "python-dotenv==1.2.2",

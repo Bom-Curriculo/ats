@@ -1,10 +1,10 @@
 """Application configuration.
 
-Non-secret values are read from ``config.yaml``. Secrets (API keys, RabbitMQ
-credentials) are read only from the environment / ``.env`` and are never
-written to the YAML file. A handful of legacy environment variables
-(``IA_PROVIDER``, ``RABBITMQ_HOST``, ...) still override their ``config.yaml``
-counterpart, preserving current deployment behavior.
+Non-secret values are read from ``config.yaml``. Secrets (API keys) are read
+only from the environment / ``.env`` and are never written to the YAML file.
+A handful of legacy environment variables (``IA_PROVIDER``, ...) still
+override their ``config.yaml`` counterpart, preserving current deployment
+behavior.
 """
 
 from __future__ import annotations
@@ -51,19 +51,6 @@ class AISettings:
 
 
 @dataclass(frozen=True)
-class RabbitMQSettings:
-    host: str
-    port: int
-    vhost: str
-    user: str
-    password: str
-    input_queue: str
-    output_queue: str
-    heartbeat_seconds: int
-    blocked_connection_timeout_seconds: int
-
-
-@dataclass(frozen=True)
 class ServerSettings:
     host: str
     port: int
@@ -74,7 +61,6 @@ class ServerSettings:
 class Settings:
     server: ServerSettings
     ai: AISettings
-    rabbitmq: RabbitMQSettings
 
     @classmethod
     def load(cls, config_path: Path | None = None) -> "Settings":
@@ -83,12 +69,10 @@ class Settings:
 
         server_raw = raw.get("server") or {}
         ai_raw = raw.get("ai") or {}
-        rabbitmq_raw = raw.get("rabbitmq") or {}
 
         return cls(
             server=cls._build_server_settings(server_raw),
             ai=cls._build_ai_settings(ai_raw),
-            rabbitmq=cls._build_rabbitmq_settings(rabbitmq_raw),
         )
 
     @staticmethod
@@ -122,24 +106,6 @@ class Settings:
             provider=os.getenv("IA_PROVIDER", raw.get("provider", "auto")).strip().lower(),
             provider_chain=chain,
             providers=providers,
-        )
-
-    @staticmethod
-    def _build_rabbitmq_settings(raw: dict) -> RabbitMQSettings:
-        return RabbitMQSettings(
-            host=os.getenv("RABBITMQ_HOST", raw.get("host", "rabbitmq")),
-            port=int(os.getenv("RABBITMQ_PORT", raw.get("port", 5672))),
-            vhost=os.getenv("RABBITMQ_VHOST", raw.get("vhost", "/")),
-            user=os.getenv("RABBITMQ_USER", "bomcurriculo"),
-            password=os.getenv("RABBITMQ_PASSWORD", "bomcurriculo"),
-            input_queue=os.getenv("RABBITMQ_INPUT_QUEUE", raw.get("input_queue", "resumes_laravel_queue")),
-            output_queue=os.getenv(
-                "RABBITMQ_OUTPUT_QUEUE", raw.get("output_queue", "resumes_output")
-            ),
-            heartbeat_seconds=int(raw.get("heartbeat_seconds", 60)),
-            blocked_connection_timeout_seconds=int(
-                raw.get("blocked_connection_timeout_seconds", 30)
-            ),
         )
 
 

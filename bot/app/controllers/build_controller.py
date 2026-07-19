@@ -11,17 +11,17 @@ from app.services.parsing.interfaces import (
     ResumeFileFetcherInterface,
 )
 
-analysis_blueprint = Blueprint("analysis", __name__)
+build_blueprint = Blueprint("build", __name__)
 
 
-@analysis_blueprint.post("/api/v1/analyze")
+@build_blueprint.post("/api/v1/build")
 @inject
-async def analyze(
+async def build(
     resume_analysis_manager: ResumeAnalysisManagerInterface = Provide[Container.resume_analysis_manager],
     resume_file_fetcher: ResumeFileFetcherInterface = Provide[Container.resume_file_fetcher],
     resume_content_validator: ResumeContentValidatorInterface = Provide[Container.resume_content_validator],
 ):
-    """Judge the resume exactly as given: an ATS score plus one improvement suggestion."""
+    """Reconstruct the best possible ATS-optimized resume from every given source."""
 
     try:
         parsed_request, resume_text, linkedin_text = await resolve_resume_input(
@@ -31,7 +31,7 @@ async def analyze(
         return rejection.body, rejection.status
 
     try:
-        result = await resume_analysis_manager.score_resume(
+        result = await resume_analysis_manager.build_resume(
             resume_text,
             linkedin_text=linkedin_text,
             github_url=parsed_request.github_url,

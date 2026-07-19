@@ -1,8 +1,11 @@
-"""Structured resume extraction contract, produced directly from resume text by the AI.
+"""Structured resume contracts, produced directly from resume text by the AI.
 
-Field names and shapes mirror the Laravel consumer's expected payload exactly
-(``analysis_request_id``, ``user_id``, ``result.header/experiences/projects/...``)
-so the worker's output can be persisted without any renaming step on the PHP side.
+Two distinct AI outputs share the same input sources (base CV + LinkedIn +
+GitHub/portfolio + reported skills): ``ResumeScoreResult`` just judges the
+resume as given, while ``BuiltResumeResult`` reconstructs it into the best
+possible ATS-optimized version. Field names and shapes mirror the Laravel
+consumer's expected payload exactly (``header/experiences/projects/...``) so
+the response can be persisted without any renaming step on the PHP side.
 """
 
 from typing import Any, Literal
@@ -54,7 +57,9 @@ class ExperienceItem(BaseModel):
 
 class ProjectItem(BaseModel):
     title: str
-    date: str | None = None
+    # Kept as free-form strings, same rationale as ExperienceItem.start/end.
+    start: str | None = None
+    end: str | None = None
     technologies: str | None = None
     description: str | None = None
     url: str | None = None
@@ -87,11 +92,22 @@ class LanguageItem(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-class ResumeAnalysisResult(BaseModel):
-    """Everything the AI extracts/judges from resume text alone (no job posting involved)."""
+class ResumeScoreResult(BaseModel):
+    """Just an ATS quality judgment of the resume as given — no reconstruction."""
 
     score: int = Field(ge=0, le=100)
     suggestion: str
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class BuiltResumeResult(BaseModel):
+    """The best possible ATS-optimized version of the resume, reconstructed by the AI
+
+    from the base CV plus every supporting source (no job posting involved).
+    """
+
+    score: int = Field(ge=0, le=100)
     # Short first-person-adjacent bio/"about" paragraph, written by the AI from the
     # given sources — not copied verbatim from the resume (most resumes don't have one).
     professional_summary: str | None = None
@@ -111,9 +127,8 @@ class ResumeAnalysisRequest(BaseModel):
     """HTTP boundary request: the base CV plus optional supporting sources.
 
     No job posting is involved here. The base CV can arrive as inline text or
-    as a URL the bot downloads and extracts itself (mirrors the RabbitMQ
-    worker's own file-reference handling) — exactly one of the two is
-    required. Every other source is optional supporting context that gets
+    as a URL the bot downloads and extracts itself — exactly one of the two
+    is required. Every other source is optional supporting context that gets
     folded into the same extraction instead of triggering a second AI call.
     """
 
