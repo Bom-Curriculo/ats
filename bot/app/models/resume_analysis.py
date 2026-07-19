@@ -7,7 +7,7 @@ so the worker's output can be persisted without any renaming step on the PHP sid
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 QualificationType = Literal[
     "elementary_education",
@@ -92,6 +92,9 @@ class ResumeAnalysisResult(BaseModel):
 
     score: int = Field(ge=0, le=100)
     suggestion: str
+    # Short first-person-adjacent bio/"about" paragraph, written by the AI from the
+    # given sources — not copied verbatim from the resume (most resumes don't have one).
+    professional_summary: str | None = None
     header: ResumeHeader = Field(default_factory=ResumeHeader)
     experiences: list[ExperienceItem] = Field(default_factory=list)
     projects: list[ProjectItem] = Field(default_factory=list)
@@ -105,6 +108,29 @@ class ResumeAnalysisResult(BaseModel):
 
 
 class ResumeAnalysisRequest(BaseModel):
-    """HTTP boundary request: resume text only, no job posting to match against."""
+    """HTTP boundary request: the base CV plus optional supporting sources.
 
-    resume_text: str = Field(min_length=1)
+    No job posting is involved here. The base CV can arrive as inline text or
+    as a URL the bot downloads and extracts itself (mirrors the RabbitMQ
+    worker's own file-reference handling) — exactly one of the two is
+    required. Every other source is optional supporting context that gets
+    folded into the same extraction instead of triggering a second AI call.
+    """
+
+    resume_text: str | None = None
+    resume_cv_url: str | None = None
+    resume_linkedin_url: str | None = None
+    github_url: str | None = None
+    portfolio_url: str | None = None
+    # Same shape as the output SkillItem (name + years): Laravel sends the skill
+    # name and how many years of experience the user reported for it.
+    additional_skills: list[SkillItem] = Field(default_factory=list)
+
+    model_config = ConfigDict(extra="forbid")
+
+    @model_validator(mode="after")
+    def _require_a_cv_source(self) -> "ResumeAnalysisRequest":
+        has_text = bool(self.resume_text and self.resume_text.strip())
+        if not has_text and not self.resume_cv_url:
+            raise ValueError("either resume_text or resume_cv_url is required")
+        return self

@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 
-from app.models.resume_analysis import ResumeAnalysisResult
+from app.models.resume_analysis import ResumeAnalysisResult, ResumeHeader, SkillItem
 from app.providers.base import AIProviderError
 from app.providers.mock import MockProvider
 from app.services.ai.resume_analysis_manager import ResumeAnalysisManager
@@ -153,3 +153,68 @@ def test_provider_failure_is_sanitized(monkeypatch, category, status) -> None:
     assert captured.value.category == category
     assert captured.value.status_http == status
     assert "detail interno" not in str(captured.value)
+
+
+def test_merges_github_and_portfolio_into_header_links_regardless_of_ai_output(monkeypatch) -> None:
+    """Known-exact values must land correctly even if the AI ignores/misplaces them."""
+    monkeypatch.setenv("IA_PROVIDER", "groq")
+    monkeypatch.setenv("GROQ_API_KEY", "chave-ficticia-para-teste")
+
+    ai_result = ResumeAnalysisResult(
+        score=70, suggestion="ok", header=ResumeHeader(links={"Other": "https://example.com"})
+    )
+
+    result = asyncio.run(
+        ResumeAnalysisManager().extract_resume(
+            RESUME_TEXT,
+            lambda name: MockProvider(structured_response=ai_result),
+            github_url="https://github.com/pedroaruana",
+            portfolio_url="https://pedroaruana.dev",
+        )
+    )
+
+    assert result.header.links["GitHub"] == "https://github.com/pedroaruana"
+    assert result.header.links["Portfolio"] == "https://pedroaruana.dev"
+    assert result.header.links["Other"] == "https://example.com"
+
+
+def test_merges_additional_skills_without_duplicating_existing_ones(monkeypatch) -> None:
+    monkeypatch.setenv("IA_PROVIDER", "groq")
+    monkeypatch.setenv("GROQ_API_KEY", "chave-ficticia-para-teste")
+
+    ai_result = ResumeAnalysisResult(
+        score=70, suggestion="ok", skills=[SkillItem(name="Python"), SkillItem(name="docker")]
+    )
+
+    result = asyncio.run(
+        ResumeAnalysisManager().extract_resume(
+            RESUME_TEXT,
+            lambda name: MockProvider(structured_response=ai_result),
+            additional_skills=[SkillItem(name="Docker", years=3), SkillItem(name="GraphQL", years=1)],
+        )
+    )
+
+    names = sorted(skill.name.lower() for skill in result.skills)
+    assert names == ["docker", "graphql", "python"]
+
+
+def test_additional_skill_years_overrides_ai_guess_for_an_existing_skill(monkeypatch) -> None:
+    """Laravel sends name + years per skill (e.g. PHP -> 5 anos); the user's own number wins."""
+    monkeypatch.setenv("IA_PROVIDER", "groq")
+    monkeypatch.setenv("GROQ_API_KEY", "chave-ficticia-para-teste")
+
+    ai_result = ResumeAnalysisResult(
+        score=70, suggestion="ok", skills=[SkillItem(name="PHP", years=2)]
+    )
+
+    result = asyncio.run(
+        ResumeAnalysisManager().extract_resume(
+            RESUME_TEXT,
+            lambda name: MockProvider(structured_response=ai_result),
+            additional_skills=[SkillItem(name="PHP", years=5)],
+        )
+    )
+
+    php_skills = [skill for skill in result.skills if skill.name.lower() == "php"]
+    assert len(php_skills) == 1
+    assert php_skills[0].years == 5
