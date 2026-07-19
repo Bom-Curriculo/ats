@@ -1,7 +1,7 @@
 from collections.abc import Callable
 
 from app.core.settings import Settings
-from app.models.resume_analysis import ResumeAnalysisResult
+from app.models.resume_analysis import ResumeAnalysisResult, SkillItem
 from app.providers.base import AIProvider, AIProviderError
 from app.providers.factory import ProviderFactory, SUPPORTED_PROVIDERS
 from app.providers.interfaces import ProviderFactoryInterface
@@ -63,12 +63,30 @@ class ResumeAnalysisManager(ResumeAnalysisManagerInterface):
         return AIProviderError(template.format(label=label), category=category, status_http=status)
 
     async def extract_resume(
-        self, resume_text: str, factory: Callable[[str], AIProvider] | None = None
+        self,
+        resume_text: str,
+        factory: Callable[[str], AIProvider] | None = None,
+        linkedin_text: str | None = None,
+        github_url: str | None = None,
+        portfolio_url: str | None = None,
+        additional_skills: list[SkillItem] | None = None,
     ) -> ResumeAnalysisResult:
-        """Try each configured provider in order, returning the first successful extraction."""
+        """Try each configured provider in order, returning the first successful extraction.
+
+        ``linkedin_text``/``github_url``/``portfolio_url``/``additional_skills`` are
+        optional supporting sources folded into the same prompt as the base resume,
+        so the AI produces one coherent result instead of the caller merging several.
+        """
 
         factory = factory or self._provider_factory.create
-        prompt = build_resume_extraction_prompt(resume_text, self._settings.ai.output_language)
+        prompt = build_resume_extraction_prompt(
+            resume_text,
+            self._settings.ai.output_language,
+            linkedin_text=linkedin_text,
+            github_url=github_url,
+            portfolio_url=portfolio_url,
+            additional_skills=additional_skills,
+        )
         last_error: AIProviderError | None = None
 
         for name in self.get_provider_chain():
@@ -83,7 +101,7 @@ class ResumeAnalysisManager(ResumeAnalysisManagerInterface):
                 continue
 
             if isinstance(result, ResumeAnalysisResult):
-                return result
+                return self._merge_known_facts(result, github_url, portfolio_url, additional_skills)
             last_error = AIProviderError(
                 f"{name.capitalize()} returned data outside the expected schema.",
                 category="schema_validation_error",
@@ -92,3 +110,37 @@ class ResumeAnalysisManager(ResumeAnalysisManagerInterface):
         raise last_error or AIProviderError(
             "No AI provider is configured.", category="missing_api_key"
         )
+
+    def _merge_known_facts(
+        self,
+        result: ResumeAnalysisResult,
+        github_url: str | None,
+        portfolio_url: str | None,
+        additional_skills: list[SkillItem] | None,
+    ) -> ResumeAnalysisResult:
+        """Force in values we already know exactly, regardless of what the AI did with them.
+
+        The prompt already asks the AI to place these, but instruction-following isn't
+        guaranteed — GitHub/portfolio links and user-typed skills are known facts, not
+        something that needs to be inferred, so they must never depend on the AI
+        transcribing them correctly.
+        """
+
+        if github_url:
+            result.header.links["GitHub"] = github_url
+        if portfolio_url:
+            result.header.links["Portfolio"] = portfolio_url
+        if additional_skills:
+            by_name = {skill.name.strip().lower(): skill for skill in result.skills}
+            for reported in additional_skills:
+                key = reported.name.strip().lower()
+                existing = by_name.get(key)
+                if existing is not None:
+                    # The user's own reported years take precedence over the AI's guess.
+                    if reported.years is not None:
+                        existing.years = reported.years
+                else:
+                    new_skill = SkillItem(name=reported.name, years=reported.years)
+                    result.skills.append(new_skill)
+                    by_name[key] = new_skill
+        return result
