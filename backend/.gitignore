@@ -27,3 +27,4 @@ Homestead.yaml
 Thumbs.db
 composer.lock
 /storage/app/*
+/storage/api-docs

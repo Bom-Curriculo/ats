@@ -38,6 +38,13 @@ Description of what you have fixed. You can also upload screenshots if needed.
   `docker run --rm -v ${PWD}/backend:/app -w /app php:8.4-cli vendor/bin/pint`
 - **Mobile (Flutter):** run `dart format .` inside `mobile/` before committing. Without Flutter installed:
   `docker run --rm -v ${PWD}/mobile:/app -w /app dart:stable dart format .`
+- **Backend (API docs):** if you add, remove, or change an endpoint under `backend/app/Http/Controllers/Api/**`, update its Swagger attributes (`#[OpenApi\Attributes\...]`) and regenerate/lint the spec before committing:
+  `cd backend && php artisan l5-swagger:generate && npx --yes @redocly/cli lint storage/api-docs/api-docs.json`
+  This is the same check the "API docs (OpenAPI lint)" CI job runs, so catching it locally avoids a failed PR. If you don't have PHP/Node installed, run it via Docker instead:
+  ```
+  docker run --rm -v ${PWD}/backend:/app -w /app php:8.4-cli php artisan l5-swagger:generate
+  docker run --rm -v ${PWD}/backend:/app -w /app node:22 npx --yes @redocly/cli lint storage/api-docs/api-docs.json
+  ```
 - **Keep your branch up to date** with `development` before opening/merging your PR — CI runs against your branch's current state, so a stale branch can show failures that were already fixed elsewhere.
 - **Keep PRs focused**: don't mix formatting-only changes with bug fixes or new features in the same PR — it makes review and rollback much easier.
 
@@ -102,6 +109,13 @@ Descrição do que foi feito. Você pode adicionar alguma print se necessário.
   `docker run --rm -v ${PWD}/backend:/app -w /app php:8.4-cli vendor/bin/pint`
 - **Mobile (Flutter):** rode `dart format .` dentro de `mobile/` antes de commitar. Sem Flutter instalado:
   `docker run --rm -v ${PWD}/mobile:/app -w /app dart:stable dart format .`
+- **Backend (documentação da API):** se você adicionar, remover ou alterar um endpoint em `backend/app/Http/Controllers/Api/**`, atualize os atributos de Swagger (`#[OpenApi\Attributes\...]`) e regenere/lint a spec antes de commitar:
+  `cd backend && php artisan l5-swagger:generate && npx --yes @redocly/cli lint storage/api-docs/api-docs.json`
+  É a mesma checagem que o job "API docs (OpenAPI lint)" do CI roda, então pegar isso localmente evita um PR falhando. Se não tiver PHP/Node instalado, rode via Docker:
+  ```
+  docker run --rm -v ${PWD}/backend:/app -w /app php:8.4-cli php artisan l5-swagger:generate
+  docker run --rm -v ${PWD}/backend:/app -w /app node:22 npx --yes @redocly/cli lint storage/api-docs/api-docs.json
+  ```
 - **Mantenha sua branch atualizada** com a `development` antes de abrir/mergear o PR — o CI roda em cima do estado atual da sua branch, então uma branch desatualizada pode mostrar falhas que já foram corrigidas em outro lugar.
 - **Mantenha os PRs focados**: não misture mudanças só de formatação com correção de bug ou feature nova no mesmo PR — facilita muito a revisão e um eventual rollback.
 

@@ -18,9 +18,70 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
+use OpenApi\Attributes as OAT;
 
 class AuthController extends Controller
 {
+    #[OAT\Post(
+        path: '/auth/login',
+        summary: 'Autentica um usuário',
+        security: [],
+        tags: ['Auth'],
+        requestBody: new OAT\RequestBody(
+            required: true,
+            content: new OAT\JsonContent(
+                required: ['email', 'password'],
+                properties: [
+                    new OAT\Property(property: 'email', type: 'string', format: 'email', example: 'user@example.com'),
+                    new OAT\Property(property: 'password', type: 'string', format: 'password', example: 'secret123'),
+                    new OAT\Property(property: 'fcm', type: 'string', nullable: true, description: 'Token FCM do dispositivo, para notificações push'),
+                ]
+            )
+        ),
+        responses: [
+            new OAT\Response(
+                response: 200,
+                description: 'Login realizado com sucesso',
+                content: new OAT\JsonContent(
+                    properties: [
+                        new OAT\Property(property: 'code', type: 'integer', example: 200),
+                        new OAT\Property(property: 'message', type: 'string', example: 'Login successful'),
+                        new OAT\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OAT\Property(property: 'token', type: 'string'),
+                                new OAT\Property(property: 'user', type: 'object'),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+            new OAT\Response(
+                response: 401,
+                description: 'Credenciais inválidas',
+                content: new OAT\JsonContent(
+                    properties: [
+                        new OAT\Property(property: 'code', type: 'integer', example: 401),
+                        new OAT\Property(property: 'message', type: 'string', example: 'Invalid credentials'),
+                        new OAT\Property(property: 'data', type: 'array', items: new OAT\Items(type: 'string'), example: ['Email or password is incorrect']),
+                    ]
+                )
+            ),
+            new OAT\Response(response: 422, description: 'Erro de validação', content: new OAT\JsonContent(ref: '#/components/schemas/ValidationErrorResponse')),
+            new OAT\Response(
+                response: 500,
+                description: 'Erro interno ao autenticar',
+                content: new OAT\JsonContent(
+                    properties: [
+                        new OAT\Property(property: 'code', type: 'integer', example: 500),
+                        new OAT\Property(property: 'message', type: 'string', example: 'Login failed'),
+                        new OAT\Property(property: 'data', type: 'array', items: new OAT\Items(type: 'string'), example: ['SQLSTATE[HY000]...']),
+                    ]
+                )
+            ),
+        ]
+    )]
     public function login(LoginRequest $request)
     {
         try {
@@ -54,6 +115,60 @@ class AuthController extends Controller
         }
     }
 
+    #[OAT\Post(
+        path: '/auth/register',
+        summary: 'Registra um novo usuário',
+        security: [],
+        tags: ['Auth'],
+        requestBody: new OAT\RequestBody(
+            required: true,
+            content: new OAT\JsonContent(
+                required: ['name', 'email', 'password', 'password_confirm'],
+                properties: [
+                    new OAT\Property(property: 'name', type: 'string', example: 'João da Silva'),
+                    new OAT\Property(property: 'email', type: 'string', format: 'email', example: 'user@example.com'),
+                    new OAT\Property(property: 'password', type: 'string', format: 'password', example: 'secret123'),
+                    new OAT\Property(property: 'password_confirm', type: 'string', format: 'password', example: 'secret123'),
+                ]
+            )
+        ),
+        responses: [
+            new OAT\Response(
+                response: 201,
+                description: 'Usuário registrado com sucesso',
+                content: new OAT\JsonContent(
+                    properties: [
+                        new OAT\Property(property: 'code', type: 'integer', example: 201),
+                        new OAT\Property(property: 'message', type: 'string', example: 'User registered successfully'),
+                        new OAT\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OAT\Property(property: 'token', type: 'string'),
+                                new OAT\Property(property: 'user', type: 'object'),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+            new OAT\Response(response: 422, description: 'Erro de validação (e-mail já em uso, senhas não conferem, etc.)', content: new OAT\JsonContent(ref: '#/components/schemas/ValidationErrorResponse')),
+            new OAT\Response(
+                response: 500,
+                description: 'Erro interno ao registrar',
+                content: new OAT\JsonContent(
+                    properties: [
+                        new OAT\Property(property: 'code', type: 'integer', example: 500),
+                        new OAT\Property(property: 'message', type: 'string', example: 'Registration failed'),
+                        new OAT\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [new OAT\Property(property: 'error', type: 'string')]
+                        ),
+                    ]
+                )
+            ),
+        ]
+    )]
     public function register(RegisterRequest $request)
     {
 
@@ -87,6 +202,33 @@ class AuthController extends Controller
 
     }
 
+    #[OAT\Post(
+        path: '/auth/logout',
+        summary: 'Encerra a sessão do usuário autenticado',
+        security: [['bearerAuth' => []]],
+        tags: ['Auth'],
+        requestBody: new OAT\RequestBody(
+            required: false,
+            content: new OAT\JsonContent(
+                properties: [
+                    new OAT\Property(property: 'fcm', type: 'string', nullable: true, description: 'Token FCM do dispositivo a ser removido'),
+                ]
+            )
+        ),
+        responses: [
+            new OAT\Response(
+                response: 200,
+                description: 'Logout realizado com sucesso',
+                content: new OAT\JsonContent(
+                    properties: [
+                        new OAT\Property(property: 'code', type: 'integer', example: 200),
+                        new OAT\Property(property: 'message', type: 'string', example: 'Logged out successfully'),
+                    ]
+                )
+            ),
+            new OAT\Response(response: 401, description: 'Não autenticado', content: new OAT\JsonContent(ref: '#/components/schemas/UnauthenticatedResponse')),
+        ]
+    )]
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
@@ -98,6 +240,56 @@ class AuthController extends Controller
         return ResponseData::success('Logged out successfully');
     }
 
+    #[OAT\Post(
+        path: '/auth/forgot-password',
+        summary: 'Envia um código OTP por e-mail para redefinição de senha',
+        security: [],
+        tags: ['Auth'],
+        requestBody: new OAT\RequestBody(
+            required: true,
+            content: new OAT\JsonContent(
+                required: ['email'],
+                properties: [
+                    new OAT\Property(property: 'email', type: 'string', format: 'email', example: 'user@example.com'),
+                ]
+            )
+        ),
+        responses: [
+            new OAT\Response(
+                response: 200,
+                description: 'OTP enviado com sucesso para o e-mail informado',
+                content: new OAT\JsonContent(
+                    properties: [
+                        new OAT\Property(property: 'code', type: 'integer', example: 200),
+                        new OAT\Property(property: 'message', type: 'string', example: 'OTP sent successfully to the provided email'),
+                        new OAT\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OAT\Property(property: 'expires_at', type: 'string', format: 'date-time'),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+            new OAT\Response(response: 422, description: 'E-mail não encontrado ou inválido', content: new OAT\JsonContent(ref: '#/components/schemas/ValidationErrorResponse')),
+            new OAT\Response(
+                response: 500,
+                description: 'Erro interno ao processar a solicitação',
+                content: new OAT\JsonContent(
+                    properties: [
+                        new OAT\Property(property: 'code', type: 'integer', example: 500),
+                        new OAT\Property(property: 'message', type: 'string', example: 'Forgot password failed'),
+                        new OAT\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [new OAT\Property(property: 'error', type: 'string')]
+                        ),
+                    ]
+                )
+            ),
+        ]
+    )]
     public function forgotPassword(ForgotPasswordRequest $request)
     {
         try {
@@ -131,6 +323,72 @@ class AuthController extends Controller
         }
     }
 
+    #[OAT\Post(
+        path: '/auth/verify-otp',
+        summary: 'Verifica se um código OTP é válido',
+        security: [],
+        tags: ['Auth'],
+        requestBody: new OAT\RequestBody(
+            required: true,
+            content: new OAT\JsonContent(
+                required: ['otp'],
+                properties: [
+                    new OAT\Property(property: 'otp', type: 'string', example: '123456', description: 'Código de 6 dígitos enviado por e-mail'),
+                ]
+            )
+        ),
+        responses: [
+            new OAT\Response(
+                response: 200,
+                description: 'OTP válido',
+                content: new OAT\JsonContent(
+                    properties: [
+                        new OAT\Property(property: 'code', type: 'integer', example: 200),
+                        new OAT\Property(property: 'message', type: 'string', example: 'Valid'),
+                        new OAT\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OAT\Property(property: 'message', type: 'string'),
+                                new OAT\Property(property: 'user_id', type: 'integer'),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+            new OAT\Response(
+                response: 400,
+                description: 'OTP inválido ou expirado',
+                content: new OAT\JsonContent(
+                    properties: [
+                        new OAT\Property(property: 'code', type: 'integer', example: 400),
+                        new OAT\Property(property: 'message', type: 'string', example: 'Invalid or expired OTP'),
+                        new OAT\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [new OAT\Property(property: 'error', type: 'string', example: 'The provided OTP is either invalid or has expired.')]
+                        ),
+                    ]
+                )
+            ),
+            new OAT\Response(response: 422, description: 'Erro de validação', content: new OAT\JsonContent(ref: '#/components/schemas/ValidationErrorResponse')),
+            new OAT\Response(
+                response: 500,
+                description: 'Erro interno ao verificar o OTP',
+                content: new OAT\JsonContent(
+                    properties: [
+                        new OAT\Property(property: 'code', type: 'integer', example: 500),
+                        new OAT\Property(property: 'message', type: 'string', example: 'OTP verification failed'),
+                        new OAT\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [new OAT\Property(property: 'error', type: 'string')]
+                        ),
+                    ]
+                )
+            ),
+        ]
+    )]
     public function verifyOtp(VerifyOtpRequest $request)
     {
         try {
@@ -160,6 +418,51 @@ class AuthController extends Controller
         }
     }
 
+    #[OAT\Post(
+        path: '/auth/reset-password',
+        summary: 'Redefine a senha do usuário usando um OTP já verificado',
+        security: [],
+        tags: ['Auth'],
+        requestBody: new OAT\RequestBody(
+            required: true,
+            content: new OAT\JsonContent(
+                required: ['otp', 'password', 'password_confirm'],
+                properties: [
+                    new OAT\Property(property: 'otp', type: 'string', example: '123456'),
+                    new OAT\Property(property: 'password', type: 'string', format: 'password', example: 'newSecret123'),
+                    new OAT\Property(property: 'password_confirm', type: 'string', format: 'password', example: 'newSecret123'),
+                ]
+            )
+        ),
+        responses: [
+            new OAT\Response(
+                response: 200,
+                description: 'Senha redefinida com sucesso',
+                content: new OAT\JsonContent(
+                    properties: [
+                        new OAT\Property(property: 'code', type: 'integer', example: 200),
+                        new OAT\Property(property: 'message', type: 'string', example: 'Password reset successfully'),
+                    ]
+                )
+            ),
+            new OAT\Response(response: 422, description: 'Erro de validação (OTP inválido, senhas não conferem, etc.)', content: new OAT\JsonContent(ref: '#/components/schemas/ValidationErrorResponse')),
+            new OAT\Response(
+                response: 500,
+                description: 'Erro interno ao redefinir a senha',
+                content: new OAT\JsonContent(
+                    properties: [
+                        new OAT\Property(property: 'code', type: 'integer', example: 500),
+                        new OAT\Property(property: 'message', type: 'string', example: 'Password reset failed'),
+                        new OAT\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [new OAT\Property(property: 'error', type: 'string')]
+                        ),
+                    ]
+                )
+            ),
+        ]
+    )]
     public function resetPassword(ResetPasswordRequest $request)
     {
 
@@ -187,6 +490,32 @@ class AuthController extends Controller
 
     }
 
+    #[OAT\Get(
+        path: '/client/user',
+        summary: 'Retorna os dados do usuário autenticado',
+        security: [['bearerAuth' => []]],
+        tags: ['Auth'],
+        responses: [
+            new OAT\Response(
+                response: 200,
+                description: 'Usuário retornado com sucesso',
+                content: new OAT\JsonContent(
+                    properties: [
+                        new OAT\Property(property: 'code', type: 'integer', example: 200),
+                        new OAT\Property(property: 'message', type: 'string', example: 'User retrieved successfully'),
+                        new OAT\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OAT\Property(property: 'user', type: 'object'),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+            new OAT\Response(response: 401, description: 'Não autenticado', content: new OAT\JsonContent(ref: '#/components/schemas/UnauthenticatedResponse')),
+        ]
+    )]
     public function user(Request $request)
     {
         return ResponseData::success('User retrieved successfully', [
