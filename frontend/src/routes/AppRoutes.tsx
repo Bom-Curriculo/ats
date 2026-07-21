@@ -5,6 +5,7 @@ import { Login } from "@/pages/auth/login";
 import Register from "@/pages/auth/register";
 import { ForgotPassword } from "@/pages/auth/forgot-password";
 import Dashboard from "@/pages/dashboard/Dashboard";
+import MyCurriculum from "@/pages/dashboard/my-curriculum/MyCurriculum";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { ProtectedRoute } from "@/components/protectRouter";
 import MyResume from "@/pages/dashboard/my-resume/MyResume";
