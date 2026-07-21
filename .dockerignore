@@ -1,0 +1,21 @@
+.git
+.github
+.gitignore
+
+# Dependências e artefatos pesados
+**/node_modules
+**/vendor
+**/.venv
+frontend/dist
+
+# Ambiente / segredos
+.env
+.env.*
+!.env.example
+
+# Docs e workflow
+docs
+workflow
+observability
+mobile
+*.md
