@@ -26,6 +26,7 @@ export function AppRoutes() {
         <Route element={<DashboardLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/my-resume" element={<MyResume />} />
+          <Route path="/my-curriculum" element={<MyCurriculum />} />
           <Route path="/job-analysis" element={<JobAnalysis />} />
           <Route path="/job-analysis/:id" element={<JobDetails />} />
         </Route>

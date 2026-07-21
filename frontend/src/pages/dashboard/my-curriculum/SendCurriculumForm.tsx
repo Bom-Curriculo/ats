@@ -104,9 +104,9 @@ export default function SendCurriculumForm() {
       setGithubUrl('');
       setPortfolioUrl('');
       setSkills([]);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Erro ao enviar formulário:', error);
-      const apiErrorMessage = error.response?.data?.message;
+      const apiErrorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
       setStatusMessage({ 
         type: 'error', 
         text: apiErrorMessage || 'Erro ao conectar com o servidor. Tente novamente.' 

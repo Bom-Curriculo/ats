@@ -1,5 +1,5 @@
 <?php
-use App\Models\User;
+
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 
@@ -18,16 +18,16 @@ it('can login successfully', function () {
 
     $response->assertOk()
         ->assertJsonStructure([
-        'code',
-        'message',
-        'data' => [
-            'token',
-            'user',
-        ],
-    ]);
+            'code',
+            'message',
+            'data' => [
+                'token',
+                'user',
+            ],
+        ]);
 });
 
-describe('invalid cretentials',function(){
+describe('invalid cretentials', function () {
     it('returns status 401 when the password is incorrect', function () {
         $user = authUser([
             'email' => 'usuario@email.com',
@@ -44,7 +44,7 @@ describe('invalid cretentials',function(){
             ->assertJson([
                 'message' => 'Invalid credentials',
             ])
-        ->assertJsonMissingPath('token');
+            ->assertJsonMissingPath('token');
 
         $this->assertDatabaseMissing('user_devices', [
             'user_id' => $user->id,
@@ -61,7 +61,7 @@ describe('invalid cretentials',function(){
             ->assertJson([
                 'message' => 'Invalid credentials',
             ])
-        ->assertJsonMissingPath('token');
+            ->assertJsonMissingPath('token');
 
     });
     it('returns status 422 when email is missing', function () {
@@ -101,9 +101,7 @@ describe('invalid cretentials',function(){
     });
 });
 
-
-
-describe('FCM token',function(){
+describe('FCM token', function () {
     it('creates a device when the fcm token is new', function () {
         $user = authUser([
             'email' => 'usuario@email.com',
@@ -113,7 +111,7 @@ describe('FCM token',function(){
         $response = $this->postJson('/api/auth/login', [
             'email' => $user->email,
             'password' => 'senha-correta',
-            'fcm'=>'token-fcm-123'
+            'fcm' => 'token-fcm-123',
         ]);
 
         $response->assertJson([
@@ -145,7 +143,7 @@ describe('FCM token',function(){
             'fcm_token' => 'token-fcm-123',
         ]);
     });
-    it('does not duplicate an existing fcm token',function(){
+    it('does not duplicate an existing fcm token', function () {
         $fcmToken = 'token-fcm-123';
         $user = authUser([
             'email' => 'usuario@email.com',
@@ -155,7 +153,7 @@ describe('FCM token',function(){
         $response = $this->postJson('/api/auth/login', [
             'email' => $user->email,
             'password' => 'senha-correta',
-            'fcm'=>$fcmToken
+            'fcm' => $fcmToken,
         ]);
 
         $response->assertJson([
@@ -164,17 +162,16 @@ describe('FCM token',function(){
         $response2 = $this->postJson('/api/auth/login', [
             'email' => $user->email,
             'password' => 'senha-correta',
-            'fcm'=>$fcmToken
+            'fcm' => $fcmToken,
         ]);
 
         $response2->assertJson([
-            'message'=>'Login successful'
+            'message' => 'Login successful',
         ]);
 
-        
         expect(
-            $user->devices()->where('fcm_token',$fcmToken)
-            ->count()
+            $user->devices()->where('fcm_token', $fcmToken)
+                ->count()
         )->toBe(1);
     });
 
