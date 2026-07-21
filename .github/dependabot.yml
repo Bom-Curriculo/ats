@@ -3,6 +3,7 @@ updates:
   # Frontend (npm)
   - package-ecosystem: "npm"
     directory: "/frontend"
+    target-branch: "development"
     schedule:
       interval: "weekly"
     groups:
@@ -20,6 +21,7 @@ updates:
   # Backend - assets/vite (npm)
   - package-ecosystem: "npm"
     directory: "/backend"
+    target-branch: "development"
     schedule:
       interval: "weekly"
     groups:
@@ -32,6 +34,7 @@ updates:
   # Backend (composer / PHP)
   - package-ecosystem: "composer"
     directory: "/backend"
+    target-branch: "development"
     schedule:
       interval: "weekly"
     groups:
@@ -44,6 +47,7 @@ updates:
   # Mobile (pub / Dart-Flutter)
   - package-ecosystem: "pub"
     directory: "/mobile"
+    target-branch: "development"
     schedule:
       interval: "weekly"
     groups:
@@ -56,6 +60,7 @@ updates:
   # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
+    target-branch: "development"
     schedule:
       interval: "weekly"
     commit-message:
