@@ -7,9 +7,28 @@ use App\Jobs\Api\RabbitMQ\Resumes\ResumeProcessingPublisher;
 use App\Models\UserResume;
 use Exception;
 use Illuminate\Http\Request;
+use OpenApi\Attributes as OA;
 
+#[OA\Tag(name: 'Resume', description: 'Upload, listagem e status dos currículos')]
 class ProducerResumesService
 {
+    #[OA\Post(
+        path: '/client/services/rabbitmq/process',
+        tags: ['Resume'],
+        summary: 'Dispara o processamento de um currículo do usuário na fila (RabbitMQ)',
+        security: [['sanctum' => []]],
+        requestBody: new OA\RequestBody(
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'user_resume_id', type: 'integer', nullable: true, description: 'ID do currículo a processar; se omitido, usa o mais recente'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Enviado pra fila com sucesso', content: new OA\JsonContent(ref: '#/components/schemas/ApiSuccessResponse')),
+            new OA\Response(response: 404, description: 'Currículo não encontrado pra esse usuário', content: new OA\JsonContent(ref: '#/components/schemas/ApiErrorResponse')),
+        ]
+    )]
     public function __invoke(Request $request)
     {
         try {

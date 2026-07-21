@@ -18,9 +18,46 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
+use OpenApi\Attributes as OA;
 
+#[OA\Tag(name: 'Auth', description: 'Autenticação e recuperação de senha')]
 class AuthController extends Controller
 {
+    #[OA\Post(
+        path: '/auth/login',
+        tags: ['Auth'],
+        summary: 'Login do usuário',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['email', 'password'],
+                properties: [
+                    new OA\Property(property: 'email', type: 'string', format: 'email', example: 'user@example.com'),
+                    new OA\Property(property: 'password', type: 'string', format: 'password', example: 'senha123'),
+                    new OA\Property(property: 'fcm', type: 'string', nullable: true, description: 'Token de push notification do dispositivo'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Login realizado com sucesso',
+                content: new OA\JsonContent(
+                    allOf: [
+                        new OA\Schema(ref: '#/components/schemas/ApiSuccessResponse'),
+                        new OA\Schema(properties: [
+                            new OA\Property(property: 'data', type: 'object', properties: [
+                                new OA\Property(property: 'token', type: 'string'),
+                                new OA\Property(property: 'user', type: 'object'),
+                            ]),
+                        ]),
+                    ]
+                )
+            ),
+            new OA\Response(response: 401, description: 'Credenciais inválidas', content: new OA\JsonContent(ref: '#/components/schemas/ApiErrorResponse')),
+            new OA\Response(response: 422, description: 'Erro de validação', content: new OA\JsonContent(ref: '#/components/schemas/ApiErrorResponse')),
+        ]
+    )]
     public function login(LoginRequest $request)
     {
         try {
@@ -54,6 +91,42 @@ class AuthController extends Controller
         }
     }
 
+    #[OA\Post(
+        path: '/auth/register',
+        tags: ['Auth'],
+        summary: 'Cria uma nova conta',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['name', 'email', 'password', 'password_confirm'],
+                properties: [
+                    new OA\Property(property: 'name', type: 'string', example: 'Pedro Aruanã'),
+                    new OA\Property(property: 'email', type: 'string', format: 'email'),
+                    new OA\Property(property: 'password', type: 'string', format: 'password'),
+                    new OA\Property(property: 'password_confirm', type: 'string', format: 'password'),
+                    new OA\Property(property: 'fcm', type: 'string', nullable: true),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'Usuário criado',
+                content: new OA\JsonContent(
+                    allOf: [
+                        new OA\Schema(ref: '#/components/schemas/ApiSuccessResponse'),
+                        new OA\Schema(properties: [
+                            new OA\Property(property: 'data', type: 'object', properties: [
+                                new OA\Property(property: 'token', type: 'string'),
+                                new OA\Property(property: 'user', type: 'object'),
+                            ]),
+                        ]),
+                    ]
+                )
+            ),
+            new OA\Response(response: 422, description: 'Erro de validação (ex: email já cadastrado)', content: new OA\JsonContent(ref: '#/components/schemas/ApiErrorResponse')),
+        ]
+    )]
     public function register(RegisterRequest $request)
     {
 
@@ -87,6 +160,16 @@ class AuthController extends Controller
 
     }
 
+    #[OA\Post(
+        path: '/auth/logout',
+        tags: ['Auth'],
+        summary: 'Encerra a sessão atual (revoga o token)',
+        security: [['sanctum' => []]],
+        responses: [
+            new OA\Response(response: 200, description: 'Logout realizado', content: new OA\JsonContent(ref: '#/components/schemas/ApiSuccessResponse')),
+            new OA\Response(response: 401, description: 'Não autenticado'),
+        ]
+    )]
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
@@ -98,6 +181,37 @@ class AuthController extends Controller
         return ResponseData::success('Logged out successfully');
     }
 
+    #[OA\Post(
+        path: '/auth/forgot-password',
+        tags: ['Auth'],
+        summary: 'Envia um código OTP por email pra iniciar a recuperação de senha',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['email'],
+                properties: [
+                    new OA\Property(property: 'email', type: 'string', format: 'email', description: 'Precisa ser um email já cadastrado'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'OTP enviado',
+                content: new OA\JsonContent(
+                    allOf: [
+                        new OA\Schema(ref: '#/components/schemas/ApiSuccessResponse'),
+                        new OA\Schema(properties: [
+                            new OA\Property(property: 'data', type: 'object', properties: [
+                                new OA\Property(property: 'expires_at', type: 'string', format: 'date-time'),
+                            ]),
+                        ]),
+                    ]
+                )
+            ),
+            new OA\Response(response: 422, description: 'Email não encontrado', content: new OA\JsonContent(ref: '#/components/schemas/ApiErrorResponse')),
+        ]
+    )]
     public function forgotPassword(ForgotPasswordRequest $request)
     {
         try {
@@ -131,6 +245,38 @@ class AuthController extends Controller
         }
     }
 
+    #[OA\Post(
+        path: '/auth/verify-otp',
+        tags: ['Auth'],
+        summary: 'Verifica o código OTP enviado por email',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['otp'],
+                properties: [
+                    new OA\Property(property: 'otp', type: 'string', example: '123456', description: 'Código de 6 dígitos'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'OTP válido',
+                content: new OA\JsonContent(
+                    allOf: [
+                        new OA\Schema(ref: '#/components/schemas/ApiSuccessResponse'),
+                        new OA\Schema(properties: [
+                            new OA\Property(property: 'data', type: 'object', properties: [
+                                new OA\Property(property: 'message', type: 'string'),
+                                new OA\Property(property: 'user_id', type: 'integer'),
+                            ]),
+                        ]),
+                    ]
+                )
+            ),
+            new OA\Response(response: 400, description: 'OTP inválido ou expirado', content: new OA\JsonContent(ref: '#/components/schemas/ApiErrorResponse')),
+        ]
+    )]
     public function verifyOtp(VerifyOtpRequest $request)
     {
         try {
@@ -160,6 +306,26 @@ class AuthController extends Controller
         }
     }
 
+    #[OA\Post(
+        path: '/auth/reset-password',
+        tags: ['Auth'],
+        summary: 'Define a nova senha após validar o OTP',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['otp', 'password', 'password_confirm'],
+                properties: [
+                    new OA\Property(property: 'otp', type: 'string', example: '123456'),
+                    new OA\Property(property: 'password', type: 'string', format: 'password'),
+                    new OA\Property(property: 'password_confirm', type: 'string', format: 'password'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Senha alterada com sucesso', content: new OA\JsonContent(ref: '#/components/schemas/ApiSuccessResponse')),
+            new OA\Response(response: 422, description: 'OTP inválido/expirado ou senhas não conferem', content: new OA\JsonContent(ref: '#/components/schemas/ApiErrorResponse')),
+        ]
+    )]
     public function resetPassword(ResetPasswordRequest $request)
     {
 
@@ -187,6 +353,29 @@ class AuthController extends Controller
 
     }
 
+    #[OA\Get(
+        path: '/client/user',
+        tags: ['Auth'],
+        summary: 'Retorna os dados do usuário autenticado, com relações completas',
+        security: [['sanctum' => []]],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Usuário retornado com skills, experiences, qualifications, languages e projects',
+                content: new OA\JsonContent(
+                    allOf: [
+                        new OA\Schema(ref: '#/components/schemas/ApiSuccessResponse'),
+                        new OA\Schema(properties: [
+                            new OA\Property(property: 'data', type: 'object', properties: [
+                                new OA\Property(property: 'user', type: 'object'),
+                            ]),
+                        ]),
+                    ]
+                )
+            ),
+            new OA\Response(response: 401, description: 'Não autenticado'),
+        ]
+    )]
     public function user(Request $request)
     {
         return ResponseData::success('User retrieved successfully', [
