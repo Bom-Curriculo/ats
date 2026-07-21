@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import { 
   Upload, 
   Link as LinkIcon, 
@@ -106,9 +106,7 @@ export default function SendCurriculumForm() {
       setSkills([]);
     } catch (error) {
       console.error('Erro ao enviar formulário:', error);
-      const apiErrorMessage = axios.isAxiosError(error)
-        ? (error as AxiosError<{ message?: string }>).response?.data?.message
-        : undefined;
+      const apiErrorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
       setStatusMessage({ 
         type: 'error', 
         text: apiErrorMessage || 'Erro ao conectar com o servidor. Tente novamente.' 
