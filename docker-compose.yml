@@ -1,197 +1,153 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: bomcurriculo-postgres
     restart: unless-stopped
+
     environment:
-      POSTGRES_DB: atsdatabase
-      POSTGRES_USER: ats
-      POSTGRES_PASSWORD: ats
+      POSTGRES_DB: ${POSTGRES_DB:-atsdatabase}
+      POSTGRES_USER: ${POSTGRES_USER:-ats}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ats}
+
     ports:
-      - "5434:5432"
+      - "${POSTGRES_PORT:-5434}:5432"
+
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ats -d atsdatabase"]
+      test:
+        - CMD-SHELL
+        - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 30s
-    networks:
-      - bomcurriculo
 
-  rabbitmq:
-    image: rabbitmq:4-management-alpine
-    container_name: bomcurriculo-rabbitmq
-    restart: unless-stopped
-    hostname: bomcurriculo-rabbitmq
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-bomcurriculo}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-bomcurriculo}
-      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-/}
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    command: >
-      sh -c "rabbitmq-plugins enable --offline rabbitmq_prometheus && rabbitmq-server"
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
-      interval: 15s
-      timeout: 10s
-      retries: 5
-    networks:
-      - bomcurriculo
-
-  backend:
-    container_name: bomcurriculo-backend
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    working_dir: /var/www/html
-    volumes:
-      - ./backend:/var/www/html
-    env_file:
-      - ./backend/.env
-    ports:
-      - "9000:9000"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
     networks:
       - bomcurriculo
 
   redis:
     image: redis:7-alpine
-    container_name: bomcurriculo-redis
     restart: unless-stopped
+
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
+
     volumes:
       - redis_data:/data
-    command: redis-server --appendonly yes
+
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test:
+        - CMD
+        - redis-cli
+        - ping
       interval: 10s
       timeout: 5s
       retries: 5
+
     networks:
       - bomcurriculo
-  frontend:
-    container_name: bomcurriculo-frontend
+
+  backend:
     build:
-      context: ./frontend
+      context: ./backend
       dockerfile: Dockerfile
+
     restart: unless-stopped
-    ports:
-      - "5173:5173"
-    volumes:
-      - ./frontend:/app
-      - frontend_node_modules:/app/node_modules
+    working_dir: /var/www/html
+
     env_file:
-      - ./frontend/.env
+      - ./backend/.env
+
+    ports:
+      - "${BACKEND_PORT:-9000}:9000"
+
+    volumes:
+      - backend_storage:/var/www/html/storage
+
     depends_on:
-      - backend
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - -fsS
+        - http://localhost:9000/up
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
     networks:
       - bomcurriculo
 
   bot:
-    container_name: bomcurriculo-bot
     build:
       context: ./bot
       dockerfile: Dockerfile
+
     restart: unless-stopped
-    ports:
-      - "8000:8000"
+
     env_file:
       - ./bot/.env
-    depends_on:
-      postgres:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-    networks:
-      - bomcurriculo
 
-  loki:
-    image: grafana/loki:3.3.2
-    container_name: bomcurriculo-loki
-    restart: unless-stopped
-    command: -config.file=/etc/loki/loki-config.yml
-    volumes:
-      - ./observability/loki/loki-config.yml:/etc/loki/loki-config.yml:ro
-      - loki_data:/loki
-    networks:
-      - bomcurriculo
-
-  promtail:
-    image: grafana/promtail:3.3.2
-    container_name: bomcurriculo-promtail
-    restart: unless-stopped
-    command: -config.file=/etc/promtail/promtail-config.yml
-    volumes:
-      - ./observability/promtail/promtail-config.yml:/etc/promtail/promtail-config.yml:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-    depends_on:
-      - loki
-    networks:
-      - bomcurriculo
-
-  prometheus:
-    image: prom/prometheus:v3.1.0
-    container_name: bomcurriculo-prometheus
-    restart: unless-stopped
-    command:
-      - --config.file=/etc/prometheus/prometheus.yml
-      - --storage.tsdb.retention.time=60d
-    volumes:
-      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - prometheus_data:/prometheus
-    depends_on:
-      - cadvisor
-    networks:
-      - bomcurriculo
-
-  cadvisor:
-    image: gcr.io/cadvisor/cadvisor:v0.49.1
-    container_name: bomcurriculo-cadvisor
-    restart: unless-stopped
-    privileged: true
-    devices:
-      - /dev/kmsg
-    volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:ro
-      - /sys:/sys:ro
-      - /var/lib/docker:/var/lib/docker:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /dev/disk:/dev/disk:ro
-    networks:
-      - bomcurriculo
-
-  grafana:
-    image: grafana/grafana:11.4.0
-    container_name: bomcurriculo-grafana
-    restart: unless-stopped
     ports:
-      - "3000:3000"
-    environment:
-      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
-    volumes:
-      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./observability/grafana/dashboards:/etc/grafana/dashboards:ro
-      - grafana_data:/var/lib/grafana
+      - "${BOT_PORT:-8000}:8000"
+
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+    networks:
+      - bomcurriculo
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL_CONNECT: /api
+
+    restart: unless-stopped
+
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
+
     depends_on:
-      - loki
-      - prometheus
+      backend:
+        condition: service_healthy
+      bot:
+        condition: service_healthy
+
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --quiet
+        - --tries=1
+        - --spider
+        - http://localhost/healthz
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
     networks:
       - bomcurriculo
 
@@ -201,10 +157,5 @@ networks:
 
 volumes:
   postgres_data:
-  rabbitmq_data:
-  frontend_node_modules:
-  loki_data:
-  prometheus_data:
-  grafana_data:
   redis_data:
-
+  backend_storage:

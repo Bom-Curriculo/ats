@@ -67,6 +67,39 @@ Contributions are welcome!
 
 Please read CONTRIBUTING.md before submitting a Pull Request.
 
+## Running the project
+
+Create the environment files:
+
+```bash
+cp .env.example .env
+cp backend/.env.example backend/.env
+cp bot/.env.example bot/.env
+```
+
+On Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+Copy-Item backend/.env.example backend/.env
+Copy-Item bot/.env.example bot/.env
+```
+
+```bash
+docker compose up --build
+```
+
+Services:
+
+- Frontend: http://localhost:5173
+- Backend: http://localhost:9000
+- Bot: http://localhost:8000
+
+Health endpoints:
+
+- Backend: http://localhost:9000/up
+- Bot: http://localhost:8000/health
+
 ## License
 
 This project is licensed under the MIT License.
@@ -129,6 +162,39 @@ A tela ainda está em evolução, mas já representa a primeira proposta visual 
 ## Como contribuir
 
 Leia o arquivo CONTRIBUTING.md.
+
+## Executando o projeto
+
+Crie os arquivos de ambiente:
+
+```bash
+cp .env.example .env
+cp backend/.env.example backend/.env
+cp bot/.env.example bot/.env
+```
+
+No Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+Copy-Item backend/.env.example backend/.env
+Copy-Item bot/.env.example bot/.env
+```
+
+```bash
+docker compose up --build
+```
+
+Serviços:
+
+- Frontend: http://localhost:5173
+- Backend: http://localhost:9000
+- Bot: http://localhost:8000
+
+Endpoints de verificação:
+
+- Backend: http://localhost:9000/up
+- Bot: http://localhost:8000/health
 
 ## Licença
 

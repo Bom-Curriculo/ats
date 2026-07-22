@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     libssl-dev \
     libpq-dev \
+    libsqlite3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 
@@ -36,6 +37,7 @@ RUN docker-php-ext-install \
     pdo_pgsql \
     pgsql \
     sockets \
+    pdo_sqlite \
     zip
 
 RUN pecl install redis \
@@ -67,7 +69,7 @@ RUN mkdir -p \
     storage/framework/views \
     storage/logs \
     bootstrap/cache
-    
+
 RUN chmod -R 775 storage bootstrap/cache
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
@@ -76,6 +78,6 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 
 EXPOSE 9000
 
-ENTRYPOINT ["entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=9000"]
