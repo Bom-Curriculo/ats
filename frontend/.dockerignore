@@ -1,5 +1,12 @@
+.git
+.github
+
+.env
+.env.*
+!.env.example
+
 node_modules
 dist
-.git
-Dockerfile
-.dockerignore
+coverage
+
+*.log
