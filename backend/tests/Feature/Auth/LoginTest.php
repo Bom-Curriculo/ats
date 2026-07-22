@@ -5,6 +5,11 @@ use Illuminate\Support\Facades\Hash;
 
 uses(RefreshDatabase::class);
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
+
+uses(RefreshDatabase::class);
+
 it('can login successfully', function () {
 
     $user = authUser([
