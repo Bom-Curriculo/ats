@@ -3,6 +3,7 @@ updates:
   # Frontend (npm)
   - package-ecosystem: "npm"
     directory: "/frontend"
+    target-branch: "development"
     schedule:
       interval: "weekly"
     groups:
@@ -11,10 +12,16 @@ updates:
           - "*"
     commit-message:
       prefix: "chore(frontend)"
+    ignore:
+      # typescript-eslint@8.x exige typescript <6.1.0; liberar quando o
+      # peer dependency for atualizado, evitando ERESOLVE no npm ci.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
 
   # Backend - assets/vite (npm)
   - package-ecosystem: "npm"
     directory: "/backend"
+    target-branch: "development"
     schedule:
       interval: "weekly"
     groups:
@@ -27,6 +34,7 @@ updates:
   # Backend (composer / PHP)
   - package-ecosystem: "composer"
     directory: "/backend"
+    target-branch: "development"
     schedule:
       interval: "weekly"
     groups:
@@ -39,6 +47,7 @@ updates:
   # Mobile (pub / Dart-Flutter)
   - package-ecosystem: "pub"
     directory: "/mobile"
+    target-branch: "development"
     schedule:
       interval: "weekly"
     groups:
@@ -51,6 +60,7 @@ updates:
   # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
+    target-branch: "development"
     schedule:
       interval: "weekly"
     commit-message:

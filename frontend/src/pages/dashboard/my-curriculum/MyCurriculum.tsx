@@ -1,7 +1,9 @@
+import SendCurriculumForm from './SendCurriculumForm';
+
 export default function MyCurriculum() {
-  return(
+  return (
     <div>
-      
+      <SendCurriculumForm />
     </div>
-  )
+  );
 }

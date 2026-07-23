@@ -2,7 +2,7 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 class DB {
-  static const String _databaseName = "database.db";
+  static const String _databaseName = "mydb.db";
   static const int _databaseVersion = 1;
 
   static const String _table = "storage";
@@ -12,6 +12,7 @@ class DB {
 
   static const String keyJWT = "jwt";
   static const String keyUser = "user";
+  static const String keyFCM = "fcm";
 
   DB._();
 
@@ -28,11 +29,7 @@ class DB {
     final databasesPath = await getDatabasesPath();
     final path = join(databasesPath, _databaseName);
 
-    return openDatabase(
-      path,
-      version: _databaseVersion,
-      onCreate: _onCreate,
-    );
+    return openDatabase(path, version: _databaseVersion, onCreate: _onCreate);
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -47,14 +44,10 @@ class DB {
   Future<void> _save(String key, String value) async {
     final db = await database;
 
-    await db.insert(
-      _table,
-      {
-        columnKey: key,
-        columnValue: value,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert(_table, {
+      columnKey: key,
+      columnValue: value,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<String?> _get(String key) async {
@@ -77,11 +70,7 @@ class DB {
   Future<void> _delete(String key) async {
     final db = await database;
 
-    await db.delete(
-      _table,
-      where: "$columnKey = ?",
-      whereArgs: [key],
-    );
+    await db.delete(_table, where: "$columnKey = ?", whereArgs: [key]);
   }
 
   Future<void> saveJWT(String jwt) async {
@@ -106,6 +95,18 @@ class DB {
 
   Future<void> deleteUser() async {
     await _delete(keyUser);
+  }
+
+  Future<void> saveFCM(String token) async {
+    await _save(keyFCM, token);
+  }
+
+  Future<String?> getFCM() async {
+    return _get(keyFCM);
+  }
+
+  Future<void> deleteFCM() async {
+    await _delete(keyFCM);
   }
 
   Future<void> clear() async {
@@ -140,6 +141,15 @@ class DB {
   Remover usuário:
   await DB.instance.deleteUser();
 
+  Salvar FCM:
+  await DB.instance.saveFCM(fcmToken);
+
+  Ler FCM:
+  final fcm = await DB.instance.getFCM();
+
+  Remover FCM:
+  await DB.instance.deleteFCM();
+
   Logout:
   await DB.instance.clear();
- */
+*/

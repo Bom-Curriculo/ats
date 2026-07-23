@@ -29,19 +29,24 @@ class ResumeAnalytic extends Model
     protected function casts(): array
     {
         return [
-            'error'          => 'array',
-            'header'         => 'array',
-            'experiences'    => 'array',
-            'projects'       => 'array',
+            'error' => 'array',
+            'header' => 'array',
+            'experiences' => 'array',
+            'projects' => 'array',
             'qualifications' => 'array',
-            'skills'         => 'array',
-            'languages'      => 'array',
-            'others'         => 'array',
+            'skills' => 'array',
+            'languages' => 'array',
+            'others' => 'array',
         ];
     }
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function resume(): BelongsTo
+    {
+        return $this->belongsTo(UserResume::class, 'user_resume_id', 'id');
     }
 }

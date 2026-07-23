@@ -1,13 +1,16 @@
-"""Structured resume extraction contract, produced directly from resume text by the AI.
+"""Structured resume contracts, produced directly from resume text by the AI.
 
-Field names and shapes mirror the Laravel consumer's expected payload exactly
-(``analysis_request_id``, ``user_id``, ``result.header/experiences/projects/...``)
-so the worker's output can be persisted without any renaming step on the PHP side.
+Two distinct AI outputs share the same input sources (base CV + LinkedIn +
+GitHub/portfolio + reported skills): ``ResumeScoreResult`` just judges the
+resume as given, while ``BuiltResumeResult`` reconstructs it into the best
+possible ATS-optimized version. Field names and shapes mirror the Laravel
+consumer's expected payload exactly (``header/experiences/projects/...``) so
+the response can be persisted without any renaming step on the PHP side.
 """
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 QualificationType = Literal[
     "elementary_education",
@@ -54,7 +57,9 @@ class ExperienceItem(BaseModel):
 
 class ProjectItem(BaseModel):
     title: str
-    date: str | None = None
+    # Kept as free-form strings, same rationale as ExperienceItem.start/end.
+    start: str | None = None
+    end: str | None = None
     technologies: str | None = None
     description: str | None = None
     url: str | None = None
@@ -87,11 +92,25 @@ class LanguageItem(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-class ResumeAnalysisResult(BaseModel):
-    """Everything the AI extracts/judges from resume text alone (no job posting involved)."""
+class ResumeScoreResult(BaseModel):
+    """Just an ATS quality judgment of the resume as given — no reconstruction."""
 
     score: int = Field(ge=0, le=100)
     suggestion: str
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class BuiltResumeResult(BaseModel):
+    """The best possible ATS-optimized version of the resume, reconstructed by the AI
+
+    from the base CV plus every supporting source (no job posting involved).
+    """
+
+    score: int = Field(ge=0, le=100)
+    # Short first-person-adjacent bio/"about" paragraph, written by the AI from the
+    # given sources — not copied verbatim from the resume (most resumes don't have one).
+    professional_summary: str | None = None
     header: ResumeHeader = Field(default_factory=ResumeHeader)
     experiences: list[ExperienceItem] = Field(default_factory=list)
     projects: list[ProjectItem] = Field(default_factory=list)
@@ -105,6 +124,28 @@ class ResumeAnalysisResult(BaseModel):
 
 
 class ResumeAnalysisRequest(BaseModel):
-    """HTTP boundary request: resume text only, no job posting to match against."""
+    """HTTP boundary request: the base CV plus optional supporting sources.
 
-    resume_text: str = Field(min_length=1)
+    No job posting is involved here. The base CV can arrive as inline text or
+    as a URL the bot downloads and extracts itself — exactly one of the two
+    is required. Every other source is optional supporting context that gets
+    folded into the same extraction instead of triggering a second AI call.
+    """
+
+    resume_text: str | None = None
+    resume_cv_url: str | None = None
+    resume_linkedin_url: str | None = None
+    github_url: str | None = None
+    portfolio_url: str | None = None
+    # Same shape as the output SkillItem (name + years): Laravel sends the skill
+    # name and how many years of experience the user reported for it.
+    additional_skills: list[SkillItem] = Field(default_factory=list)
+
+    model_config = ConfigDict(extra="forbid")
+
+    @model_validator(mode="after")
+    def _require_a_cv_source(self) -> "ResumeAnalysisRequest":
+        has_text = bool(self.resume_text and self.resume_text.strip())
+        if not has_text and not self.resume_cv_url:
+            raise ValueError("either resume_text or resume_cv_url is required")
+        return self

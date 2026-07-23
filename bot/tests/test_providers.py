@@ -18,7 +18,6 @@ def _factory(**providers: ProviderSettings) -> ProviderFactory:
             provider_chain=tuple(providers.keys()),
             providers=providers,
         ),
-        rabbitmq=base.rabbitmq,
     )
     return ProviderFactory(settings)
 

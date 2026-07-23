@@ -2,7 +2,6 @@ import {
   ChartColumnBigIcon,
   CircleQuestionMarkIcon,
   FileText,
-  HomeIcon,
   LayoutDashboard,
   LogOut,
   Plus,
@@ -22,17 +21,17 @@ import { Button } from "../ui/button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { LogoutApi } from "@/api/auth/logout-api";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 
 const items = [
   {
     title: "Visão Geral",
-    url: "/",
+    url: "/dashboard",
     icon: LayoutDashboard,
   },
   {
     title: "Meus Curriculos",
-    url: "/my-curriculum",
+    url: "/my-resume",
     icon: FileText,
   },
   {
@@ -45,16 +44,12 @@ const items = [
     url: "/settings",
     icon: SettingsIcon,
   },
-  {
-    title: "Voltar ao site",
-    url: "/",
-    icon: HomeIcon,
-  },
 ];
 
 export default function AppSidebar() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
 
   const logoutMutation = useMutation({
     mutationFn: LogoutApi,
@@ -72,8 +67,8 @@ export default function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarContent className="border-b border-solid border-gray-300">
-        <div className="border-b border-gray-300 ">
+      <SidebarContent className="border-b border-solid border-sidebar-border">
+        <div className="border-b border-sidebar-border ">
           <div className="p-4 ">
             <div className="flex gap-1">
               <img
@@ -87,11 +82,11 @@ export default function AppSidebar() {
                 alt="BomCurriculo"
                 className="hidden h-10 w-auto dark:block"
               />
-              <h1 className="text-[#03206E] dark:text-white flex items-center text-xl gap-1 font-semibold">
-                Bom<span className="text-blue-500"> Currículo</span>
+              <h1 className="text-brand-secondary dark:text-white flex items-center text-xl gap-1 font-semibold">
+                Bom<span className="text-brand-primary"> Currículo</span>
               </h1>
             </div>
-            <span className="text-gray-400 text-sm">Otimização ATS</span>
+            <span className="text-muted-foreground text-sm">Otimização ATS</span>
           </div>
         </div>
 
@@ -102,15 +97,16 @@ export default function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
-                    className="py-4 hover:bg-[#03206E] dark:hover:bg-blue-500 "
+                    isActive={pathname === item.url}
+                    className="py-4 data-[active=true]:bg-brand-primary/10 data-[active=true]:font-medium data-[active=true]:text-brand-primary hover:bg-brand-secondary hover:text-white dark:hover:bg-brand-primary"
                   >
-                    <a
-                      href={item.url}
-                      className="flex items-center gap-3  hover:text-white "
+                    <NavLink
+                      to={item.url}
+                      className="flex items-center gap-3"
                     >
                       <item.icon className={"w-5! h-5!"} />
                       <span>{item.title}</span>
-                    </a>
+                    </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -119,19 +115,25 @@ export default function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <footer className="p-4">
-        <div className="flex flex-col gap-2">
-          <Button className="bg-[#03206E] dark:bg-blue-500 p-6 hover:bg-[#03206E]">
-            {/** Tds os botoes aqui criar o component */} <Plus /> Novo
-            Currículo
+        <div className="flex flex-col gap-1">
+          <Button className="mb-2 bg-brand-secondary p-6 hover:bg-brand-secondary dark:bg-brand-primary">
+            <Plus /> Novo Currículo
           </Button>
-          <div className="flex gap-1 items-center">
-            <CircleQuestionMarkIcon size={16} /> <h1>Ajuda</h1>
-          </div>
-          <div className="flex gap-1 items-center">
-            <Button  onClick={() => logoutMutation.mutate()} className="text-red-500 bg-transparent hover:bg-transparent">
-              <LogOut/> Desconectar
-            </Button>
-          </div>
+
+          <button
+            type="button"
+            className="flex items-center justify-start gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <CircleQuestionMarkIcon size={18} /> Ajuda
+          </button>
+
+          <button
+            type="button"
+            onClick={() => logoutMutation.mutate()}
+            className="flex items-center justify-start gap-2 rounded-lg px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
+          >
+            <LogOut size={18} /> Sair
+          </button>
         </div>
       </footer>
     </Sidebar>

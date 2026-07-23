@@ -1,16 +1,15 @@
 import 'package:bomcurriculo/include/BodyAuth.dart';
+import 'package:bomcurriculo/util/Translation.dart';
 import 'package:bomcurriculo/view/auth/ViewLogin.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../service/API.dart';
 import '../../widget/WidgetButton.dart';
 import '../../widget/WidgetInputText.dart';
 
 class ViewResetPassword extends StatefulWidget {
-  const ViewResetPassword({
-    super.key,
-    required this.otp
-  });
+  const ViewResetPassword({super.key, required this.otp});
 
   final String otp;
 
@@ -19,7 +18,6 @@ class ViewResetPassword extends StatefulWidget {
 }
 
 class _ViewResetPassword extends State<ViewResetPassword> {
-
   bool loading = false;
 
   final focusPassword = FocusNode();
@@ -27,12 +25,19 @@ class _ViewResetPassword extends State<ViewResetPassword> {
   final controllerPassword = TextEditingController();
   final controllerPasswordConfirm = TextEditingController();
 
-  String errorPassword='';
-  String errorPasswordConfirm='';
+  String errorText = '';
+  String errorPassword = '';
+  String errorPasswordConfirm = '';
+
+  void getTranslation() async {
+    await Translation.instance.load("pt-BR");
+    setState(() {});
+  }
 
   @override
   void initState() {
     super.initState();
+    getTranslation();
     focusPassword.requestFocus();
   }
 
@@ -46,23 +51,27 @@ class _ViewResetPassword extends State<ViewResetPassword> {
     });
 
     // Valida email
-    if (controllerPassword.text=="") {
-      errorPassword = 'Type your new password';
+    if (controllerPassword.text == "") {
+      errorPassword = Translation.instance.translate('Type your new password');
       focusPassword.requestFocus();
       error = true;
-    } else if (controllerPasswordConfirm.text=="") {
-      errorPasswordConfirm = 'Type your new password again';
+    } else if (controllerPasswordConfirm.text == "") {
+      errorPasswordConfirm = Translation.instance.translate(
+        'Type your new password again',
+      );
       focusPasswordConfirm.requestFocus();
       error = true;
-    } else if (controllerPassword.text!=controllerPasswordConfirm.text) {
-      errorPasswordConfirm = 'Your passwords doesn\'t match';
+    } else if (controllerPassword.text != controllerPasswordConfirm.text) {
+      errorPasswordConfirm = Translation.instance.translate(
+        'Your passwords doesn\'t match',
+      );
       focusPasswordConfirm.requestFocus();
       error = true;
     }
 
     // Se tiver erro
     if (error) {
-      setState((){});
+      setState(() {});
       return;
     }
 
@@ -75,16 +84,27 @@ class _ViewResetPassword extends State<ViewResetPassword> {
       });
 
       API api = API();
-      await api.post('auth/reset-password', {
+      var response = await api.post('auth/reset-password', {
         'password': controllerPassword.text,
         'password_confirm': controllerPasswordConfirm.text,
-        'opt': widget.otp
+        'otp': widget.otp,
       });
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const ViewLogin()),
-      );
+      if (response.statusCode == 200) {
+        context.go("/auth/login");
+        //Navigator.push(
+        //  context,
+        //  MaterialPageRoute(builder: (context) => const ViewLogin()),
+        //);
+      } else if (response.statusCode == 422) {
+        setState(() {
+          errorText = 'Erro ao alterar senha';
+        });
+      } else {
+        setState(() {
+          errorText = 'Erro na comunicação com o servidor';
+        });
+      }
 
       setState(() {
         loading = false;
@@ -98,27 +118,31 @@ class _ViewResetPassword extends State<ViewResetPassword> {
       child: Column(
         children: [
           Text(
-            'Type and confirm your password to change',
+            Translation.instance.translate(
+              'Type and confirm your password to change',
+            ),
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 30.0),
           WidgetInputText(
-              title: 'New password',
-              controller: controllerPassword,
-              error: errorPassword,
-              focusNode: focusPassword,
-              isPassword: true
+            title: Translation.instance.translate('New password'),
+            controller: controllerPassword,
+            error: errorPassword,
+            focusNode: focusPassword,
+            isPassword: true,
           ),
           WidgetInputText(
-              title: 'Retype your password',
-              controller: controllerPasswordConfirm,
-              error: errorPasswordConfirm,
-              focusNode: focusPasswordConfirm,
-              isPassword: true
+            title: Translation.instance.translate('Retype your password'),
+            controller: controllerPasswordConfirm,
+            error: errorPasswordConfirm,
+            focusNode: focusPasswordConfirm,
+            isPassword: true,
           ),
           GestureDetector(
             onTap: doPasswordChange,
-            child: WidgetButton(title: 'Update password'),
+            child: WidgetButton(
+              title: Translation.instance.translate('Update password'),
+            ),
           ),
         ],
       ),

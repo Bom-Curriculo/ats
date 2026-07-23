@@ -16,11 +16,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'is_actual',
     'city',
     'state',
-    'country'
+    'country',
 ])]
 class UserExperience extends Model
 {
-
     /**
      * Get the attributes that should be cast.
      *
@@ -30,14 +29,13 @@ class UserExperience extends Model
     {
         return [
             'start' => 'date',
-            'end'   => 'date',
-            'is_actual' => 'boolean'
+            'end' => 'date',
+            'is_actual' => 'boolean',
         ];
     }
 
-    public function user() : BelongsTo
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
-
 }

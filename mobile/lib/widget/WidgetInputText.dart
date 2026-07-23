@@ -15,7 +15,7 @@ class WidgetInputText extends StatefulWidget {
     this.previousFocusNode,
     this.maxLength,
     this.textAlignCenter = false,
-    this.error = ''
+    this.error = '',
   });
 
   final bool isPassword;
@@ -61,7 +61,6 @@ class _WidgetInputText extends State<WidgetInputText> {
   }
 
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
-
     if (widget.maxLength != 1) {
       return KeyEventResult.ignored;
     }
@@ -121,10 +120,15 @@ class _WidgetInputText extends State<WidgetInputText> {
               controller: widget.controller,
               focusNode: _focusNode,
               maxLength: widget.maxLength,
-              keyboardType: widget.maxLength == 1 ? TextInputType.number : TextInputType.text,
-              inputFormatters: widget.maxLength == 1 ? [FilteringTextInputFormatter.digitsOnly] : null,
-              textAlign:
-                  widget.textAlignCenter ? TextAlign.center : TextAlign.start,
+              keyboardType: widget.maxLength == 1
+                  ? TextInputType.number
+                  : TextInputType.text,
+              inputFormatters: widget.maxLength == 1
+                  ? [FilteringTextInputFormatter.digitsOnly]
+                  : null,
+              textAlign: widget.textAlignCenter
+                  ? TextAlign.center
+                  : TextAlign.start,
               obscureText: widget.isPassword,
               onChanged: (value) {
                 if (widget.maxLength != 1) return;
@@ -150,8 +154,10 @@ class _WidgetInputText extends State<WidgetInputText> {
             ),
           ),
 
-          SizedBox(height: widget.error!=""?5.0:0),
-          widget.error!=""?Text(widget.error!, style: TextStyle(color: Colors.red)):SizedBox(),
+          SizedBox(height: widget.error != "" ? 5.0 : 0),
+          widget.error != ""
+              ? Text(widget.error!, style: TextStyle(color: Colors.red))
+              : SizedBox(),
 
           const SizedBox(height: 15.0),
         ],

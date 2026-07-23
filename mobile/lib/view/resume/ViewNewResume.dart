@@ -1,12 +1,12 @@
 import 'dart:io';
 
 import 'package:bomcurriculo/include/Body.dart';
-import 'package:bomcurriculo/view/resume/ViewGenerateResume.dart';
-import 'package:bomcurriculo/view/resume/ViewMyResumes.dart';
+import 'package:bomcurriculo/util/Translation.dart';
 import 'package:bomcurriculo/widget/WidgetButton.dart';
 import 'package:bomcurriculo/widget/WidgetInputText.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../service/API.dart';
 import '../../widget/WidgetInputFile.dart';
@@ -29,9 +29,15 @@ class _ViewNewResume extends State<ViewNewResume> {
   final controllerWebsiteURL = TextEditingController();
   final List<TextEditingController> skills = [];
 
+  Future<void> getTranslation() async {
+    await Translation.instance.load("pt-BR");
+    setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
+    getTranslation();
     addSkill();
   }
 
@@ -86,7 +92,6 @@ class _ViewNewResume extends State<ViewNewResume> {
   }
 
   void validateResume() async {
-
     if (resumeFile == null || linkedinFile == null) {
       return;
     }
@@ -107,28 +112,33 @@ class _ViewNewResume extends State<ViewNewResume> {
       }
     }
 
+    print("###############################");
+    print(data);
+    print("###############################");
+
+    var files = [
+      {"field": "resume_cv", "path": resumeFile!.path},
+      {"field": "resume_linkedin", "path": linkedinFile!.path},
+    ];
+
+    print("###############################");
+    print(files);
+    print("###############################");
+
+    //"client/resumes/new-resume",
     final response = await API().upload(
       "client/resumes/new-resume",
       data,
-      [
-        {
-          "field": "resume_cv",
-          "path": resumeFile!.path,
-        },
-        {
-          "field": "resume_linkedin",
-          "path": linkedinFile!.path,
-        },
-      ],
+      files,
     );
     print(response.body);
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const ViewMyResumes(),
-      ),
-    );
+    context.go("/");
+    //Navigator.push(
+    //  context,
+    //  MaterialPageRoute(
+    //    builder: (context) => const ViewHome(),
+    //  ),
+    //);
   }
 
   @override
@@ -139,13 +149,15 @@ class _ViewNewResume extends State<ViewNewResume> {
         child: Column(
           children: [
             Text(
-              'Fill data correctly to generate your resume',
+              Translation.instance.translate(
+                'Fill data correctly to generate your resume',
+              ),
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 30.0),
             WidgetInputFile(
-              title: 'Your resume/CV',
-              label: 'Choose a PDF file',
+              title: Translation.instance.translate('Your resume/CV'),
+              label: Translation.instance.translate('Choose a PDF file'),
               fileName: resumeFileName,
               onTap: () async {
                 FilePickerResult? result = await FilePicker.pickFiles(
@@ -162,8 +174,8 @@ class _ViewNewResume extends State<ViewNewResume> {
               },
             ),
             WidgetInputFile(
-              title: 'Linkedin resume',
-              label: 'Choose a PDF file',
+              title: Translation.instance.translate('Linkedin resume'),
+              label: Translation.instance.translate('Choose a PDF file'),
               fileName: linkedinFileName,
               onTap: () async {
                 FilePickerResult? result = await FilePicker.pickFiles(
@@ -180,19 +192,22 @@ class _ViewNewResume extends State<ViewNewResume> {
               },
             ),
             WidgetInputText(
-                title: 'GitHub URL',
-                controller: controllerGitHubURL,
-                httpsPrefix: 'https://github.com/'
+              title: Translation.instance.translate('GitHub URL'),
+              controller: controllerGitHubURL,
+              httpsPrefix: 'https://github.com/',
             ),
             WidgetInputText(
-                title: 'Your site URL',
-                controller: controllerWebsiteURL,
-                httpsPrefix: 'https://'
+              title: Translation.instance.translate('Your site URL'),
+              controller: controllerWebsiteURL,
+              httpsPrefix: 'https://',
             ),
 
             Column(
               children: List.generate(skills.length, (index) {
-                return WidgetInputText(title: 'Skill', controller: skills[index]);
+                return WidgetInputText(
+                  title: Translation.instance.translate('Skill'),
+                  controller: skills[index],
+                );
               }),
             ),
 
@@ -200,7 +215,9 @@ class _ViewNewResume extends State<ViewNewResume> {
 
             GestureDetector(
               onTap: validateResume,
-              child: WidgetButton(title: 'Validate resume'),
+              child: WidgetButton(
+                title: Translation.instance.translate('Validate data'),
+              ),
             ),
           ],
         ),

@@ -1,13 +1,17 @@
 import 'dart:convert';
 
 import 'package:bomcurriculo/include/Navbar.dart';
+import 'package:bomcurriculo/service/API.dart';
+import 'package:bomcurriculo/util/Translation.dart';
 import 'package:bomcurriculo/view/resume/ViewNewResume.dart';
 import 'package:bomcurriculo/widget/WidgetButton.dart';
 import 'package:bomcurriculo/widget/WidgetResume.dart';
+import 'package:bomcurriculo/widget/WidgetScore.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../service/DB.dart';
+import '../theme/AppColors.dart';
 
 class ViewHome extends StatefulWidget {
   const ViewHome({super.key});
@@ -16,7 +20,6 @@ class ViewHome extends StatefulWidget {
 }
 
 class _ViewHomeState extends State<ViewHome> {
-
   bool loading = false;
 
   String name = '';
@@ -37,12 +40,101 @@ class _ViewHomeState extends State<ViewHome> {
   String country = '';
   String linkedinLink = '';
 
+  /*
+  var items = [
+    {
+      'type': 'fail',
+      'title': '---',
+      'subtitle': 'Falha ao processar currículo',
+      'score': '---',
+      'downloadURL': ''
+    },
+    {
+      'type': 'pending',
+      'title': '---',
+      'subtitle': 'Currículo pendente - em processamento',
+      'score': '---',
+      'downloadURL': ''
+    },
+    {
+      'type': 'analyze',
+      'title': '---',
+      'subtitle': 'Analisar currículo',
+      'score': '---',
+      'downloadURL': ''
+    },
+    {
+      'type': 'ready',
+      'title': 'Curriculo_ProductDesigner_v2.pdf',
+      'subtitle': 'Atualizado há 2 dias',
+      'score': '92',
+      'downloadURL': ''
+    }
+    /*,
+    {
+      'type': 'ready',
+      'title': 'Curriculo_ProductDesigner_v2.pdf',
+      'subtitle': 'Atualizado há 2 dias',
+      'score': '92',
+      'downloadURL': ''
+    }
+     */
+  ];
+
+   */
+  var items = [];
+
+  void getTranslation() async {
+    await Translation.instance.load("pt-BR");
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getTranslation();
+    doAction();
+  }
+
   void doAction() async {
     setState(() {
       loading = true;
     });
 
     try {
+      //http://127.0.0.1:8000/api/client/resumes/files?type=cv
+      var response = await API().get('client/user/resumes');
+      //var response = await API().get('client/resumes/files?type=cv');
+      var body = jsonDecode(response.body);
+
+      //var userWebData = body['data']['user'];
+      var userWebData = body['data']['data'];
+      //var userWebData = body;
+
+      print("*******************************");
+      print(userWebData);
+      print("*******************************");
+
+      for (var data in userWebData) {
+        String status = data['status'];
+        String title = '---';
+        String subtitle = 'Em  prsamento';
+        String score = '---';
+        if (status == 'pending') {
+          subtitle = 'Em processamento';
+        } else if (status == 'fail') {
+          subtitle = 'Falha ao processar currículo';
+        }
+        items.add({
+          'uuid': data['id'],
+          'type': status,
+          'title': title,
+          'subtitle': subtitle,
+          'score': score,
+          'downloadURL': data['original_file_path_cv'],
+        });
+      }
+
       final user = await DB.instance.getUser();
 
       final userData = jsonDecode(user!);
@@ -64,9 +156,7 @@ class _ViewHomeState extends State<ViewHome> {
       state = userData['state'] ?? '';
       country = userData['country'] ?? '';
       linkedinLink = userData['linkedin_link'] ?? '';
-    } catch (e) {
-
-    }
+    } catch (e) {}
 
     setState(() {
       loading = false;
@@ -74,246 +164,97 @@ class _ViewHomeState extends State<ViewHome> {
   }
 
   @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    doAction();
-  }
-
-  @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: const Navbar(),
-      body: loading?Center(child: CircularProgressIndicator()):SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(30.0),
+      body: loading
+          ? Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  RichText(
-                    text: TextSpan(
-                      style: TextStyle(fontSize: 30, color: Colors.black),
+                  Padding(
+                    padding: const EdgeInsets.all(30.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        TextSpan(
-                          text: "Bem-vindo, ",
-                          style: TextStyle(fontWeight: FontWeight(800)),
-                        ),
-                        TextSpan(
-                          text: name,
-                          style: TextStyle(
-                            color: Colors.blue,
-                            fontWeight: FontWeight(800),
+                        RichText(
+                          text: TextSpan(
+                            style: TextStyle(fontSize: 30, color: Colors.black),
+                            children: [
+                              TextSpan(
+                                text:
+                                    "${Translation.instance.translate('Welcome')}, ",
+                                style: TextStyle(fontWeight: FontWeight(800)),
+                              ),
+
+                              TextSpan(
+                                text: name,
+                                style: TextStyle(
+                                  color: AppColorsLight.brandPrimary,
+                                  fontWeight: FontWeight(800),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
+                        Text(
+                          Translation.instance.translate(
+                            'Seus Currículos otimizados em um só lugar',
+                          ),
+                          style: TextStyle(fontWeight: FontWeight(700)),
+                        ),
+
+                        const SizedBox(height: 15),
+
+                        /*
+                  Text(
+                    Translation.instance.translate('My resumes'),
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 15.0),
+
+                   */
+
+                        //WidgetScore(),
+                        Column(
+                          children: items.map((item) {
+                            return WidgetResume(
+                              type: item['type'] ?? "",
+                              title: item['title'] ?? "",
+                              subtitle: item['subtitle'] ?? "",
+                              score: item['score'] ?? "",
+                              downloadURL: item['downloadURL'] ?? "",
+                            );
+                          }).toList(),
+                        ),
+
+                        items.length < 5
+                            ? GestureDetector(
+                                onTap: () {
+                                  context.go("/resume/new-resume");
+                                  //Navigator.push(
+                                  //  context,
+                                  //  MaterialPageRoute(
+                                  //    builder: (context) => const ViewNewResume(),
+                                  //  ),
+                                  //);
+                                },
+                                child: WidgetButton(
+                                  title: Translation.instance.translate(
+                                    'Generate new resume',
+                                  ),
+                                ),
+                              )
+                            : SizedBox(),
                       ],
                     ),
                   ),
-                  Text(
-                    "Seus Currículos otimizados em um só lugar.",
-                    style: TextStyle(fontWeight: FontWeight(700)),
-                  ),
-                  SizedBox(
-                    width: double.infinity,
-                    child: Card(
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // ATS SCORE
-                            Container(
-                              width: 90,
-                              height: 90,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Colors.blue,
-                                  width: 5,
-                                ),
-                              ),
-                              child: const Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      "85",
-                                      style: TextStyle(
-                                        fontSize: 30,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    Text(
-                                      "ATS SCORE",
-                                      style: TextStyle(fontSize: 10),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(width: 20),
-
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.blue.shade50,
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: const Text(
-                                      "MÉDIA GLOBAL",
-                                      style: TextStyle(
-                                        color: Colors.blue,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-
-                                  const SizedBox(height: 8),
-
-                                  const Text(
-                                    "Performance Geral",
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-
-                                  const SizedBox(height: 8),
-
-                                  const Text(
-                                    "Sua pontuação média de otimização está excelente.",
-                                  ),
-
-                                  const SizedBox(height: 4),
-
-                                  const Text(
-                                    "Foque em adicionar palavras-chave específicas para as vagas de Product Designer para atingir a nota máxima.",
-                                  ),
-
-                                  const SizedBox(height: 12),
-
-                                  Wrap(
-                                    spacing: 5,
-                                    children: [
-                                      Chip(
-                                        padding: const EdgeInsets.all(2.0),
-                                        label: Text("Keywords"),
-                                        backgroundColor: Colors.blue.shade50,
-                                      ),
-                                      Chip(
-                                        padding: const EdgeInsets.all(2.0),
-                                        label: Text("Formatação"),
-                                        backgroundColor: Colors.blue.shade50,
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 25),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        "Meus Currículos",
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      /*
-                      GestureDetector(
-                        onTap: () {},
-                        child: const Text(
-                          "Ver todos",
-                          style: TextStyle(
-                            color: Colors.blue,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      */
-                    ],
-                  ),
-
-                  const SizedBox(height: 15),
-
-                  WidgetResume(
-                    title: 'Curriculo_ProductDesigner_v2.pdf',
-                    subtitle: 'Atualizado há 2 dias',
-                    score: 92,
-                    downloadURL: ''
-                  ),
-                  const SizedBox(height: 15),
-                  WidgetResume(
-                      title: 'Curriculo_ProductDesigner_v2.pdf',
-                      subtitle: 'Atualizado há 2 dias',
-                      score: 92,
-                      downloadURL: ''
-                  ),
-                  const SizedBox(height: 15),
-                  WidgetResume(
-                      title: 'Curriculo_ProductDesigner_v2.pdf',
-                      subtitle: 'Atualizado há 2 dias',
-                      score: 92,
-                      downloadURL: ''
-                  ),
-                  const SizedBox(height: 15),
-                  WidgetResume(
-                      title: 'Curriculo_ProductDesigner_v2.pdf',
-                      subtitle: 'Atualizado há 2 dias',
-                      score: 92,
-                      downloadURL: ''
-                  ),
-                  const SizedBox(height: 15),
-                  WidgetResume(
-                      title: 'Curriculo_ProductDesigner_v2.pdf',
-                      subtitle: 'Atualizado há 2 dias',
-                      score: 92,
-                      downloadURL: ''
-                  ),
-                  const SizedBox(height: 15),
-                  
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ViewNewResume(),
-                        ),
-                      );
-                    },
-                    child: WidgetButton(title: "Generate new resume")
-                  )
-
                 ],
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 }

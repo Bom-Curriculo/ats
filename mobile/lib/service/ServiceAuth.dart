@@ -1,7 +1,6 @@
 import 'API.dart';
 
 class ServiceAuth {
-
   Future<bool> isLogged() async {
     try {
       API api = API();
@@ -17,24 +16,15 @@ class ServiceAuth {
     return false;
   }
 
-  register() {
-
-  }
+  register() {}
 
   Future<bool> logout() async {
     return false;
   }
 
-  forgotPassword() {
+  forgotPassword() {}
 
-  }
+  verifyOTP() {}
 
-  verifyOTP() {
-
-  }
-
-  resetPassword() {
-
-  }
-
+  resetPassword() {}
 }

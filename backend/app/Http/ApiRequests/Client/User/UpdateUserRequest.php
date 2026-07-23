@@ -10,16 +10,15 @@ use Illuminate\Validation\Rule;
 
 class UpdateUserRequest extends CustomRequest
 {
-
     public function rules(): array
     {
         return [
             'name' => ['string', 'min:3', 'max: 128'],
             'password' => ['string', 'min:8', 'max:64'],
-            'resume_cv'       => ['file', 'mimes:pdf,doc,docx', 'min:5', 'max:10240'],
+            'resume_cv' => ['file', 'mimes:pdf,doc,docx', 'min:5', 'max:10240'],
             'resume_linkedin' => ['file', 'mimes:pdf,doc,docx', 'min:5', 'max:10240'],
-            'github_link'     => ['nullable', 'string', 'min:9', 'max:255'],
-            'site_link'       => ['nullable', 'string', 'min:9', 'max:255'],
+            'github_link' => ['nullable', 'string', 'min:9', 'max:255'],
+            'site_link' => ['nullable', 'string', 'min:9', 'max:255'],
             'social_name' => ['nullable', 'string', 'min:2', 'max: 191'],
             'phone' => ['nullable', 'string', 'min:11', 'max:15'],
             'resume' => ['nullable', 'string'],
@@ -30,11 +29,11 @@ class UpdateUserRequest extends CustomRequest
             'city' => ['nullable', 'string'],
             'state' => ['nullable', 'string'],
             'country' => ['nullable', 'string'],
-            'linkedin_link' => ['nullable', 'string'],                
-            
-            'skills'          => ['array'],
-            'skills.*.name'   => ['string', 'required'],
-            'skills.*.years'   => ['string', 'nullable'],
+            'linkedin_link' => ['nullable', 'string'],
+
+            'skills' => ['array'],
+            'skills.*.name' => ['string', 'required'],
+            'skills.*.years' => ['string', 'nullable'],
 
             'experiences' => ['array'],
             'experiences.*.company' => ['required', 'string'],
@@ -52,14 +51,14 @@ class UpdateUserRequest extends CustomRequest
             'qualifications.*.institution' => ['required', 'string'],
             'qualifications.*.title' => ['required', 'string'],
             'qualifications.*.start' => ['required', 'date'],
-            'qualifications.*.end' => ['nullable', 'date'],                
+            'qualifications.*.end' => ['nullable', 'date'],
             'qualifications.*.is_coursing' => ['required_unless:end,null', 'boolean'],
 
-            'languages' => [ 'array'],
+            'languages' => ['array'],
             'languages.*.level' => ['required', Rule::enum(UserLanguageLevelEnum::class)],
             'languages.*.language' => ['required', 'string'],
 
-            'projects' => [ 'array'],
+            'projects' => ['array'],
             'projects.*.title' => ['required', 'string', 'max:181', 'min:3'],
             'projects.*.date' => ['required', 'string', 'max:4', 'min:4'],
             'projects.*.technologies' => ['required', 'string'],
@@ -73,7 +72,6 @@ class UpdateUserRequest extends CustomRequest
         $experiences = $this->input('experiences', []);
         $qualifications = $this->input('qualifications', []);
 
-
         foreach ($experiences as $key => $value) {
             if (isset($value['is_actual'])) {
                 $experiences[$key]['is_actual'] = filter_var($value['is_actual'], FILTER_VALIDATE_BOOLEAN);
@@ -86,11 +84,10 @@ class UpdateUserRequest extends CustomRequest
             }
         }
 
-        $this->merge ([
+        $this->merge([
             'experiences' => $experiences,
             'qualifications' => $qualifications,
-            'is_pcd' => (bool) $this->input('is_pcd', false)
+            'is_pcd' => (bool) $this->input('is_pcd', false),
         ]);
     }
-
 }

@@ -4,7 +4,6 @@ namespace App\Mail;
 
 use App\Models\User;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
@@ -21,10 +20,7 @@ class UserResetPasswordMail extends Mailable
     public function __construct(
         public User $user,
         public int $otp,
-    )
-    {
-        
-    }
+    ) {}
 
     /**
      * Get the message envelope.
@@ -46,7 +42,7 @@ class UserResetPasswordMail extends Mailable
             markdown: 'emails.reset-password',
             with: [
                 'user' => $this->user,
-                'otp'  => $this->otp
+                'otp' => $this->otp,
             ]
         );
     }

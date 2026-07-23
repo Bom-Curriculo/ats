@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 
-from app.models.resume_analysis import ResumeAnalysisResult
+from app.models.resume_analysis import BuiltResumeResult
 from app.providers.base import AIProviderError
 from app.providers.langchain_provider import LangChainProvider
 
@@ -39,10 +39,10 @@ def make_provider(result=None, error: Exception | None = None) -> LangChainProvi
 
 
 def test_run_structured_returns_the_parsed_model() -> None:
-    expected = ResumeAnalysisResult(score=80, suggestion="Adicione métricas.")
+    expected = BuiltResumeResult(score=80)
     provider = make_provider(result=expected)
 
-    response = asyncio.run(provider.run_structured("short prompt", ResumeAnalysisResult, 0.1))
+    response = asyncio.run(provider.run_structured("short prompt", BuiltResumeResult, 0.1))
 
     assert response is expected
     assert provider._chat_model.bound_kwargs == {"temperature": 0.1}
@@ -52,7 +52,7 @@ def test_empty_structured_response_raises_empty_response_category() -> None:
     provider = make_provider(result=None)
 
     with pytest.raises(AIProviderError) as captured:
-        asyncio.run(provider.run_structured("prompt", ResumeAnalysisResult))
+        asyncio.run(provider.run_structured("prompt", BuiltResumeResult))
 
     assert captured.value.category == "empty_response"
 
@@ -81,7 +81,7 @@ def test_provider_errors_are_mapped_to_stable_categories(
     provider = make_provider(error=error)
 
     with pytest.raises(AIProviderError) as captured:
-        asyncio.run(provider.run_structured("prompt", ResumeAnalysisResult))
+        asyncio.run(provider.run_structured("prompt", BuiltResumeResult))
 
     assert captured.value.category == expected_category
 

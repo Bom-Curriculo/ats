@@ -1,3 +1,4 @@
+import 'package:bomcurriculo/util/Translation.dart';
 import 'package:bomcurriculo/widget/WidgetButton.dart';
 import 'package:flutter/material.dart';
 
@@ -5,7 +6,6 @@ import '../../include/Body.dart';
 
 class ViewGenerateResume extends StatefulWidget {
   const ViewGenerateResume({super.key});
-
   @override
   _ViewGenerateResume createState() => _ViewGenerateResume();
 }
@@ -17,9 +17,9 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
 
   List<Map<String, dynamic>> personalData = [
     {'title': 'Nome', 'value': 'Alexandre Martins', 'checked': true},
-    {'title': 'E-mail', 'value': 'alexandre@email.com', 'checked': true},
-    {'title': 'Telefone', 'value': '(11) 99999-9999', 'checked': true},
-    {'title': 'Cidade', 'value': 'São Paulo - SP', 'checked': true},
+    {'title': 'Email', 'value': 'alexandre@email.com', 'checked': true},
+    {'title': 'Phone', 'value': '(11) 99999-9999', 'checked': true},
+    {'title': 'City', 'value': 'São Paulo - SP', 'checked': true},
     {
       'title': 'LinkedIn',
       'value': 'linkedin.com/in/alexandre',
@@ -113,14 +113,23 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
   //==========================
 
   List<Map<String, dynamic>> languages = [
-    {'title': 'Português', 'level': 'Nativo', 'checked': true},
-    {'title': 'Inglês', 'level': 'Avançado', 'checked': true},
-    {'title': 'Espanhol', 'level': 'Intermediário', 'checked': true},
+    {'title': 'Portuguese', 'level': 'Nativo', 'checked': true},
+    {'title': 'English', 'level': 'Avançado', 'checked': true},
+    {'title': 'Spanish', 'level': 'Intermediário', 'checked': true},
   ];
 
-  void generateResume() async {
-
+  void getTranslation() async {
+    await Translation.instance.load("pt-BR");
+    setState(() {});
   }
+
+  @override
+  void initState() {
+    super.initState();
+    getTranslation();
+  }
+
+  void generateResume() async {}
 
   @override
   Widget build(BuildContext context) {
@@ -133,19 +142,18 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
             children: [
               const SizedBox(height: 10),
 
-              const Center(
+              Center(
                 child: Text(
-                  'Revisar currículo',
+                  Translation.instance.translate('Review resume'),
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
               ),
 
               const SizedBox(height: 10),
 
-              const Center(
+              Center(
                 child: Text(
-                  'A IA preparou um currículo para você.\n'
-                  'Selecione as informações que deseja manter antes de gerar o currículo.',
+                  '${Translation.instance.translate('AI has prepared a resume for you')}.\n${Translation.instance.translate('Select the information you want to keep before generating the resume')}',
                   style: TextStyle(fontWeight: FontWeight(700)),
                   textAlign: TextAlign.center,
                 ),
@@ -156,8 +164,8 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
               //======================
               // DADOS PESSOAIS
               //======================
-              const Text(
-                'Dados Pessoais',
+              Text(
+                Translation.instance.translate('Personal data'),
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
 
@@ -194,7 +202,9 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      personal['title'],
+                                      Translation.instance.translate(
+                                        personal['title'],
+                                      ),
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
@@ -218,8 +228,8 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
               //======================
               // RESUMO
               //======================
-              const Text(
-                'Resumo Profissional',
+              Text(
+                Translation.instance.translate('Professional summary'),
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
 
@@ -271,8 +281,8 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
               //======================
               // EXPERIÊNCIAS
               //======================
-              const Text(
-                'Experiências Profissionais',
+              Text(
+                Translation.instance.translate('Professional experience'),
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
 
@@ -309,7 +319,9 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      experience['title'],
+                                      Translation.instance.translate(
+                                        experience['title'],
+                                      ),
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
@@ -338,8 +350,8 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
               //======================
               // FORMAÇÃO
               //======================
-              const Text(
-                'Formação Acadêmica',
+              Text(
+                Translation.instance.translate('Education'),
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
 
@@ -376,7 +388,9 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      item['title'],
+                                      Translation.instance.translate(
+                                        item['title'],
+                                      ),
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
@@ -400,8 +414,8 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
               //======================
               // CURSOS
               //======================
-              const Text(
-                'Cursos',
+              Text(
+                Translation.instance.translate('Courses'),
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
 
@@ -418,6 +432,7 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
                     child: Padding(
                       padding: const EdgeInsets.only(bottom: 8),
                       child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Icon(
                             course['checked']
@@ -434,7 +449,9 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
                               child: Padding(
                                 padding: const EdgeInsets.all(10),
                                 child: Text(
-                                  course['title'],
+                                  Translation.instance.translate(
+                                    course['title'],
+                                  ),
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -455,8 +472,8 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
               //======================
               // HABILIDADES
               //======================
-              const Text(
-                'Habilidades',
+              Text(
+                Translation.instance.translate('Skills'),
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
 
@@ -493,7 +510,9 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      skill['title'],
+                                      Translation.instance.translate(
+                                        skill['title'],
+                                      ),
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
@@ -519,8 +538,8 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
               //======================
               // IDIOMAS
               //======================
-              const Text(
-                'Idiomas',
+              Text(
+                Translation.instance.translate('Languages'),
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
 
@@ -537,6 +556,7 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
                     child: Padding(
                       padding: const EdgeInsets.only(bottom: 8),
                       child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Icon(
                             language['checked']
@@ -556,7 +576,9 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      language['title'],
+                                      Translation.instance.translate(
+                                        language['title'],
+                                      ),
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
@@ -579,7 +601,9 @@ class _ViewGenerateResume extends State<ViewGenerateResume> {
 
               GestureDetector(
                 onTap: generateResume,
-                child: WidgetButton(title: 'Gerar currículo'),
+                child: WidgetButton(
+                  title: Translation.instance.translate('Generate resume'),
+                ),
               ),
 
               const SizedBox(height: 20),

@@ -1,0 +1,76 @@
+{
+
+  "Loading": "Carregando",
+
+  "Home": "Início",
+  "New resume": "Novo currículo",
+  "Generate resume": "Gerar currículo",
+  "Login": "Entrar",
+  "Register": "Cadastrar",
+  "Logout": "Sair",
+
+  "Portuguese": "Português",
+  "English": "Inglês",
+  "Spanish": "Espanhol",
+
+  "Password": "Senha",
+  "Signup for free": "Cadastre-se grátis",
+  "Forgot password": "Esqueci minha senha",
+  "Type your email": "Digite seu email",
+  "Incorrect email": "Email incorreto",
+  "Type your password": "Digite sua senha",
+
+  "Name": "Nome",
+  "Retype your password": "Regidite sua senha",
+  "Back to login": "Voltar ao login",
+  "Type your name": "Digite seu nome",
+  "Your password doesn't match": "Suas senhas não coincidem",
+
+  "Recover password": "Recuperar senha",
+  "Forgot your password? Type your email to receive OTP code to change your password": "Esqueceu sua senha? Digite seu email pra receber o código OTP para mudar sua senha",
+
+  "Confirm OTP":  "Confirmar OTP",
+  "Type the OTP sent to your email to change your password":  "Digite o OTP enviado no seu email para mudar sua senha",
+  "Invalid OTP":  "OTP inválido",
+  "Server comunication error":  "Erro na comunicação com o servidor",
+
+  "Type and confirm your password to change": "Digite e confirme sua senha para alterar",
+  "New password":  "Nova senha",
+  "Update password": "Atualizar senha",
+  "Type your new password": "Digite sua nova senha",
+  "Type your new password again": "Digite a nova senha novamente",
+  "Your passwords doesn't match": "As novas senhas não coincidem",
+
+  "Welcome": "Bem-vindo",
+  "Your optimized resumes in one place": "Seus Currículos otimizados em um só lugar",
+  "GLOBAL MEDIA": "MÉDIA GLOBAL",
+  "General performance": "Performance geral",
+  "Your medium score are excelent": "Sua pontuação média de otimização está excelente",
+  "Focus on adding keywords specific to Product Designer roles to achieve the maximum score": "Foque em adicionar palavras-chave específicas para as vagas de Product Designer para atingir a nota máxima",
+  "Keywords": "Palavras-chaves",
+  "Formatting": "Formatação",
+  "My resumes": "Meus currículos",
+  "Generate new resume": "Gerar novo currículo",
+
+  "Fill data correctly to generate your resume": "Preencha os dados corretamente para gerar o currículo",
+  "Your resume/CV": "Seu currículo",
+  "Choose a PDF file": "Enviar arquivo PDF",
+  "Linkedin resume": "Resumo do Linkedin",
+  "GitHub URL": "Link do GitHub",
+  "Your site URL": "Link do seu site",
+  "Skill": "Habilidade",
+  "Validate data": "Validar dados",
+
+  "Review resume": "Revisar currículo",
+  "AI has prepared a resume for you": "A IA preparou um currículo para você",
+  "Select the information you want to keep before generating the resume": "Selecione as informações que deseja manter antes de gerar o currículo",
+  "Personal data": "Dados pessoais",
+  "Professional summary": "Resumo profissional",
+  "Professional experience": "Experiências profissionais",
+  "Education": "Formação acadêmica",
+  "Courses": "Cursos",
+  "Skills": "Habilidades",
+  "Languages": "Idiomas",
+
+  "": ""
+}
