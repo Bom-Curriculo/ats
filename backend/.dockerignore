@@ -1,23 +1,18 @@
 .git
-.github
+.gitignore
 
 .env
 .env.*
-!.env.example
 
 vendor
 node_modules
-
-public/build
-public/hot
-public/storage
 
 storage/logs/*
 storage/framework/cache/*
 storage/framework/sessions/*
 storage/framework/views/*
 
-bootstrap/cache/*.php
+public/build
 
-.phpunit.cache
-.phpunit.result.cache
+Dockerfile
+docker-compose.yml
