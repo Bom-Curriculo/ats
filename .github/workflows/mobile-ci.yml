@@ -11,6 +11,10 @@ on:
     paths:
       - "mobile/**"
       - ".github/workflows/mobile-ci.yml"
+  # Permite ao workflow de autofix re-rodar esses checks depois de commitar
+  # uma correcao (push feito com GITHUB_TOKEN nao dispara pull_request de
+  # novo, mas workflow_dispatch e uma excecao a essa regra).
+  workflow_dispatch:
 
 permissions:
   contents: read
