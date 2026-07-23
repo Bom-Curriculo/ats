@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
@@ -19,7 +20,7 @@ class API {
       headers["Authorization"] = "Bearer $jwt";
     }
 
-    print("Headers: $headers");
+    debugPrint("Headers: $headers");
 
     return headers;
   }
@@ -30,7 +31,7 @@ class API {
         Uri.parse("$baseURL$url"),
         headers: await _headers(),
       );
-      print("Response: ${response.body}");
+      debugPrint("Response: ${response.body}");
       return response;
     } catch (e) {
       return {"error": e.toString()};
@@ -44,7 +45,7 @@ class API {
         headers: await _headers(),
         body: jsonEncode(data),
       );
-      print("Response: ${response.body}");
+      debugPrint("Response: ${response.body}");
       return response;
     } catch (e) {
       return {"error": e.toString()};
@@ -58,7 +59,7 @@ class API {
         headers: await _headers(),
         body: jsonEncode(data),
       );
-      print("Response: ${response.body}");
+      debugPrint("Response: ${response.body}");
       return response;
     } catch (e) {
       return {"error": e.toString()};
@@ -72,7 +73,7 @@ class API {
         headers: await _headers(),
         body: jsonEncode(data),
       );
-      print("Response: ${response.body}");
+      debugPrint("Response: ${response.body}");
       return response;
     } catch (e) {
       return {"error": e.toString()};
@@ -85,7 +86,7 @@ class API {
         Uri.parse("$baseURL$url"),
         headers: await _headers(),
       );
-      print("Response: ${response.body}");
+      debugPrint("Response: ${response.body}");
       return response;
     } catch (e) {
       return {"error": e.toString()};
@@ -120,8 +121,8 @@ class API {
       final response = await http.Response.fromStream(streamedResponse);
 
       // Logs
-      print("Status Code: ${response.statusCode}");
-      print("Response Body: ${response.body}");
+      debugPrint("Status Code: ${response.statusCode}");
+      debugPrint("Response Body: ${response.body}");
 
       return response;
     } catch (e) {
@@ -161,7 +162,7 @@ class API {
     // Salva o arquivo
     await file.writeAsBytes(response.bodyBytes);
 
-    print("Arquivo salvo em: ${file.path}");
+    debugPrint("Arquivo salvo em: ${file.path}");
 
     return file;
   }

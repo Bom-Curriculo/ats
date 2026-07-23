@@ -46,9 +46,9 @@ class _NavbarState extends State<Navbar> {
   Future<void> getLogged() async {
     final jwt = await DB.instance.getJWT();
 
-    //print("-----------------------------");
-    //print(jwt);
-    //print("-----------------------------");
+    //debugPrint("-----------------------------");
+    //debugPrint(jwt);
+    //debugPrint("-----------------------------");
 
     if (jwt == null) {
       isLogged = false;
@@ -62,7 +62,7 @@ class _NavbarState extends State<Navbar> {
     try {
       final fcm = await DB.instance.getFCM();
       var response = await API().post('auth/logout', {?fcm: fcm});
-      print(response.body);
+      debugPrint(response.body);
     } catch (_) {}
 
     try {
@@ -71,6 +71,7 @@ class _NavbarState extends State<Navbar> {
 
     await getLogged();
 
+    if (!context.mounted) return;
     context.go("/auth/login");
     /*
     Navigator.push(

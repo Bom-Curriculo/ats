@@ -113,9 +113,9 @@ class _ViewRegister extends State<ViewRegister> {
         'password_confirm': controllerRetypePassword.text,
         'fcm': fcm,
       };
-      print("**********************************");
-      print(payload);
-      print("**********************************");
+      debugPrint("**********************************");
+      debugPrint(payload.toString());
+      debugPrint("**********************************");
       var response = await api.post('auth/register', payload);
 
       var body = jsonDecode(response.body);
@@ -126,6 +126,7 @@ class _ViewRegister extends State<ViewRegister> {
         }
         String user = jsonEncode(body['data']['user']);
         await DB.instance.saveUser(user);
+        if (!mounted) return;
         context.go("/");
         //Navigator.push(
         //  context,

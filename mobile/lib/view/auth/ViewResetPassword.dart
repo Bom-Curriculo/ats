@@ -89,6 +89,7 @@ class _ViewResetPassword extends State<ViewResetPassword> {
         'otp': widget.otp,
       });
 
+      if (!mounted) return;
       if (response.statusCode == 200) {
         context.go("/auth/login");
         //Navigator.push(

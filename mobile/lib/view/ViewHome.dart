@@ -109,9 +109,9 @@ class _ViewHomeState extends State<ViewHome> {
       var userWebData = body['data']['data'];
       //var userWebData = body;
 
-      print("*******************************");
-      print(userWebData);
-      print("*******************************");
+      debugPrint("*******************************");
+      debugPrint(userWebData.toString());
+      debugPrint("*******************************");
 
       for (var data in userWebData) {
         String status = data['status'];
@@ -154,7 +154,9 @@ class _ViewHomeState extends State<ViewHome> {
       state = userData['state'] ?? '';
       country = userData['country'] ?? '';
       linkedinLink = userData['linkedin_link'] ?? '';
-    } catch (e) {}
+    } catch (e) {
+      debugPrint('Erro ao carregar dados do usuario: $e');
+    }
 
     setState(() {
       loading = false;

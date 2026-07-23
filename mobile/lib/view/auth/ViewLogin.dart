@@ -87,9 +87,9 @@ class _ViewLogin extends State<ViewLogin> {
         'password': controllerPassword.text,
         'fcm': fcm,
       };
-      print("**********************************");
-      print(payload);
-      print("**********************************");
+      debugPrint("**********************************");
+      debugPrint(payload.toString());
+      debugPrint("**********************************");
       var response = await api.post('auth/login', payload);
 
       var body = jsonDecode(response.body);
@@ -101,6 +101,7 @@ class _ViewLogin extends State<ViewLogin> {
         String user = jsonEncode(body['data']['user']);
         await DB.instance.saveUser(user);
 
+        if (!mounted) return;
         context.go("/");
         //Navigator.push(
         //  context,

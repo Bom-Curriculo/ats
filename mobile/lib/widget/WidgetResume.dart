@@ -56,7 +56,7 @@ class _WidgetResume extends State<WidgetResume> {
           //);
         } else if (widget.type == 'ready') {
           final file = await API().download(widget.downloadURL);
-          print(file.path);
+          debugPrint(file.path);
         }
       },
       child: Column(
@@ -135,7 +135,7 @@ class _WidgetResume extends State<WidgetResume> {
                         final file = await API().download(
                           widget.downloadURL,
                         );
-                        print(file.path);
+                        debugPrint(file.path);
                       },
                       child: Icon(icon)
                     ),

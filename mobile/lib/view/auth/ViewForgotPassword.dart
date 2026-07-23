@@ -71,6 +71,7 @@ class _ViewForgotPassword extends State<ViewForgotPassword> {
       API api = API();
       await api.post('auth/forgot-password', {'email': controllerEmail.text});
 
+      if (!mounted) return;
       context.go("/auth/verify-otp");
       //Navigator.push(
       //  context,
