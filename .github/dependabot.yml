@@ -30,6 +30,11 @@ updates:
           - "*"
     commit-message:
       prefix: "chore(backend)"
+    ignore:
+      # concurrently@10.x arrasta uma versao vulneravel do shell-quote
+      # (GHSA-395f-4hp3-45gv); liberar quando isso for corrigido upstream.
+      - dependency-name: "concurrently"
+        update-types: ["version-update:semver-major"]
 
   # Backend (composer / PHP)
   - package-ecosystem: "composer"
