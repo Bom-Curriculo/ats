@@ -5,11 +5,19 @@ name: Autofix (Pint / dart format)
 # poder commitar de volta no branch do PR mesmo quando ele veio de um
 # GITHUB_TOKEN somente-leitura (caso do dependabot em pull_request comum).
 #
-# O GITHUB_TOKEN nao dispara novos workflows a partir de um push (protecao
-# anti-loop do GitHub) - entao depois de commitar a correcao, disparamos
-# explicitamente os workflows de CI via workflow_dispatch (excecao
-# documentada a essa regra) pra eles rodarem de novo contra o commit
-# corrigido e o PR ficar com os checks reais em dia, sem precisar de PAT.
+# Push com identidade de app (recomendado): se os secrets AUTOFIX_APP_ID e
+# AUTOFIX_APP_PRIVATE_KEY existirem (GitHub App instalado no repo com
+# permissao de conteudo), o push usa o token do app. Runs disparados por um
+# app instalado nao caem na exigencia de aprovacao manual que o GITHUB_TOKEN
+# as vezes dispara, entao os checks reais (Pint --test, flutter analyze,
+# flutter test) re-rodam sozinhos no commit corrigido. Ver README do repo /
+# instrucoes enviadas ao dono pra criar o app e os secrets.
+#
+# Fallback sem app configurado: push com o GITHUB_TOKEN padrao (que nao
+# dispara pull_request de novo) + workflow_dispatch explicito logo em
+# seguida pra rodar Backend CI / Mobile CI no commit corrigido. Funciona,
+# mas pode ficar pendente de aprovacao manual dependendo da politica de
+# Actions do repo/organizacao.
 on:
   pull_request_target:
     branches: [main, development]
@@ -30,10 +38,19 @@ jobs:
       run:
         working-directory: backend
     steps:
+      - name: Gerar token do GitHub App (se configurado)
+        id: app-token
+        if: ${{ vars.AUTOFIX_APP_ID != '' && secrets.AUTOFIX_APP_PRIVATE_KEY != '' }}
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.AUTOFIX_APP_ID }}
+          private-key: ${{ secrets.AUTOFIX_APP_PRIVATE_KEY }}
+
       - name: Checkout PR head
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+          token: ${{ steps.app-token.outputs.token || github.token }}
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -62,8 +79,8 @@ jobs:
             echo "pushed=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Re-disparar Backend CI no commit corrigido
-        if: steps.commit.outputs.pushed == 'true'
+      - name: Re-disparar Backend CI no commit corrigido (fallback sem app)
+        if: steps.commit.outputs.pushed == 'true' && steps.app-token.outcome != 'success'
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run backend-ci.yml --ref "${{ github.event.pull_request.head.ref }}"
@@ -76,10 +93,19 @@ jobs:
       run:
         working-directory: mobile
     steps:
+      - name: Gerar token do GitHub App (se configurado)
+        id: app-token
+        if: ${{ vars.AUTOFIX_APP_ID != '' && secrets.AUTOFIX_APP_PRIVATE_KEY != '' }}
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.AUTOFIX_APP_ID }}
+          private-key: ${{ secrets.AUTOFIX_APP_PRIVATE_KEY }}
+
       - name: Checkout PR head
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+          token: ${{ steps.app-token.outputs.token || github.token }}
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -111,8 +137,8 @@ jobs:
             echo "pushed=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Re-disparar Mobile CI no commit corrigido
-        if: steps.commit.outputs.pushed == 'true'
+      - name: Re-disparar Mobile CI no commit corrigido (fallback sem app)
+        if: steps.commit.outputs.pushed == 'true' && steps.app-token.outcome != 'success'
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run mobile-ci.yml --ref "${{ github.event.pull_request.head.ref }}"
