@@ -19,13 +19,13 @@ it('can login successfully', function () {
 
     $response->assertOk()
         ->assertJsonStructure([
-        'code',
-        'message',
-        'data' => [
-            'token',
-            'user',
-        ],
-    ]);
+            'code',
+            'message',
+            'data' => [
+                'token',
+                'user',
+            ],
+        ]);
 });
 
 describe('invalid cretentials', function () {
@@ -45,7 +45,7 @@ describe('invalid cretentials', function () {
             ->assertJson([
                 'message' => 'Invalid credentials',
             ])
-        ->assertJsonMissingPath('token');
+            ->assertJsonMissingPath('token');
 
         $this->assertDatabaseMissing('user_devices', [
             'user_id' => $user->id,
@@ -62,7 +62,7 @@ describe('invalid cretentials', function () {
             ->assertJson([
                 'message' => 'Invalid credentials',
             ])
-        ->assertJsonMissingPath('token');
+            ->assertJsonMissingPath('token');
 
     });
     it('returns status 422 when email is missing', function () {
