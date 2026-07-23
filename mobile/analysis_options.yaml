@@ -24,5 +24,12 @@ linter:
     # avoid_print: false  # Uncomment to disable the `avoid_print` rule
     # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
 
+    # Convencao de nomes de arquivo (PascalCase) e tipos privados em State<>
+    # ja estao consolidados no projeto; renomear tudo agora tem alto risco
+    # de quebra (imports em cascata) para ganho puramente estilistico.
+    file_names: false
+    library_private_types_in_public_api: false
+    sort_child_properties_last: false
+
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

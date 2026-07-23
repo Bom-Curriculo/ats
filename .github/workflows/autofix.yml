@@ -1,0 +1,103 @@
+name: Autofix (Pint / dart format)
+
+# Roda com permissoes de escrita e sem segredos de fork: so aceita PRs do
+# proprio repositorio (inclusive dependabot). Usa pull_request_target pra
+# poder commitar de volta no branch do PR mesmo quando ele veio de um
+# GITHUB_TOKEN somente-leitura (caso do dependabot em pull_request comum).
+#
+# O push usa o secret AUTOFIX_PAT (Personal Access Token) em vez do
+# GITHUB_TOKEN padrao. Isso e necessario porque o GitHub nao dispara novos
+# workflows a partir de um push feito com o GITHUB_TOKEN (protecao
+# anti-loop) - sem o PAT, os checks de verdade (Pint --test, flutter
+# analyze, flutter test) nao rodariam de novo no commit corrigido. Sem o
+# secret configurado, cai no GITHUB_TOKEN mesmo assim (correcao ainda
+# acontece, so nao re-dispara os outros checks sozinha).
+on:
+  pull_request_target:
+    branches: [main, development]
+    paths:
+      - "backend/**"
+      - "mobile/**"
+
+permissions:
+  contents: write
+
+jobs:
+  backend-pint:
+    name: Autofix backend (Pint)
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          token: ${{ secrets.AUTOFIX_PAT || secrets.GITHUB_TOKEN }}
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Run Pint (fix)
+        run: vendor/bin/pint
+
+      - name: Commit and push fixes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add -A
+            git commit -m "style(backend): aplica Pint automaticamente"
+            git push origin HEAD:${{ github.event.pull_request.head.ref }}
+          else
+            echo "Nada para corrigir."
+          fi
+
+  mobile-dart:
+    name: Autofix mobile (dart format)
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          token: ${{ secrets.AUTOFIX_PAT || secrets.GITHUB_TOKEN }}
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run dart fix (safe fixes)
+        run: dart fix --apply
+
+      - name: Run dart format
+        run: dart format .
+
+      - name: Commit and push fixes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add -A
+            git commit -m "style(mobile): aplica dart fix e dart format automaticamente"
+            git push origin HEAD:${{ github.event.pull_request.head.ref }}
+          else
+            echo "Nada para corrigir."
+          fi

@@ -1,6 +1,5 @@
 import 'package:bomcurriculo/include/BodyAuth.dart';
 import 'package:bomcurriculo/util/Translation.dart';
-import 'package:bomcurriculo/view/auth/ViewLogin.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -90,6 +89,7 @@ class _ViewResetPassword extends State<ViewResetPassword> {
         'otp': widget.otp,
       });
 
+      if (!mounted) return;
       if (response.statusCode == 200) {
         context.go("/auth/login");
         //Navigator.push(

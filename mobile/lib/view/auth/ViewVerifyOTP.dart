@@ -91,6 +91,7 @@ class _ViewVerifyOTP extends State<ViewVerifyOTP> {
     API api = API();
     var response = await api.post('auth/verify-otp', {'otp': otp});
 
+    if (!mounted) return;
     if (response.statusCode == 200) {
       Navigator.push(
         context,

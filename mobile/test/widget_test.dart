@@ -1,30 +1,28 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// O antigo teste de widget (template padrao do `flutter create`) testava um
+// contador que nao existe no app real e sempre falhava. Testar o app de
+// verdade via WidgetTester exige mockar o sqflite (o Navbar consulta o DB
+// local ja no initState, em toda tela), o que fica para um PR futuro com
+// sqflite_common_ffi. Por ora cobrimos a validacao de email, unit puro e
+// sem dependencia de plataforma.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:bomcurriculo/main.dart';
+import 'package:bomcurriculo/util/Validation.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp(logged: false));
+  group('Validation.isEmail', () {
+    final validation = Validation();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    test('aceita um email valido', () {
+      expect(validation.isEmail('usuario@email.com'), isTrue);
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    test('rejeita string sem @', () {
+      expect(validation.isEmail('usuario-email.com'), isFalse);
+    });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    test('rejeita string vazia', () {
+      expect(validation.isEmail(''), isFalse);
+    });
   });
 }

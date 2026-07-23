@@ -3,10 +3,8 @@ import 'dart:convert';
 import 'package:bomcurriculo/include/Navbar.dart';
 import 'package:bomcurriculo/service/API.dart';
 import 'package:bomcurriculo/util/Translation.dart';
-import 'package:bomcurriculo/view/resume/ViewNewResume.dart';
 import 'package:bomcurriculo/widget/WidgetButton.dart';
 import 'package:bomcurriculo/widget/WidgetResume.dart';
-import 'package:bomcurriculo/widget/WidgetScore.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -111,9 +109,9 @@ class _ViewHomeState extends State<ViewHome> {
       var userWebData = body['data']['data'];
       //var userWebData = body;
 
-      print("*******************************");
-      print(userWebData);
-      print("*******************************");
+      debugPrint("*******************************");
+      debugPrint(userWebData.toString());
+      debugPrint("*******************************");
 
       for (var data in userWebData) {
         String status = data['status'];
@@ -156,7 +154,9 @@ class _ViewHomeState extends State<ViewHome> {
       state = userData['state'] ?? '';
       country = userData['country'] ?? '';
       linkedinLink = userData['linkedin_link'] ?? '';
-    } catch (e) {}
+    } catch (e) {
+      debugPrint('Erro ao carregar dados do usuario: $e');
+    }
 
     setState(() {
       loading = false;

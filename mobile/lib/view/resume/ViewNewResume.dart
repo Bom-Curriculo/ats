@@ -112,18 +112,18 @@ class _ViewNewResume extends State<ViewNewResume> {
       }
     }
 
-    print("###############################");
-    print(data);
-    print("###############################");
+    debugPrint("###############################");
+    debugPrint(data.toString());
+    debugPrint("###############################");
 
     var files = [
       {"field": "resume_cv", "path": resumeFile!.path},
       {"field": "resume_linkedin", "path": linkedinFile!.path},
     ];
 
-    print("###############################");
-    print(files);
-    print("###############################");
+    debugPrint("###############################");
+    debugPrint(files.toString());
+    debugPrint("###############################");
 
     //"client/resumes/new-resume",
     final response = await API().upload(
@@ -131,7 +131,8 @@ class _ViewNewResume extends State<ViewNewResume> {
       data,
       files,
     );
-    print(response.body);
+    debugPrint(response.body);
+    if (!mounted) return;
     context.go("/");
     //Navigator.push(
     //  context,

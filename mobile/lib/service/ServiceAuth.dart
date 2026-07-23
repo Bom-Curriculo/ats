@@ -16,15 +16,15 @@ class ServiceAuth {
     return false;
   }
 
-  register() {}
+  void register() {}
 
   Future<bool> logout() async {
     return false;
   }
 
-  forgotPassword() {}
+  void forgotPassword() {}
 
-  verifyOTP() {}
+  void verifyOTP() {}
 
-  resetPassword() {}
+  void resetPassword() {}
 }

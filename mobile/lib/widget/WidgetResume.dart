@@ -1,5 +1,4 @@
 import 'package:bomcurriculo/theme/AppColors.dart';
-import 'package:bomcurriculo/view/resume/ViewGenerateResume.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -57,7 +56,7 @@ class _WidgetResume extends State<WidgetResume> {
           //);
         } else if (widget.type == 'ready') {
           final file = await API().download(widget.downloadURL);
-          print(file.path);
+          debugPrint(file.path);
         }
       },
       child: Column(
@@ -136,7 +135,7 @@ class _WidgetResume extends State<WidgetResume> {
                         final file = await API().download(
                           widget.downloadURL,
                         );
-                        print(file.path);
+                        debugPrint(file.path);
                       },
                       child: Icon(icon)
                     ),

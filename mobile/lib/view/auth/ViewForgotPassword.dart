@@ -1,6 +1,5 @@
 import 'package:bomcurriculo/include/BodyAuth.dart';
 import 'package:bomcurriculo/util/Translation.dart';
-import 'package:bomcurriculo/view/auth/ViewVerifyOTP.dart';
 import 'package:bomcurriculo/widget/WidgetError.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -72,6 +71,7 @@ class _ViewForgotPassword extends State<ViewForgotPassword> {
       API api = API();
       await api.post('auth/forgot-password', {'email': controllerEmail.text});
 
+      if (!mounted) return;
       context.go("/auth/verify-otp");
       //Navigator.push(
       //  context,

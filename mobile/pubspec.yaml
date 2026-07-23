@@ -40,6 +40,7 @@ dependencies:
   lucid_validation: ^1.4.0
   http: ^1.6.0
   sqflite: ^2.4.3
+  path: ^1.9.1
   path_provider: ^2.1.6
   firebase_core: ^4.12.1
   firebase_messaging: ^16.4.1

@@ -2,9 +2,6 @@ import 'dart:convert';
 
 import 'package:bomcurriculo/include/BodyAuth.dart';
 import 'package:bomcurriculo/util/Validation.dart';
-import 'package:bomcurriculo/view/ViewHome.dart';
-import 'package:bomcurriculo/view/auth/ViewForgotPassword.dart';
-import 'package:bomcurriculo/view/auth/ViewRegister.dart';
 import 'package:bomcurriculo/widget/WidgetError.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -90,9 +87,9 @@ class _ViewLogin extends State<ViewLogin> {
         'password': controllerPassword.text,
         'fcm': fcm,
       };
-      print("**********************************");
-      print(payload);
-      print("**********************************");
+      debugPrint("**********************************");
+      debugPrint(payload.toString());
+      debugPrint("**********************************");
       var response = await api.post('auth/login', payload);
 
       var body = jsonDecode(response.body);
@@ -104,6 +101,7 @@ class _ViewLogin extends State<ViewLogin> {
         String user = jsonEncode(body['data']['user']);
         await DB.instance.saveUser(user);
 
+        if (!mounted) return;
         context.go("/");
         //Navigator.push(
         //  context,
