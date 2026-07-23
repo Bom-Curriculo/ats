@@ -57,6 +57,19 @@ updates:
     commit-message:
       prefix: "chore(mobile)"
 
+  # Bot (uv / Python)
+  - package-ecosystem: "uv"
+    directory: "/bot"
+    target-branch: "development"
+    schedule:
+      interval: "weekly"
+    groups:
+      bot-dependencies:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: "chore(bot)"
+
   # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
