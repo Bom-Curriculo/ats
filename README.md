@@ -74,6 +74,7 @@ Create the environment files:
 ```bash
 cp .env.example .env
 cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
 cp bot/.env.example bot/.env
 ```
 
@@ -82,6 +83,7 @@ On Windows PowerShell:
 ```powershell
 Copy-Item .env.example .env
 Copy-Item backend/.env.example backend/.env
+Copy-Item frontend/.env.example frontend/.env
 Copy-Item bot/.env.example bot/.env
 ```
 
@@ -170,6 +172,7 @@ Crie os arquivos de ambiente:
 ```bash
 cp .env.example .env
 cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
 cp bot/.env.example bot/.env
 ```
 
@@ -178,6 +181,7 @@ No Windows PowerShell:
 ```powershell
 Copy-Item .env.example .env
 Copy-Item backend/.env.example backend/.env
+Copy-Item frontend/.env.example frontend/.env
 Copy-Item bot/.env.example bot/.env
 ```
 

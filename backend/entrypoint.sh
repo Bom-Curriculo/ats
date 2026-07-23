@@ -31,11 +31,42 @@ if [ -z "${APP_KEY:-}" ]; then
   export APP_KEY
 fi
 
+if [ ! -f public/build/manifest.json ]; then
+  echo "❌ Vite manifest não encontrado em public/build/manifest.json"
+  exit 1
+fi
+
 echo "🧹 Limpando cache..."
 php artisan optimize:clear
 
-echo "📦 Rodando migrations..."
-php artisan migrate --force
+echo "⏳ Aguardando PostgreSQL..."
+
+until php -r '
+$host = getenv("DB_HOST") ?: "postgres";
+$port = getenv("DB_PORT") ?: "5432";
+$database = getenv("DB_DATABASE");
+$user = getenv("DB_USERNAME");
+$password = getenv("DB_PASSWORD");
+
+try {
+    new PDO(
+        "pgsql:host=$host;port=$port;dbname=$database",
+        $user,
+        $password
+    );
+    exit(0);
+} catch (Throwable $e) {
+    exit(1);
+}
+'; do
+  echo "PostgreSQL ainda não está disponível..."
+  sleep 2
+done
+
+echo "✅ PostgreSQL disponível."
+
+echo "📦 Rodando migrations e seeds..."
+php artisan migrate --seed --force
 
 echo "🔗 Criando link do storage..."
 php artisan storage:link || true
