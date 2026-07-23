@@ -1,1 +1,27 @@
+# Dependências (vêm do stage "vendor" na imagem de produção)
 vendor
+node_modules
+
+# Ambiente / segredos
+.env
+.env.*
+!.env.example
+
+# VCS e ferramentas
+.git
+.gitignore
+.gitattributes
+.editorconfig
+
+# Artefatos de runtime
+storage/logs/*
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*
+database/*.sqlite
+public/build
+
+# Testes / caches
+tests
+.phpunit.result.cache
+phpunit.xml

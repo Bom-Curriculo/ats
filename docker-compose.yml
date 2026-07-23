@@ -1,16 +1,17 @@
+# =============================================================================
+# Base — definições comuns a dev e prod.
+# NÃO suba este arquivo sozinho. Use os scripts:
+#   ./run-dev.sh   -> docker-compose.yml + docker-compose.dev.yml
+#   ./run-prod.sh  -> docker-compose.yml + docker-compose.prod.yml
+# =============================================================================
+name: bomcurriculo
+
 services:
 
   frontend:
     container_name: bomcurriculo-frontend
     build:
       context: ./frontend
-      dockerfile: Dockerfile
-    restart: always
-    ports:
-      - "5173:5173"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
     env_file:
       - path: ./frontend/.env
         required: false
@@ -21,33 +22,27 @@ services:
     container_name: bomcurriculo-backend
     build:
       context: ./backend
-      dockerfile: Dockerfile
-    restart: always
     working_dir: /var/www/html
-    volumes:
-      - ./backend:/var/www/html
     env_file:
       - path: ./backend/.env
         required: false
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
+    environment:
+      # Sobrescreve os hosts do .env para os nomes de serviço da rede docker
+      # (o .env do projeto costuma apontar para 127.0.0.1, que não funciona aqui)
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
     expose:
       - "9000"
+    depends_on:
+      redis:
+        condition: service_started
     networks:
       - bomcurriculo
 
   nginx:
-    image: nginx:1.28-alpine
     container_name: bomcurriculo-nginx
-    restart: always
     depends_on:
       - backend
-    ports:
-      - "8080:80"
-    volumes:
-      - ./backend:/var/www/html
-      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     networks:
       - bomcurriculo
 
@@ -55,113 +50,23 @@ services:
     container_name: bomcurriculo-bot
     build:
       context: ./bot
-      dockerfile: Dockerfile
-    restart: always
-    ports:
-      - "8000:8000"
     env_file:
       - path: ./bot/.env
         required: false
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
     networks:
       - bomcurriculo
 
-  rabbitmq:
-    image: rabbitmq:4-management-alpine
-    container_name: bomcurriculo-rabbitmq
-    restart: always
-    hostname: bomcurriculo-rabbitmq
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-bomcurriculo}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-bomcurriculo}
-      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-/}
+  redis:
+    image: redis:7-alpine
+    container_name: bomcurriculo-redis
+    command: ["redis-server", "--appendonly", "yes"]
     volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-    command: >
-      sh -c "rabbitmq-plugins enable --offline rabbitmq_prometheus && rabbitmq-server"
+      - redis_data:/data
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 15s
-      timeout: 10s
+      timeout: 5s
       retries: 5
-    networks:
-      - bomcurriculo
-
-  loki:
-    image: grafana/loki:3.3.2
-    container_name: bomcurriculo-loki
-    restart: always
-    command: -config.file=/etc/loki/loki-config.yml
-    volumes:
-      - ./observability/loki/loki-config.yml:/etc/loki/loki-config.yml:ro
-      - loki_data:/loki
-    networks:
-      - bomcurriculo
-
-  promtail:
-    image: grafana/promtail:3.3.2
-    container_name: bomcurriculo-promtail
-    restart: always
-    command: -config.file=/etc/promtail/promtail-config.yml
-    volumes:
-      - ./observability/promtail/promtail-config.yml:/etc/promtail/promtail-config.yml:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-    depends_on:
-      - loki
-    networks:
-      - bomcurriculo
-
-  prometheus:
-    image: prom/prometheus:v3.1.0
-    container_name: bomcurriculo-prometheus
-    restart: always
-    command:
-      - --config.file=/etc/prometheus/prometheus.yml
-      - --storage.tsdb.retention.time=60d
-    volumes:
-      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - prometheus_data:/prometheus
-    networks:
-      - bomcurriculo
-
-  cadvisor:
-    image: gcr.io/cadvisor/cadvisor:v0.49.1
-    container_name: bomcurriculo-cadvisor
-    restart: always
-    privileged: true
-    devices:
-      - /dev/kmsg
-    volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:ro
-      - /sys:/sys:ro
-      - /var/lib/docker:/var/lib/docker:ro
-      - /dev/disk:/dev/disk:ro
-    networks:
-      - bomcurriculo
-
-  grafana:
-    image: grafana/grafana:11.4.0
-    container_name: bomcurriculo-grafana
-    restart: always
-    ports:
-      - "3000:3000"
-    environment:
-      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
-    volumes:
-      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./observability/grafana/dashboards:/etc/grafana/dashboards:ro
-      - grafana_data:/var/lib/grafana
-    depends_on:
-      - loki
-      - prometheus
     networks:
       - bomcurriculo
 
@@ -170,7 +75,4 @@ networks:
     driver: bridge
 
 volumes:
-  rabbitmq_data:
-  loki_data:
-  prometheus_data:
-  grafana_data:
+  redis_data:

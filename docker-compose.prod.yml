@@ -1,0 +1,46 @@
+# =============================================================================
+# Override de PRODUÇÃO
+# Uso: ./run-prod.sh  (docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build)
+#
+# Características:
+#   - Imagens auto-contidas (sem bind-mount de código)
+#   - Frontend buildado e servido por nginx
+#   - nginx do backend com assets estáticos embutidos
+#   - restart: always
+# =============================================================================
+services:
+
+  frontend:
+    build:
+      target: production
+      args:
+        VITE_API_URL_CONNECT: ${VITE_API_URL_CONNECT:-http://127.0.0.1:8080/api}
+    restart: always
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
+
+  backend:
+    build:
+      target: production
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+    restart: always
+
+  nginx:
+    build:
+      context: .
+      dockerfile: docker/nginx.Dockerfile
+    restart: always
+    ports:
+      - "${BACKEND_PORT:-8080}:80"
+
+  bot:
+    build:
+      target: production
+    restart: always
+    ports:
+      - "${BOT_PORT:-8000}:8000"
+
+  redis:
+    restart: always

@@ -6,6 +6,42 @@ https://bomcurriculo.tech
 
 Build ATS-friendly resumes using AI.
 
+## 🐳 Rodando com Docker
+
+O projeto é orquestrado via Docker Compose, com ambientes separados de
+desenvolvimento e produção.
+
+```bash
+# 1. Configure as variáveis da raiz (portas, URL da API, etc.)
+cp .env.example .env
+
+# Desenvolvimento (hot reload, portas expostas)
+./run-dev.sh                 # sobe tudo em foreground
+./run-dev.sh -d              # em background
+./run-dev.sh logs -f backend # ver logs de um serviço
+./run-dev.sh down            # derruba o ambiente
+
+# Produção (imagens auto-contidas, frontend buildado e servido por nginx)
+./run-prod.sh                # build + up -d
+./run-prod.sh down
+```
+
+**Serviços e portas (dev):**
+
+| Serviço  | URL / Porta                | Descrição                          |
+|----------|----------------------------|------------------------------------|
+| frontend | http://localhost:5173      | Vite dev server (HMR)              |
+| backend  | http://localhost:8080/api  | API Laravel (via nginx + php-fpm)  |
+| bot      | http://localhost:8000      | API do bot (Quart/ASGI)            |
+| redis    | localhost:6379             | Cache / filas                      |
+
+Como funciona a separação:
+
+- **Dev** — `docker-compose.yml` + `docker-compose.dev.yml`: código montado por
+  bind-mount, dependências instaladas em runtime, hot reload em todos os serviços.
+- **Prod** — `docker-compose.yml` + `docker-compose.prod.yml`: tudo embutido nas
+  imagens (multi-stage), sem bind-mount, `restart: always`.
+
 # English
 
 ## About
