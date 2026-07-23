@@ -2,9 +2,6 @@ import 'dart:convert';
 
 import 'package:bomcurriculo/include/BodyAuth.dart';
 import 'package:bomcurriculo/util/Validation.dart';
-import 'package:bomcurriculo/view/ViewHome.dart';
-import 'package:bomcurriculo/view/auth/ViewForgotPassword.dart';
-import 'package:bomcurriculo/view/auth/ViewRegister.dart';
 import 'package:bomcurriculo/widget/WidgetError.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';

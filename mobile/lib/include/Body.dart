@@ -11,7 +11,6 @@ class Body extends StatefulWidget {
 }
 
 class _Body extends State<Body> {
-  static const double navbarHeight = 50.0;
   bool boolMenu = false;
 
   @override

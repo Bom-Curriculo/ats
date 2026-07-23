@@ -3,10 +3,8 @@ import 'dart:convert';
 import 'package:bomcurriculo/include/Navbar.dart';
 import 'package:bomcurriculo/service/API.dart';
 import 'package:bomcurriculo/util/Translation.dart';
-import 'package:bomcurriculo/view/resume/ViewNewResume.dart';
 import 'package:bomcurriculo/widget/WidgetButton.dart';
 import 'package:bomcurriculo/widget/WidgetResume.dart';
-import 'package:bomcurriculo/widget/WidgetScore.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 

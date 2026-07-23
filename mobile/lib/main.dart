@@ -23,11 +23,7 @@ void main() async {
   final messaging = FirebaseMessaging.instance;
 
   // 1. Solicita permissão de notificação (obrigatório para iOS e Android 13+)
-  NotificationSettings settings = await messaging.requestPermission(
-    alert: true,
-    badge: true,
-    sound: true,
-  );
+  await messaging.requestPermission(alert: true, badge: true, sound: true);
 
   // 2. Recupera o token único do seu aparelho de teste
   String? token = await messaging.getToken();
