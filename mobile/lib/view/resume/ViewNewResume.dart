@@ -132,6 +132,7 @@ class _ViewNewResume extends State<ViewNewResume> {
       files,
     );
     debugPrint(response.body);
+    if (!mounted) return;
     context.go("/");
     //Navigator.push(
     //  context,
