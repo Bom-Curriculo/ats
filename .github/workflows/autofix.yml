@@ -4,6 +4,14 @@ name: Autofix (Pint / dart format)
 # proprio repositorio (inclusive dependabot). Usa pull_request_target pra
 # poder commitar de volta no branch do PR mesmo quando ele veio de um
 # GITHUB_TOKEN somente-leitura (caso do dependabot em pull_request comum).
+#
+# O push usa o secret AUTOFIX_PAT (Personal Access Token) em vez do
+# GITHUB_TOKEN padrao. Isso e necessario porque o GitHub nao dispara novos
+# workflows a partir de um push feito com o GITHUB_TOKEN (protecao
+# anti-loop) - sem o PAT, os checks de verdade (Pint --test, flutter
+# analyze, flutter test) nao rodariam de novo no commit corrigido. Sem o
+# secret configurado, cai no GITHUB_TOKEN mesmo assim (correcao ainda
+# acontece, so nao re-dispara os outros checks sozinha).
 on:
   pull_request_target:
     branches: [main, development]
@@ -27,6 +35,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+          token: ${{ secrets.AUTOFIX_PAT || secrets.GITHUB_TOKEN }}
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -64,6 +73,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+          token: ${{ secrets.AUTOFIX_PAT || secrets.GITHUB_TOKEN }}
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
